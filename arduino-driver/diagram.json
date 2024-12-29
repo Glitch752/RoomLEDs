@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -67.2, "left": 52.84, "attrs": {} },
+    {
+      "type": "wokwi-led-ring",
+      "id": "ring1",
+      "top": -157.76,
+      "left": -181.21,
+      "attrs": { "pixels": "16" }
+    },
+    {
+      "type": "wokwi-led-ring",
+      "id": "ring2",
+      "top": -33.49,
+      "left": -281.86,
+      "rotate": 270,
+      "attrs": { "pixels": "16" }
+    },
+    {
+      "type": "wokwi-led-ring",
+      "id": "ring3",
+      "top": 95.96,
+      "left": -181.59,
+      "rotate": 180,
+      "attrs": { "pixels": "16" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 76,
+      "left": 1.4,
+      "rotate": 270,
+      "attrs": { "color": "red" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:5V", "ring2:VCC", "red", [ "h-67.05", "v-86.4" ] ],
+    [ "ring1:VCC", "esp:5V", "red", [ "v52.8", "h0", "v0", "h105.6", "v86.4" ] ],
+    [ "esp:5V", "ring3:VCC", "red", [ "h-67.05", "v-86.4", "h-96" ] ],
+    [ "ring3:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "esp:GND.1", "ring1:GND", "black", [ "h0" ] ],
+    [ "ring2:GND", "esp:GND.1", "black", [ "h9.6", "v28.8" ] ],
+    [ "ring3:DOUT", "ring2:DIN", "green", [ "v0" ] ],
+    [ "ring2:DOUT", "ring1:DIN", "green", [ "h0" ] ],
+    [ "esp:25", "ring3:DIN", "green", [ "v0", "h-134.25" ] ],
+    [ "esp:13", "led1:A", "green", [ "h0" ] ],
+    [ "esp:GND.1", "led1:C", "black", [ "h-9.45", "v19.2" ] ]
+  ],
+  "dependencies": {}
+}
