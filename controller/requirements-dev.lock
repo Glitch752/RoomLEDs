@@ -10,3 +10,7 @@
 #   universal: false
 
 -e file:.
+cobs==1.2.1
+    # via controller
+pyserial==3.5
+    # via controller

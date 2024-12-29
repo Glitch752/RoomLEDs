@@ -1,6 +1,6 @@
 #define FASTLED_ESP8266_NODEMCU_PIN_ORDER
-// 50% overclock
-#define FASTLED_LED_OVERCLOCK 1.0
+// 70% overclock
+#define FASTLED_LED_OVERCLOCK 1.7
 // #define WOKWI
 
 #include <FastLED.h>
@@ -19,13 +19,13 @@
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
-#define TARGET_FPS  60
+#define TARGET_FPS  40
 
 CRGB leds[NUM_LEDS];
 
 void wait_for_serial_connection() {
   uint32_t timeout_end = millis() + 2000;
-  Serial.begin(115200);
+  Serial.begin(1000000);
   while(!Serial && timeout_end > millis()) {}
 }
 static uint32_t lastUpdate = 0;
@@ -37,23 +37,28 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  lastUpdate = millis();
+  lastUpdate = micros();
 }
 
 void loop() {
-  static uint8_t hue = 0;
-  fill_rainbow(leds, NUM_LEDS, hue, 7);
+  // Read our next frame from the serial port
+  Serial.print('>'); // Indicate we're ready for the next frame
+  // Wait until we receive a '<' as an acknowledgement of an incoming frame
+  while(!Serial.available() || Serial.read() != '<') {}
+  // Read the frame
+  Serial.readBytes((char*)leds, NUM_LEDS * 3);
 
+  // Show the frame
   FastLED.show();
-  if(millis() - lastUpdate > 1000 / TARGET_FPS) {
+
+  if(micros() - lastUpdate > 1000000 / TARGET_FPS) {
     // We aren't hitting the target framerate; blink the LED
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    Serial.println("Missed target framerate; loop took " + String(millis() - lastUpdate) + "ms");
+    // Serial.println("Missed target framerate; update took " + String(micros() - lastUpdate) + "us");
   } else {
     // We are hitting the target framerate; wait until the next frame
-    delay(1000 / TARGET_FPS - (millis() - lastUpdate));
+    // Serial.println("Update took " + String(micros() - lastUpdate) + "us, leaving " + String(1000000 / TARGET_FPS - (micros() - lastUpdate)) + "us to wait");
+    delayMicroseconds(1000000 / TARGET_FPS - (micros() - lastUpdate));
   }
-  lastUpdate = millis();
-
-  hue += 5;
+  lastUpdate = micros();
 }

@@ -5,7 +5,10 @@ description = "The controller for this project."
 authors = [
     { name = "Glitch752", email = "xxGlitch752xx@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "cobs>=1.2.1",
+    "pyserial>=3.5",
+]
 readme = "README.md"
 requires-python = ">= 3.12"
 
