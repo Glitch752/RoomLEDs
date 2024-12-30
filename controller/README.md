@@ -9,3 +9,9 @@ Then, set `$SERVER_IDENTITY_FILE` to the path of the private key you just genera
 You may also optionally set `$PASSWORD` to the password for the target machine; otherwise, you'll be prompted for it when running `deploy.sh`.
 
 This is probably really insecure and bad, but I don't particularly care about the security of my lighting system for now. Hopefully I can come up with a better solution in the future.
+
+## TODO
+- [ ] Make the serial communication much more robust
+- [ ] Make a simple web interface for controlling the lights
+- [ ] Rewrite in Rust or some other language with stronger real-time guarantees
+- [ ] Possibly add error checking to the serial communication?

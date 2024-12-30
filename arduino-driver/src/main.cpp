@@ -38,13 +38,26 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   lastUpdate = micros();
+
+  Serial.setTimeout(200);
 }
 
 void loop() {
   // Read our next frame from the serial port
   Serial.print('>'); // Indicate we're ready for the next frame
+
   // Wait until we receive a '<' as an acknowledgement of an incoming frame
-  while(!Serial.available() || Serial.read() != '<') {}
+  uint32_t start_time = millis();
+  while(!Serial.available() || Serial.read() != '<') {
+    yield(); // Allow other tasks to run
+    wdt_reset(); // Reset the watchdog timer
+    if(millis() - start_time > 250) {
+      // We've been waiting for a frame for over a second; blink the LED and restart the loop
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+      return;
+    }
+  }
+
   // Read the frame
   Serial.readBytes((char*)leds, NUM_LEDS * 3);
 
@@ -55,10 +68,6 @@ void loop() {
     // We aren't hitting the target framerate; blink the LED
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     // Serial.println("Missed target framerate; update took " + String(micros() - lastUpdate) + "us");
-  } else {
-    // We are hitting the target framerate; wait until the next frame
-    // Serial.println("Update took " + String(micros() - lastUpdate) + "us, leaving " + String(1000000 / TARGET_FPS - (micros() - lastUpdate)) + "us to wait");
-    delayMicroseconds(1000000 / TARGET_FPS - (micros() - lastUpdate));
   }
   lastUpdate = micros();
 }
