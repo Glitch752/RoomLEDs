@@ -125,6 +125,7 @@ fn run_output_thread(render_state: Arc<Mutex<RenderState>>) {
     render_frame(&mut pixel_data, Duration::from_millis(0), &render_state);
 
     let mut serial_buf = [0; 1];
+    let mut reverse_scratch_buffer = [0; TOTAL_PIXELS as usize / 2 * 3];
 
     let mut last_frame_time: Instant = Instant::now();
     
@@ -172,8 +173,13 @@ fn run_output_thread(render_state: Arc<Mutex<RenderState>>) {
             // Since we move clockwise around the room and driver 1 faces in the counterclockwise direction,
             // we need to reverse the data. This means reversing 3-byte chunks, since we're sending RGB data.
             let driver_1_data = &pixel_data[0..(TOTAL_PIXELS / 2 * 3) as usize];
-            let driver_1_data: Vec<u8> = driver_1_data.chunks(3).rev().flatten().copied().collect();
-            attempt_send_frame(&mut driver_1_serial_port, &mut serial_buf, driver_1_data.as_slice());
+            // Since we can't allocate in the output thread, we need to use a scratch buffer
+            for i in 0..(TOTAL_PIXELS / 2) {
+                reverse_scratch_buffer[i as usize * 3 + 0] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 0];
+                reverse_scratch_buffer[i as usize * 3 + 1] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 1];
+                reverse_scratch_buffer[i as usize * 3 + 2] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 2];
+            }
+            attempt_send_frame(&mut driver_1_serial_port, &mut serial_buf, &reverse_scratch_buffer);
 
             // Driver 2 gets the second half of the pixel data
             let driver_2_data = &pixel_data[(TOTAL_PIXELS / 2 * 3) as usize..(TOTAL_PIXELS * 3) as usize];

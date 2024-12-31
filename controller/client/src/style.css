@@ -14,6 +14,10 @@
 body {
   margin: 0;
   padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 h1 {
@@ -27,4 +31,9 @@ p {
   margin: 0;
   padding: 1em;
   text-align: center;
+}
+
+#status {
+  text-align: left;
+  width: max(40%, 300px);
 }

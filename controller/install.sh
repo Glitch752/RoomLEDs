@@ -42,6 +42,7 @@ sudo_pass() {
 # which allows it to set the real-time priority of the thread.
 add_executable_permissions() {
   echo "Adding executable permissions to $1..."
+  # TODO: For some reason, this takes a long time to run
   sudo_pass setcap cap_sys_nice+ep $1
 }
 
@@ -145,7 +146,6 @@ else
 
   cargo build
 
-  # Add the required capabilities to the binary
   add_executable_permissions target/debug/lights-controller
 
   # Write run.sh
