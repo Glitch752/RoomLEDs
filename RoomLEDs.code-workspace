@@ -7,5 +7,7 @@
 			"path": "controller"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"editor.indentSize": 4
+	}
 }

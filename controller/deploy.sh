@@ -31,6 +31,12 @@ if [ "$1" == "quick" ]; then
   shift
 fi
 
+# Build the client
+echo "Building the client"
+cd client || exit 1
+pnpm run build
+cd .. || exit 1
+
 # Deploy the controller
 CONTROLLER_DIR="/home/$SERVER_USER/controller"
 echo "Deploying the controller to $SERVER_USER@$SERVER_IP"
@@ -44,8 +50,11 @@ fi
 # We sadly can't cross-compile, so we need to build the controller on the server
 # If doing a quick build, don't delete the existing folder so we can re-use the build cache; we can assume dependencies are already installed
 
-# Copy the controller folder
-rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" -ratlz --exclude='/.git' --filter="dir-merge,- .gitignore" . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
+# Copy the controller folder, including static even though it's ignored in .gitignore
+rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
+  --exclude='/.git' --exclude='/client' --include='/static' --filter="dir-merge,- .gitignore" \
+  --update -ratlz \
+  . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
 
 echo "Copied the controller folder"
 

@@ -13,6 +13,7 @@
       devShells.default = pkgs.mkShell {
         version = "0.1.0";
         buildInputs = with pkgs; [
+          # For the backend
           (fenix.packages.${system}.complete.withComponents [
             "cargo"
             "clippy"
@@ -23,7 +24,12 @@
 
           pkg-config
           libudev-zero
-          
+
+          # For the frontend
+          pnpm
+          nodejs
+
+          # Miscellanous
           socat
         ];
 

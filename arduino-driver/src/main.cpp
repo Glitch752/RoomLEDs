@@ -15,7 +15,7 @@
   #define NUM_LEDS    407
 #endif
 
-#define BRIGHTNESS  30
+#define BRIGHTNESS  100
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 

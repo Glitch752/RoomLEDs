@@ -38,6 +38,13 @@ sudo_pass() {
   fi
 }
 
+# We use setcap to add the cap_sys_nice capability to the binary,
+# which allows it to set the real-time priority of the thread.
+add_executable_permissions() {
+  echo "Adding executable permissions to $1..."
+  sudo_pass setcap cap_sys_nice+ep $1
+}
+
 if [ -z "$quick_install" ]; then
   # If the `curl` command doesn't exist, install it
   if ! command -v curl &> /dev/null; then
@@ -76,6 +83,13 @@ if [ -z "$quick_install" ]; then
     needs_reboot=true
   fi
 
+  # Build the project in release mode
+  echo "Building the project in release mode..."
+  cargo build --release
+
+  # Add the required capabilities to the binary
+  add_executable_permissions target/release/lights-controller
+
   # Set up a systemd service to run the controller if it doesn't already exist
   SYSTEMD_SERVICE_PATH="/etc/systemd/system/lights-controller.service"
 
@@ -102,7 +116,7 @@ EOF
   cat <<EOF > run.sh
 #!/bin/bash
 
-$(which cargo) run --release
+./target/release/lights-controller
 EOF
 
   if [ ! -f "$SYSTEMD_SERVICE_PATH" ]; then
@@ -130,6 +144,9 @@ else
   source $HOME/.cargo/env
 
   cargo build
+
+  # Add the required capabilities to the binary
+  add_executable_permissions target/debug/lights-controller
 
   # Write run.sh
   echo "Writing run.sh..."
