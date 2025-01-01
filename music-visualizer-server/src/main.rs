@@ -3,6 +3,8 @@ use std::{env, io::Read, process::Stdio};
 static TOTAL_PIXELS: u32 = 812;
 static BLOCK_SIZE: usize = 4;
 
+static FRAMERATE: u32 = 40;
+
 fn main() {
     let address = env::args().nth(1).expect("Expected address of the server");
 
@@ -32,7 +34,7 @@ fn main() {
 [general]
 
 # Accepts only non-negative values.
-framerate = 30
+framerate = {}
 
 # 'autosens' will attempt to decrease sensitivity if the bars peak. 1 = on, 0 = off
 # new as of 0.6.0 autosens of low values (dynamic range)
@@ -196,7 +198,7 @@ noise_reduction = 70
 3 = 1 # midtone
 4 = 1
 5 = 1 # treble
-"#, TOTAL_PIXELS / BLOCK_SIZE as u32);
+"#, FRAMERATE, TOTAL_PIXELS / BLOCK_SIZE as u32 + 1); // I'm unsure why we need to add 1 to get the correct number of blocks
 
     std::fs::write("/tmp/cava.conf", cava_config).expect("Failed to write cava configuration file");
 
@@ -212,7 +214,7 @@ noise_reduction = 70
     let mut stdout = cava_process.stdout.take().unwrap();
 
     // There's probably a better way to do this, but I'm not sure what it would be.
-    let mut buffer: [u8; TOTAL_PIXELS as usize / BLOCK_SIZE - 1] = [0; TOTAL_PIXELS as usize / BLOCK_SIZE - 1];
+    let mut buffer: [u8; TOTAL_PIXELS as usize / BLOCK_SIZE + 1] = [0; TOTAL_PIXELS as usize / BLOCK_SIZE + 1];
     
     loop {
         // Read the audio data from `cava`

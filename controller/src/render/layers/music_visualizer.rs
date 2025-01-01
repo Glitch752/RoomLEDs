@@ -1,4 +1,4 @@
-use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}};
+use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}, time::Duration};
 
 use color_space::Hsl;
 
@@ -39,7 +39,7 @@ impl MusicVisualizerLayer {
 }
 
 impl Layer for MusicVisualizerLayer {
-    fn render(&mut self, state: &RenderState) -> Frame {
+    fn render(&mut self, delta: Duration, state: &RenderState) -> Frame {
         static BLOCK_SIZE: usize = 4;
 
         // Read audio data from the client
@@ -50,9 +50,14 @@ impl Layer for MusicVisualizerLayer {
             self.listener.recv(&mut audio_data).unwrap();
             
             self.audio_buffer = audio_data.iter().map(|&x| x as f32).collect();
+        } else {
+            // No audio data is available, so slowly fade out the audio data to make it feel slightly more responsive
+            for i in 0..self.audio_buffer.len() {
+                self.audio_buffer[i] *= 0.5_f32.powf(delta.as_secs_f32());
+            }
         }
 
-        if self.data_last_received.is_none() || self.data_last_received.unwrap().elapsed().as_secs() > 1 {
+        if self.data_last_received.is_none() || self.data_last_received.unwrap().elapsed().as_secs() > 2 {
             // If there are no incoming connections, return pulsing red
             let mut frame = Frame::empty();
             let color = Pixel::new(

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
 use super::Layer;
@@ -20,7 +22,7 @@ impl StripeLayer {
 }
 
 impl Layer for StripeLayer {
-    fn render(&mut self, render_state: &RenderState) -> Frame {
+    fn render(&mut self, _delta: Duration, render_state: &RenderState) -> Frame {
         let mut frame = Frame::empty();
 
         for i in 0..TOTAL_PIXELS {
