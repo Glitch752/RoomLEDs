@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
+use render::frame::PresentedFrame;
 
 mod output;
 mod interface;
@@ -13,14 +14,14 @@ static TOTAL_PIXELS: u32 = 812;
 // State for rendering the lights that needs to be shared between the web server and the output thread
 #[derive(Debug, Clone)]
 struct RenderState {
-    start_hue: f64,
+    time: f64,
 
     // Statistics we collect to display on the web interface
     // We can't use a dynamic array here because allocating in the output thread is not allowed
     frame_times: [f64; FRAME_TIMES_STORED],
     frames: usize,
 
-    current_presented_frame: Option<render::PresentedFrame>,
+    current_presented_frame: Option<PresentedFrame>,
 }
 
 // Shared global state for the web application
@@ -32,7 +33,7 @@ struct LightingState {
 async fn main() {
     let lighting_state = Arc::new(LightingState {
         render_state: Arc::new(Mutex::new(RenderState {
-            start_hue: 0.0,
+            time: 0.0,
 
             frame_times: [0.0; FRAME_TIMES_STORED],
             frames: 0,
