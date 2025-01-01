@@ -138,13 +138,30 @@ EOF
     sudo_pass systemctl restart lights-controller
   fi
 else
-  # Build the project in debug mode
-  echo "Building the project in debug mode..."
-
   # Source the Cargo environment
   source $HOME/.cargo/env
 
-  cargo build
+  echo "Ensuring dependencies are installed..."
+
+  # Ensure mold is installed
+  if ! command -v mold &> /dev/null; then
+    echo "Installing mold..."
+    sudo_pass apt-get install mold -y
+  fi
+
+  # Ensure the rustc-codegen-cranelift-preview toolchain is installed
+  if ! rustup toolchain list | grep nightly &> /dev/null; then
+    echo "Installing the nightly toolchain with the cranelift backend..."
+    rustup toolchain install nightly
+    rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+  fi
+
+  # Build the project in debug mode
+  echo "Building the project in debug mode..."
+
+  # Build using mold because it's faster, use the experimental cranelift backend, and use the experimental parallel frontend
+  THREADS=$(nproc)
+  RUSTFLAGS="-Zthreads=$THREADS -Zcodegen-backend=cranelift -C link-arg=-fuse-ld=mold" cargo +nightly build
 
   add_executable_permissions target/debug/lights-controller
 

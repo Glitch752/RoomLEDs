@@ -1,26 +1,26 @@
-use assert_no_alloc::assert_no_alloc;
-use parking_lot::Mutex;
-use render::render_frame;
+use ringbuf::traits::Consumer;
 use thread_priority::{ThreadBuilderExt, ThreadPriority};
 
-use std::{io::Write, sync::Arc, time::{Duration, Instant}};
+use std::{io::Write, thread::Thread, time::Duration};
 
 use serialport::SerialPortType;
 
-use crate::{RenderState, FRAME_TIMES_STORED};
-
-mod render;
+use crate::{render::RenderRingBufConsumer, TOTAL_PIXELS};
 
 // 1M baud is the absolute highest speed we can push the ESP8266 to.
 // Sadly, with 407 pixels, this limits us to around 40 FPS.
 static DRIVER_BAUD_RATE: u32 = 1_000_000;
 
-static TOTAL_PIXELS: u32 = 814;
-
 static ARDUINO_VID: u16 = 0x10C4;
 static ARDUINO_PID: u16 = 0xEA60;
 
-fn configure_driver_serial(path: &str) -> Result<Box<dyn serialport::SerialPort>, serialport::Error> {
+fn configure_driver_serial(paths: &Vec<&str>, index: usize) -> Result<Box<dyn serialport::SerialPort>, serialport::Error> {
+    if paths.len() <= index {
+        return Err(serialport::Error { kind: serialport::ErrorKind::NoDevice, description: "".to_string() });
+    }
+
+    let path = paths[index];
+
     let mut driver_serial_port = serialport::new(path, DRIVER_BAUD_RATE)
         .timeout(Duration::from_millis(10))
         .open()?;
@@ -63,19 +63,27 @@ fn attempt_send_frame(port: &mut Result<Box<dyn serialport::SerialPort>, serialp
                 Ok(_) => (),
                 Err(e) => eprintln!("{:?}", e),
             }
+
+            // Clear the serial buffers
+            match port.clear(serialport::ClearBuffer::All) {
+                Ok(_) => (),
+                Err(e) => eprintln!("{:?}", e),
+            }
         }
-        Err(_) => (), // TODO: Try to reconnect to the serial port
+        Err(_) => {
+            // TODO: Try to reconnect to the serial port
+        }
     }
 }
 
-fn run_output_thread(render_state: Arc<Mutex<RenderState>>) {
+fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufConsumer) {
     let mut ports = serialport::available_ports().expect("Unable to list serial ports");
 
     // Find the two drivers connected over USB with the correct VID/PID
     ports.sort_by_key(|i| i.port_name.clone());
 
     // TODO: Some kind of identification handshake to make sure we don't mix up the order of the drivers
-    let mut driver_paths: Vec<&str> = ports
+    let driver_paths: Vec<&str> = ports
         .iter()
         .filter_map(|p| {
             match p.port_type.clone() {
@@ -91,20 +99,13 @@ fn run_output_thread(render_state: Arc<Mutex<RenderState>>) {
         })
         .collect();
 
-    if driver_paths.len() == 0 {
-        // TODO: Retry until we find the drivers
-        eprintln!("No drivers found with VID 0x{:04X} and PID 0x{:04X}", ARDUINO_VID, ARDUINO_PID);
-        return;
-    }
     if driver_paths.len() < 2 {
-        // Add fake drivers so we can test with only one driver
-        // TODO: Retry until we find the drivers
-        driver_paths.push("fake_driver");
+        eprintln!("Only {} devices found with VID 0x{:04X} and PID 0x{:04X}. Will retry until found.", driver_paths.len(), ARDUINO_VID, ARDUINO_PID);
     }
 
     // TODO: Better error handling when the serial port can't be opened
-    let mut driver_1_serial_port = configure_driver_serial(driver_paths[0]);
-    let mut driver_2_serial_port = configure_driver_serial(driver_paths[1]);
+    let mut driver_1_serial_port = configure_driver_serial(&driver_paths, 0);
+    let mut driver_2_serial_port = configure_driver_serial(&driver_paths, 1);
 
     match &driver_1_serial_port {
         Ok(port) => {
@@ -119,76 +120,57 @@ fn run_output_thread(render_state: Arc<Mutex<RenderState>>) {
         Err(e) => eprintln!("Failed to open driver 2 serial port: {:?}", e),
     }
 
-    // If we want to move rendering to another thread, we could use a ring buffer like https://crates.io/crates/ringbuf provides.
-    // Rendering currently takes a minimal amount of time, though, so it's not necessary.
-    let mut pixel_data: Vec<u8> = vec![0; (TOTAL_PIXELS * 3) as usize];
-    render_frame(&mut pixel_data, Duration::from_millis(0), &render_state);
-
     let mut serial_buf = [0; 1];
     let mut reverse_scratch_buffer = [0; TOTAL_PIXELS as usize / 2 * 3];
-
-    let mut last_frame_time: Instant = Instant::now();
     
-    assert_no_alloc(|| {
-        loop {
-            let start_time: Instant = Instant::now();
-            let delta = start_time - last_frame_time;
-            last_frame_time = start_time;
+    loop {
+        // Since the controller only requests frames periodically, we expect them to "self-synchronize" if we sequentially send the data.
+        // This... kind of works, but it's not perfect. I want to send the data in parallel with multiple threads and synchronize frame
+        // presentation with a signal between the drivers, but that's more complicated and this is good enough for now.
+        // TODO: Implement a better synchronization mechanism
 
-            // We should never hold a lock on the render state for a significant amount of time in other threads
-            match render_state.try_lock_for(Duration::from_millis(1)) {
-                Some(mut state) => {
-                    state.frames += 1;
-                    
-                    let frames = state.frames;
-                    state.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
-                }
-                None => {
-                    eprintln!("Warning: failed to lock render state after 1ms. This caused a dropped frame.");
-                }
+        // The render thread adds pixel data to the ring buffer
+        let mut pixel_data: Vec<u8> = vec![0; (TOTAL_PIXELS * 3) as usize];
+
+        match render_consumer.try_pop() {
+            Some(frame) => {
+                // Copy the pixel data from the frame into the output buffer
+                pixel_data.copy_from_slice(&frame.pixel_data);
             }
-
-            // TODO: This should probably be on another thread so we can guarentee we'll send pixel data at the right time
-            render_frame(&mut pixel_data, delta, &render_state);
-
-            // TODO: A simple checksum?
-
-            // Since the controller only requests frames periodically, they should "self-synchronize" to the same frame if we sequentially send the data
-
-            // Clear the serial buffers
-            if let Ok(ref mut driver_1_serial_port) = driver_1_serial_port {
-                match driver_1_serial_port.clear(serialport::ClearBuffer::All) {
-                    Ok(_) => (),
-                    Err(e) => eprintln!("{:?}", e),
-                }
+            None => {
+                // If we don't have a frame, we don't update the output
+                eprintln!("Output: no frame available from render thread. This caused a dropped frame.");
             }
-            if let Ok(ref mut driver_2_serial_port) = driver_2_serial_port {
-                match driver_2_serial_port.clear(serialport::ClearBuffer::All) {
-                    Ok(_) => (),
-                    Err(e) => eprintln!("{:?}", e),
-                }
-            }
-
-            // Driver 1 gets the first half of the pixel data
-            // Since we move clockwise around the room and driver 1 faces in the counterclockwise direction,
-            // we need to reverse the data. This means reversing 3-byte chunks, since we're sending RGB data.
-            let driver_1_data = &pixel_data[0..(TOTAL_PIXELS / 2 * 3) as usize];
-            // Since we can't allocate in the output thread, we need to use a scratch buffer
-            for i in 0..(TOTAL_PIXELS / 2) {
-                reverse_scratch_buffer[i as usize * 3 + 0] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 0];
-                reverse_scratch_buffer[i as usize * 3 + 1] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 1];
-                reverse_scratch_buffer[i as usize * 3 + 2] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 2];
-            }
-            attempt_send_frame(&mut driver_1_serial_port, &mut serial_buf, &reverse_scratch_buffer);
-
-            // Driver 2 gets the second half of the pixel data
-            let driver_2_data = &pixel_data[(TOTAL_PIXELS / 2 * 3) as usize..(TOTAL_PIXELS * 3) as usize];
-            attempt_send_frame(&mut driver_2_serial_port, &mut serial_buf, driver_2_data);
         }
-    });
+
+        // Driver 1 gets the first half of the pixel data
+        // Since we move clockwise around the room and driver 1 faces in the counterclockwise direction,
+        // we need to reverse the data. This means reversing 3-byte chunks, since we're sending RGB data.
+        let driver_1_data = &pixel_data[0..(TOTAL_PIXELS / 2 * 3) as usize];
+        // Since we want to minimize allocations in the output thread, we use a scratch buffer
+        for i in 0..(TOTAL_PIXELS / 2) {
+            reverse_scratch_buffer[i as usize * 3 + 0] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 0];
+            reverse_scratch_buffer[i as usize * 3 + 1] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 1];
+            reverse_scratch_buffer[i as usize * 3 + 2] = driver_1_data[(TOTAL_PIXELS / 2 - i - 1) as usize * 3 + 2];
+        }
+        attempt_send_frame(&mut driver_1_serial_port, &mut serial_buf, &reverse_scratch_buffer);
+        
+        // Driver 2 gets the second half of the pixel data
+        let driver_2_data = &pixel_data[(TOTAL_PIXELS / 2 * 3) as usize..(TOTAL_PIXELS * 3) as usize];
+        attempt_send_frame(&mut driver_2_serial_port, &mut serial_buf, driver_2_data);
+        
+        // If no devices are connected, sleep for a bit to avoid a busy loop.
+        // We still render frames (which can be shown in the web interface), but we don't output them.
+        if driver_1_serial_port.is_err() && driver_2_serial_port.is_err() {
+            std::thread::sleep(Duration::from_secs(1) / 20);
+        }
+        
+        // Wake up the render thread to render the next frame
+        render_thread.unpark();
+    }
 }
 
-pub fn start_output_thread(render_state: Arc<Mutex<RenderState>>) -> std::thread::JoinHandle<()> {
+pub fn start_output_thread(render_thread: Thread, render_consumer: RenderRingBufConsumer) -> std::thread::JoinHandle<()> {
     std::thread::Builder::new()
         .name("lightingOutputThread".to_string())
         .spawn_with_priority(ThreadPriority::Max, |result| {
@@ -199,7 +181,7 @@ pub fn start_output_thread(render_state: Arc<Mutex<RenderState>>) -> std::thread
                 }
             };
             
-            run_output_thread(render_state);
+            run_output_thread(render_thread, render_consumer);
         })
         .expect("Failed to create output thread")
 }

@@ -12,6 +12,3 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
-
-# We use 'static' for the build target directory. Maybe this goes against convention?
-static/

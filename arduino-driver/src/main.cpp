@@ -12,7 +12,7 @@
   #define LED_BUILTIN 13
 #else
   #define LED_PIN     5
-  #define NUM_LEDS    407
+  #define NUM_LEDS    406
 #endif
 
 #define BRIGHTNESS  100

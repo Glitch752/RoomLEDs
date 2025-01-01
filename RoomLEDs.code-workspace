@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "controller"
+		},
+		{
+			"path": "shared-types"
+		},
+		{
+			"path": "music-visualizer-server"
 		}
 	],
 	"settings": {

@@ -31,6 +31,9 @@
 
           # Miscellanous
           socat
+
+          # For the music visualization
+          cava
         ];
 
         shellHook = let additionalLibraryPath = pkgs.lib.makeLibraryPath [

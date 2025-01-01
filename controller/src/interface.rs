@@ -16,6 +16,8 @@ use tower_http::services::{ServeDir, ServeFile};
 
 use crate::{LightingState, FRAME_TIMES_STORED};
 
+static WEB_SERVER_PORT: u16 = 3000;
+
 pub async fn serve(lighting_state: Arc<LightingState>) {
     let serve_dir = ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
 
@@ -25,7 +27,7 @@ pub async fn serve(lighting_state: Arc<LightingState>) {
         .with_state(lighting_state);
 
     let listener = tokio::net::TcpListener::bind(
-            net::SocketAddr::from((Ipv4Addr::UNSPECIFIED, 3000))
+            net::SocketAddr::from((Ipv4Addr::UNSPECIFIED, WEB_SERVER_PORT))
         )
         .await
         .unwrap();
@@ -57,7 +59,6 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
     let mut interval = time::interval(Duration::from_secs(1) / 20);
 
     loop {
-        // Wait for either a message from the client or the interval to elapse
         tokio::select! {
             Some(message) = receiver.next() => {
                 // We ignore any messages from the client for now
@@ -81,6 +82,7 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
 async fn send_state_update(sender: &mut SplitSink<WebSocket, Message>, state: Arc<LightingState>) {
     // Clone the render state so we minimize the time we hold the lock
     let render_state = state.render_state.lock().clone();
+
     let frames_to_average =  min(FRAME_TIMES_STORED, render_state.frames);
     let frame_times = render_state.frame_times.iter().take(frames_to_average).cloned();
     let message = json!({
@@ -91,4 +93,8 @@ async fn send_state_update(sender: &mut SplitSink<WebSocket, Message>, state: Ar
         "min_frame_time": frame_times.clone().fold(f64::INFINITY, f64::min),
     });
     sender.send(Message::Text(message.to_string())).await.unwrap();
+
+    // We also send a binary message with the current pixel data
+    let pixel_data = render_state.current_presented_frame.as_ref().unwrap().pixel_data.clone();
+    sender.send(Message::Binary(pixel_data.to_vec())).await.unwrap();
 }

@@ -41,20 +41,26 @@ cd .. || exit 1
 CONTROLLER_DIR="/home/$SERVER_USER/controller"
 echo "Deploying the controller to $SERVER_USER@$SERVER_IP"
 
-if [ -z "$quick_install" ]; then
-  # If the folder already exists, remove it, and ensure rsync is installed
-  ssh -i "$SERVER_IDENTITY_FILE" "$SERVER_USER@$SERVER_IP" "rm -rf $CONTROLLER_DIR; if ! command -v rsync &> /dev/null; then echo \"$PASSWORD\" | sudo -S apt-get install rsync -y; fi"
-
-  echo "Removed the existing controller folder and ensured rsync is installed"
-fi
 # We sadly can't cross-compile, so we need to build the controller on the server
-# If doing a quick build, don't delete the existing folder so we can re-use the build cache; we can assume dependencies are already installed
+# If doing a quick deploy, we can assume dependencies are already installed
+
+if [ -z "$quick_install" ]; then
+  # Ensure rsync is installed
+  ssh -i "$SERVER_IDENTITY_FILE" "$SERVER_USER@$SERVER_IP" "if ! command -v rsync &> /dev/null; then echo \"$PASSWORD\" | sudo -S apt-get install rsync -y; fi"
+
+  echo "Ensured rsync is installed"
+fi
 
 # Copy the controller folder, including static even though it's ignored in .gitignore
 rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
   --exclude='/.git' --exclude='/client' --include='/static' --filter="dir-merge,- .gitignore" \
   --update -ratlz \
   . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
+
+# We also need to copy the shared-types folder
+rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
+  --update -ratlz \
+  ../shared-types/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/shared-types"
 
 echo "Copied the controller folder"
 

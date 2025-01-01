@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-assert_no_alloc = { version = "1.1.2", features = ["warn_debug"] }
 axum = { version = "0.7.9", features = ["ws"] }
 color_space = "0.5.4"
 futures = "0.3.31"
@@ -16,3 +15,5 @@ thread-priority = "1.2.0"
 tokio = { version = "1.42.0", features = ["full"] }
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6.2", features = ["fs", "trace"] }
+shared-types = { path = "../shared-types" }
+ringbuf = "0.4.7"
