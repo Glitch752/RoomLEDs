@@ -1,4 +1,4 @@
-use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
+use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
 use super::Layer;
 
@@ -20,7 +20,7 @@ impl StripeLayer {
 }
 
 impl Layer for StripeLayer {
-    fn render(&self, render_state: &RenderState) -> Frame {
+    fn render(&mut self, render_state: &RenderState) -> Frame {
         let mut frame = Frame::empty();
 
         for i in 0..TOTAL_PIXELS {
@@ -35,8 +35,10 @@ impl Layer for StripeLayer {
 
             let fade = 1. - (stripe_pos % self.stripe_width) / self.stripe_width;
 
-            frame.pixel_data[i as usize] = rgb.into();
-            frame.pixel_data[i as usize].alpha = fade;
+            let mut pixel: Pixel = rgb.into();
+            pixel.alpha = fade;
+
+            frame.set_pixel(i, pixel);
         }
 
         frame

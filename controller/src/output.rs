@@ -120,6 +120,9 @@ fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufCo
         Err(e) => eprintln!("Failed to open driver 2 serial port: {:?}", e),
     }
 
+    // The render thread adds pixel data to the ring buffer
+    let mut pixel_data: Vec<u8> = vec![0; (TOTAL_PIXELS * 3) as usize];
+
     let mut serial_buf = [0; 1];
     let mut reverse_scratch_buffer = [0; TOTAL_PIXELS as usize / 2 * 3];
     
@@ -128,9 +131,6 @@ fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufCo
         // This... kind of works, but it's not perfect. I want to send the data in parallel with multiple threads and synchronize frame
         // presentation with a signal between the drivers, but that's more complicated and this is good enough for now.
         // TODO: Implement a better synchronization mechanism
-
-        // The render thread adds pixel data to the ring buffer
-        let mut pixel_data: Vec<u8> = vec![0; (TOTAL_PIXELS * 3) as usize];
 
         match render_consumer.try_pop() {
             Some(frame) => {

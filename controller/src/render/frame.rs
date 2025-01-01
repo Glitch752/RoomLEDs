@@ -1,4 +1,4 @@
-use color_space::Rgb;
+use color_space::{Hsl, Rgb};
 
 use crate::TOTAL_PIXELS;
 
@@ -33,9 +33,16 @@ impl From<Rgb> for Pixel {
     }
 }
 
+impl From<Hsl> for Pixel {
+    fn from(hsl: Hsl) -> Self {
+        let rgb: Rgb = hsl.into();
+        rgb.into()
+    }
+}
+
 /// A frame is a single set of pixel data.
 pub struct Frame {
-    pub pixel_data: Vec<Pixel>
+    pixel_data: Vec<Pixel>
 }
 
 impl Frame {
@@ -43,6 +50,18 @@ impl Frame {
         Frame {
             pixel_data: vec![Pixel::new(0, 0, 0, 0.0); 812]
         }
+    }
+
+    pub fn set_pixel(&mut self, index: u32, pixel: Pixel) {
+        self.pixel_data[index as usize] = pixel;
+    }
+
+    pub fn get_pixel(&self, index: u32) -> Pixel {
+        self.pixel_data[index as usize].clone()
+    }
+
+    pub fn get_pixel_mut(&mut self, index: u32) -> &mut Pixel {
+        &mut self.pixel_data[index as usize]
     }
 }
 

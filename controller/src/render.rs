@@ -8,7 +8,7 @@ use parking_lot::Mutex;
 use ringbuf::{traits::{Observer, Producer, Split}, StaticRb};
 use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 
-use crate::{RenderState, FRAME_TIMES_STORED, TOTAL_PIXELS};
+use crate::{RenderState, FRAME_TIMES_STORED};
 
 mod layers;
 mod filters;
@@ -23,23 +23,10 @@ type RenderRingBuf = StaticRb::<PresentedFrame, RENDER_BUFFER_SIZE>;
 pub type RenderRingBufConsumer = <RenderRingBuf as Split>::Cons;
 type RenderRingBufProducer = <RenderRingBuf as Split>::Prod;
 
-pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>) -> Option<PresentedFrame> {
-    // This is a temporary setup; I want to create a better builder pattern for this
-    let compositor = compositors::AdditiveCompositor;
-    let layers = vec![
-        layers::StripeLayer::new(TOTAL_PIXELS  as f64 / 28., vec![
-            (255, 0, 0),
-            (255, 100, 0),
-            (255, 255, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (143, 0, 255),
-            (255, 255, 255),
-        ], 100.0),
-    ];
-    let filters = vec![
-        filters::GammaCorrectionFilter::new(2.2)
-    ];
+type RenderConstructs = (Vec<Box<dyn Layer>>, Box<dyn Compositor>, Vec<Box<dyn Filter>>);
+
+pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, render_constructs: &mut RenderConstructs) -> Option<PresentedFrame> {
+    let (layers, compositor, filters) = render_constructs;
 
     // We should never hold a lock on the render state for a significant amount of time in other threads
     match render_state.try_lock_for(Duration::from_millis(1)) {
@@ -53,7 +40,7 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>) -> 
 
 
             // Render the layers
-            let rendered_layers = layers.iter()
+            let rendered_layers = layers.iter_mut()
                 .map(|layer| layer.render(&*state))
                 .collect::<Vec<_>>();
 
@@ -79,13 +66,33 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>) -> 
 fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: RenderRingBufProducer) {
     let mut last_frame_time = std::time::Instant::now();
 
+    // This is a temporary setup; I want to create a better builder pattern for this
+    let compositor: Box<dyn Compositor> = Box::new(compositors::AdditiveCompositor);
+    let layers: Vec<Box<dyn Layer>> = vec![
+        // layers::StripeLayer::new(TOTAL_PIXELS  as f64 / 28., vec![
+        //     (255, 0, 0),
+        //     (255, 100, 0),
+        //     (255, 255, 0),
+        //     (0, 255, 0),
+        //     (0, 0, 255),
+        //     (143, 0, 255),
+        //     (255, 255, 255),
+        // ], 86.0),
+        Box::new(layers::MusicVisualizerLayer::new(3001))
+    ];
+    let filters: Vec<Box<dyn Filter>> = vec![
+        Box::new(filters::GammaCorrectionFilter::new(2.2))
+    ];
+
+    let mut render_constructs: RenderConstructs = (layers, compositor, filters);
+
     loop {
         loop {
             let start_time = std::time::Instant::now();
             let delta = start_time - last_frame_time;
             last_frame_time = start_time;
     
-            if let Some(frame) = render_frame(delta, &render_state) {
+            if let Some(frame) = render_frame(delta, &render_state, &mut render_constructs) {
                 // It's possible that we continue looping but the ring buffer is full in
                 // some edge cases. In that case, we just drop the frame.
                 _ = producer.try_push(frame);
