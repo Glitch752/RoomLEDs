@@ -10,10 +10,12 @@ pub struct AdditiveCompositorEffect {
 }
 
 impl AdditiveCompositorEffect {
-    pub fn new(effects: Vec<Box<dyn Effect>>) -> AdditiveCompositorEffect {
-        AdditiveCompositorEffect {
+    /// Creates a new additive compositor effect with the specified effects.
+    /// Returns a boxed effect.
+    pub fn new(effects: Vec<Box<dyn Effect>>) -> Box<AdditiveCompositorEffect> {
+        Box::new(AdditiveCompositorEffect {
             effects
-        }
+        })
     }
 }
 

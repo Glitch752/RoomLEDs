@@ -23,17 +23,19 @@ pub struct MusicVisualizerEffect {
 }
 
 impl MusicVisualizerEffect {
-    pub fn new(port: u16) -> Self {
+    /// Creates a new music visualizer effect that listens on the specified port.
+    /// Returns a boxed effect.
+    pub fn new(port: u16) -> Box<Self> {
         let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
         listener.set_nonblocking(true).unwrap();
 
         println!("Music visualizer effect listening on port {}", port);
         
-        Self {
+        Box::new(Self {
             listener,
             audio_buffer: vec![],
             data_last_received: None
-        }
+        })
     }
 }
 
@@ -63,6 +65,9 @@ impl Effect for MusicVisualizerEffect {
                 255, 0, 0,
                 (state.time * 2.).sin() * 0.4 + 0.4
             );
+            for i in -5_i32..5 {
+                frame.set_pixel(i.rem_euclid(TOTAL_PIXELS as i32) as u32, color.clone());
+            }
             for i in (TOTAL_PIXELS / 2 - 5)..(TOTAL_PIXELS / 2 + 5) {
                 frame.set_pixel(i, color.clone());
             }

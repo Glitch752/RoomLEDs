@@ -8,10 +8,12 @@ pub struct AlphaCompositorEffect {
 }
 
 impl AlphaCompositorEffect {
-    pub fn new(effects: Vec<Box<dyn Effect>>) -> AlphaCompositorEffect {
-        AlphaCompositorEffect {
+    /// Creates a new alpha compositor effect with the specified effects.
+    /// Returns a boxed effect.
+    pub fn new(effects: Vec<Box<dyn Effect>>) -> Box<AlphaCompositorEffect> {
+        Box::new(AlphaCompositorEffect {
             effects
-        }
+        })
     }
 }
 

@@ -61,7 +61,10 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     // This is a temporary setup; I want to create a better builder pattern for this
     // TODO: Rotate to align with room axis of symmetry
 
-    let effect: Box<dyn Effect> = Box::new(effects::MusicVisualizerEffect::new(3001));
+    let effect: Box<dyn Effect> = effects::RotateEffect::new(
+        effects::MusicVisualizerEffect::new(3001),
+        -220
+    );
 
     // Box::new(effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
     //     (255, 0, 0),
