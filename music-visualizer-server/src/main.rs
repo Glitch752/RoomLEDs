@@ -216,9 +216,18 @@ noise_reduction = 70
     // There's probably a better way to do this, but I'm not sure what it would be.
     let mut buffer: [u8; TOTAL_PIXELS as usize / BLOCK_SIZE + 1] = [0; TOTAL_PIXELS as usize / BLOCK_SIZE + 1];
     
+    let mut exponential_backoff = std::time::Duration::from_secs(1);
+
     loop {
         // Read the audio data from `cava`
         stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
-        udp_socket.send(&buffer).unwrap();
+        if let Err(e) = udp_socket.send(&buffer) {
+            eprintln!("Failed to send audio data to server: {}", e);
+            std::thread::sleep(exponential_backoff);
+            exponential_backoff *= 2;
+            exponential_backoff = std::cmp::min(exponential_backoff, std::time::Duration::from_secs(120));
+        } else {
+            exponential_backoff = std::time::Duration::from_secs(1);
+        }
     }
 }

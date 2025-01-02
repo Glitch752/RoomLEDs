@@ -1,17 +1,29 @@
 use crate::{render::frame::Frame, TOTAL_PIXELS};
 
-use super::Compositor;
+use super::Effect;
 
-/// An alpha compositor composites layers together using alpha blending.
-pub struct AlphaCompositor;
+/// An alpha compositor composites other effects together using alpha blending.
+pub struct AlphaCompositorEffect {
+    effects: Vec<Box<dyn Effect>>
+}
 
-impl Compositor for AlphaCompositor {
-    fn composite(&self, layers: Vec<Frame>) -> Frame {
+impl AlphaCompositorEffect {
+    pub fn new(effects: Vec<Box<dyn Effect>>) -> AlphaCompositorEffect {
+        AlphaCompositorEffect {
+            effects
+        }
+    }
+}
+
+impl Effect for AlphaCompositorEffect {
+    fn render(&mut self, delta: std::time::Duration, render_state: &crate::RenderState) -> Frame {
         let mut final_frame = Frame::empty();
 
-        for layer in layers {
+        for effect in &mut self.effects {
+            let rendered_frame = effect.render(delta, render_state);
+
             for i in 0..TOTAL_PIXELS {
-                let pixel = layer.get_pixel(i);
+                let pixel = rendered_frame.get_pixel(i);
                 let final_pixel = final_frame.get_pixel_mut(i);
 
                 let alpha = pixel.alpha;

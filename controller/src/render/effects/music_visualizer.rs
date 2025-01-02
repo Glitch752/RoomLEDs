@@ -4,12 +4,12 @@ use color_space::Hsl;
 
 use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
-use super::Layer;
+use super::Effect;
 
-/// The music visualizer layer runs a TCP socket server that listens for
+/// The music visualizer effect runs a TCP socket server that listens for
 /// audio data from the music visualizer client. Then, it renders the audio
 /// data as a visualizer.
-pub struct MusicVisualizerLayer {
+pub struct MusicVisualizerEffect {
     /// The UDP listener that listens for audio data from the music visualizer client
     listener: UdpSocket,
 
@@ -22,13 +22,12 @@ pub struct MusicVisualizerLayer {
     data_last_received: Option<std::time::Instant>
 }
 
-impl MusicVisualizerLayer {
-    /// Creates a new music visualizer layer
+impl MusicVisualizerEffect {
     pub fn new(port: u16) -> Self {
         let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
         listener.set_nonblocking(true).unwrap();
 
-        println!("Music visualizer layer listening on port {}", port);
+        println!("Music visualizer effect listening on port {}", port);
         
         Self {
             listener,
@@ -38,7 +37,7 @@ impl MusicVisualizerLayer {
     }
 }
 
-impl Layer for MusicVisualizerLayer {
+impl Effect for MusicVisualizerEffect {
     fn render(&mut self, delta: Duration, state: &RenderState) -> Frame {
         static BLOCK_SIZE: usize = 4;
 

@@ -1,18 +1,16 @@
 use std::{sync::Arc, thread::JoinHandle, time::Duration};
 
-use compositors::Compositor;
 use filters::Filter;
 use frame::PresentedFrame;
-use layers::Layer;
+use effects::Effect;
 use parking_lot::Mutex;
 use ringbuf::{traits::{Observer, Producer, Split}, StaticRb};
 use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 
 use crate::{RenderState, FRAME_TIMES_STORED};
 
-mod layers;
+mod effects;
 mod filters;
-mod compositors;
 pub mod frame;
 
 /// The number of frames we render ahead of time. We use this to avoid
@@ -23,10 +21,10 @@ type RenderRingBuf = StaticRb::<PresentedFrame, RENDER_BUFFER_SIZE>;
 pub type RenderRingBufConsumer = <RenderRingBuf as Split>::Cons;
 type RenderRingBufProducer = <RenderRingBuf as Split>::Prod;
 
-type RenderConstructs = (Vec<Box<dyn Layer>>, Box<dyn Compositor>, Vec<Box<dyn Filter>>);
+type RenderConstructs = (Box<dyn Effect>, Vec<Box<dyn Filter>>);
 
 pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, render_constructs: &mut RenderConstructs) -> Option<PresentedFrame> {
-    let (layers, compositor, filters) = render_constructs;
+    let (effect, filters) = render_constructs;
 
     // We should never hold a lock on the render state for a significant amount of time in other threads
     match render_state.try_lock_for(Duration::from_millis(1)) {
@@ -38,17 +36,11 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, ren
             let frames = state.frames;
             state.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
 
-
-            // Render the layers
-            let rendered_layers = layers.iter_mut()
-                .map(|layer| layer.render(delta, &state))
-                .collect::<Vec<_>>();
-
-            // Compose the layers
-            let composed_frame = compositor.composite(rendered_layers);
+            // Render the effect
+            let effect_frame = effect.render(delta, &state);
 
             // Apply filters
-            let mut final_frame: PresentedFrame = composed_frame.into();
+            let mut final_frame: PresentedFrame = effect_frame.into();
             for filter in filters {
                 final_frame = filter.apply(final_frame);
             }
@@ -67,25 +59,25 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     let mut last_frame_time = std::time::Instant::now();
 
     // This is a temporary setup; I want to create a better builder pattern for this
-    let compositor: Box<dyn Compositor> = Box::new(compositors::AlphaCompositor);
-    let layers: Vec<Box<dyn Layer>> = vec![
-        Box::new(layers::MusicVisualizerLayer::new(3001)),
+    // TODO: Rotate to align with room axis of symmetry
 
-        // Box::new(layers::StripeLayer::new(TOTAL_PIXELS  as f64 / 28., vec![
-        //     (255, 0, 0),
-        //     (255, 100, 0),
-        //     (255, 255, 0),
-        //     (0, 255, 0),
-        //     (0, 0, 255),
-        //     (143, 0, 255),
-        //     (255, 255, 255),
-        // ], 86.0)),
-    ];
+    let effect: Box<dyn Effect> = Box::new(effects::MusicVisualizerEffect::new(3001));
+
+    // Box::new(effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
+    //     (255, 0, 0),
+    //     (255, 100, 0),
+    //     (255, 255, 0),
+    //     (0, 255, 0),
+    //     (0, 0, 255),
+    //     (143, 0, 255),
+    //     (255, 255, 255),
+    // ], 86.0)),
+    
     let filters: Vec<Box<dyn Filter>> = vec![
         Box::new(filters::GammaCorrectionFilter::new(2.2))
     ];
 
-    let mut render_constructs: RenderConstructs = (layers, compositor, filters);
+    let mut render_constructs: RenderConstructs = (effect, filters);
 
     loop {
         loop {

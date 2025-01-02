@@ -53,6 +53,7 @@ void loop() {
     wdt_reset(); // Reset the watchdog timer
     if(millis() - start_time > 250) {
       // We've been waiting for a frame for over a second; blink the LED and restart the loop
+      // TODO: Only keep on while waiting for a frame
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
       return;
     }

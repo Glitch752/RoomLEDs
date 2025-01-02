@@ -2,18 +2,18 @@ use std::time::Duration;
 
 use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
-use super::Layer;
+use super::Effect;
 
-/// The stripes layer renders a rotating pattern with stripes of color.
-pub struct StripeLayer {
+/// The stripes effect renders a rotating pattern with stripes of color.
+pub struct StripeEffect {
     stripe_width: f64,
     stripe_colors: Vec<(u8, u8, u8)>,
     speed: f64,
 }
 
-impl StripeLayer {
-    pub fn new(stripe_width: f64, stripe_colors: Vec<(u8, u8, u8)>, speed: f64) -> StripeLayer {
-        StripeLayer {
+impl StripeEffect {
+    pub fn new(stripe_width: f64, stripe_colors: Vec<(u8, u8, u8)>, speed: f64) -> StripeEffect {
+        StripeEffect {
             stripe_width,
             stripe_colors,
             speed,
@@ -21,7 +21,7 @@ impl StripeLayer {
     }
 }
 
-impl Layer for StripeLayer {
+impl Effect for StripeEffect {
     fn render(&mut self, _delta: Duration, render_state: &RenderState) -> Frame {
         let mut frame = Frame::empty();
 
