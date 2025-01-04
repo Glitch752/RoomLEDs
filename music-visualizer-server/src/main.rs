@@ -3,7 +3,7 @@ use std::{env, io::Read, process::Stdio};
 static TOTAL_PIXELS: u32 = 812;
 static BLOCK_SIZE: usize = 4;
 
-static FRAMERATE: u32 = 40;
+static FRAMERATE: u32 = 90;
 
 fn main() {
     let address = env::args().nth(1).expect("Expected address of the server");
@@ -218,6 +218,11 @@ noise_reduction = 70
     
     let mut exponential_backoff = std::time::Duration::from_secs(1);
 
+    // Used to measure the average data transfer rate
+    let mut total_bytes_sent = 0;
+    let mut total_packets_sent = 0;
+    let mut last_transfer_rate_update = std::time::Instant::now();
+
     loop {
         // Read the audio data from `cava`
         stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
@@ -228,6 +233,19 @@ noise_reduction = 70
             exponential_backoff = std::cmp::min(exponential_backoff, std::time::Duration::from_secs(120));
         } else {
             exponential_backoff = std::time::Duration::from_secs(1);
+
+            total_bytes_sent += buffer.len();
+            total_packets_sent += 1;
+
+            if total_packets_sent % 500 == 0 {
+                let elapsed = last_transfer_rate_update.elapsed().as_secs_f64();
+                let bytes_per_second = total_bytes_sent as f64 / elapsed;
+                let packets_per_second = 500. / elapsed;
+                println!("Average data transfer rate: {:.1} bytes/s ({:.1} packets/s - {} packets total)", bytes_per_second, packets_per_second, total_packets_sent);
+
+                total_bytes_sent = 0;
+                last_transfer_rate_update = std::time::Instant::now();
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::{render::frame::Frame, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
 
 use super::Effect;
 
@@ -21,7 +21,7 @@ impl RotateEffect {
 }
 
 impl Effect for RotateEffect {
-    fn render(&mut self, delta: std::time::Duration, render_state: &crate::RenderState) -> Frame {
+    fn render(&mut self, delta: std::time::Duration, render_state: &mut RenderState) -> Frame {
         let rendered_frame = self.effect.render(delta, render_state);
         
         let mut rotated_frame = Frame::empty();

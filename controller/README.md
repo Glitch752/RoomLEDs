@@ -12,6 +12,5 @@ This is probably really insecure and bad, but I don't particularly care about th
 
 ## TODO
 - [ ] Make the serial communication much more robust
-- [ ] Make a simple web interface for controlling the lights
-- [ ] Rewrite in Rust or some other language with stronger real-time guarantees
-- [ ] Possibly add error checking to the serial communication?
+- [X] Make a simple web interface for controlling the lights
+- [X] Rewrite in Rust or some other language with stronger real-time guarantees

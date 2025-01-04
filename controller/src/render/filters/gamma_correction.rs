@@ -11,10 +11,12 @@ pub struct GammaCorrectionFilter {
 }
 
 impl GammaCorrectionFilter {
-    pub fn new(gamma: f64) -> GammaCorrectionFilter {
-        GammaCorrectionFilter {
+    /// Creates a new gamma correction filter with the given gamma value.
+    /// Returns a boxed filter.
+    pub fn new(gamma: f64) -> Box<GammaCorrectionFilter> {
+        Box::new(GammaCorrectionFilter {
             gamma,
-        }
+        })
     }
 }
 

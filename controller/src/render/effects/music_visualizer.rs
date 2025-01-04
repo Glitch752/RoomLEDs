@@ -6,6 +6,8 @@ use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
 use super::Effect;
 
+static PACKET_FROP_FRAMES: usize = 500;
+
 /// The music visualizer effect runs a TCP socket server that listens for
 /// audio data from the music visualizer client. Then, it renders the audio
 /// data as a visualizer.
@@ -19,7 +21,11 @@ pub struct MusicVisualizerEffect {
     /// The time at which the last audio data was received
     /// If no audio data has been received in a while, the visualizer will
     /// display a pulsing red color
-    data_last_received: Option<std::time::Instant>
+    data_last_received: Option<std::time::Instant>,
+
+    /// Used to calculate last frames' packet drop rate
+    #[cfg(debug_assertions)]
+    packet_receive_frames: [bool; PACKET_FROP_FRAMES],
 }
 
 impl MusicVisualizerEffect {
@@ -34,27 +40,41 @@ impl MusicVisualizerEffect {
         Box::new(Self {
             listener,
             audio_buffer: vec![],
-            data_last_received: None
+            data_last_received: None,
+
+            #[cfg(debug_assertions)]
+            packet_receive_frames: [false; PACKET_FROP_FRAMES],
         })
     }
 }
 
 impl Effect for MusicVisualizerEffect {
-    fn render(&mut self, delta: Duration, state: &RenderState) -> Frame {
+    fn render(&mut self, delta: Duration, state: &mut RenderState) -> Frame {
         static BLOCK_SIZE: usize = 4;
 
         // Read audio data from the client
-        if self.listener.peek_from(&mut [0; 1]).is_ok() {
+        let mut looped = false;
+        let mut audio_data = vec![0; TOTAL_PIXELS as usize / BLOCK_SIZE];
+        while self.listener.peek_from(&mut [0; 1]).is_ok() {
+            looped = true;
+            self.listener.recv(&mut audio_data).unwrap();
+        }
+        
+        if looped {
+            self.audio_buffer = audio_data.iter().map(|&x| x as f32).collect();
             self.data_last_received = Some(std::time::Instant::now());
 
-            let mut audio_data = vec![0; TOTAL_PIXELS as usize / BLOCK_SIZE];
-            self.listener.recv(&mut audio_data).unwrap();
-            
-            self.audio_buffer = audio_data.iter().map(|&x| x as f32).collect();
+            #[cfg(debug_assertions)] {
+                self.packet_receive_frames[state.frames % PACKET_FROP_FRAMES] = true;
+            }
         } else {
             // No audio data is available, so slowly fade out the audio data to make it feel slightly more responsive
             for i in 0..self.audio_buffer.len() {
                 self.audio_buffer[i] *= 0.5_f32.powf(delta.as_secs_f32());
+            }
+
+            #[cfg(debug_assertions)] {
+                self.packet_receive_frames[state.frames % PACKET_FROP_FRAMES] = false;
             }
         }
 
@@ -98,6 +118,15 @@ impl Effect for MusicVisualizerEffect {
             let color = Hsl::new(hue, 0.5, lightness as f64).into();
             
             frame.set_pixel(i as u32, color);
+        }
+
+        #[cfg(debug_assertions)] {
+            // Calculate packet drop rate
+            let frames = min(state.frames, PACKET_FROP_FRAMES);
+            let packets_received = self.packet_receive_frames.iter().take(frames).filter(|&&x| x).count();
+            let packets_dropped = PACKET_FROP_FRAMES - packets_received;
+            let packet_drop_rate = packets_dropped as f64 / (packets_received + packets_dropped) as f64;
+            state.debug_text = format!("Packet drop rate over {} frames: {:.1}% ({} dropped)", frames, packet_drop_rate * 100., packets_dropped);
         }
 
         return frame;

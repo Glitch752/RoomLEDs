@@ -7,10 +7,12 @@ use parking_lot::Mutex;
 use ringbuf::{traits::{Observer, Producer, Split}, StaticRb};
 use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 
-use crate::{RenderState, FRAME_TIMES_STORED};
+use crate::{RenderState, FRAME_TIMES_STORED, TOTAL_PIXELS};
 
 mod effects;
 mod filters;
+pub mod spatial_map;
+
 pub mod frame;
 
 /// The number of frames we render ahead of time. We use this to avoid
@@ -37,16 +39,21 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, ren
             state.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
 
             // Render the effect
-            let effect_frame = effect.render(delta, &state);
+            let effect_frame = effect.render(delta, &mut state);
+
+            let mut presented_frame: PresentedFrame = effect_frame.into();
+
+            // We store the frame before applying filters so we can display it in the UI
+            // before filtering. Filters are used to correct the colors of the frame, which
+            // just makes colors look worse in the UI.
+            state.current_presented_frame = Some(presented_frame.clone());
 
             // Apply filters
-            let mut final_frame: PresentedFrame = effect_frame.into();
             for filter in filters {
-                final_frame = filter.apply(final_frame);
+                presented_frame = filter.apply(presented_frame);
             }
 
-            state.current_presented_frame = Some(final_frame.clone());
-            Some(final_frame)
+            Some(presented_frame)
         }
         None => {
             eprintln!("Warning: failed to lock render state after 1ms. This caused a dropped frame.");
@@ -59,25 +66,23 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     let mut last_frame_time = std::time::Instant::now();
 
     // This is a temporary setup; I want to create a better builder pattern for this
-    // TODO: Rotate to align with room axis of symmetry
 
     let effect: Box<dyn Effect> = effects::RotateEffect::new(
         effects::MusicVisualizerEffect::new(3001),
+        // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
+        //     (255, 0, 0),
+        //     (255, 100, 0),
+        //     (255, 255, 0),
+        //     (0, 255, 0),
+        //     (0, 0, 255),
+        //     (143, 0, 255),
+        //     (255, 255, 255),
+        // ], 86.0),
         -220
     );
-
-    // Box::new(effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
-    //     (255, 0, 0),
-    //     (255, 100, 0),
-    //     (255, 255, 0),
-    //     (0, 255, 0),
-    //     (0, 0, 255),
-    //     (143, 0, 255),
-    //     (255, 255, 255),
-    // ], 86.0)),
     
     let filters: Vec<Box<dyn Filter>> = vec![
-        Box::new(filters::GammaCorrectionFilter::new(2.2))
+        filters::GammaCorrectionFilter::new(2.2)
     ];
 
     let mut render_constructs: RenderConstructs = (effect, filters);

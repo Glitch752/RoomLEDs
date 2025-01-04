@@ -24,7 +24,7 @@ impl StripeEffect {
 }
 
 impl Effect for StripeEffect {
-    fn render(&mut self, _delta: Duration, render_state: &RenderState) -> Frame {
+    fn render(&mut self, _delta: Duration, render_state: &mut RenderState) -> Frame {
         let mut frame = Frame::empty();
 
         for i in 0..TOTAL_PIXELS {

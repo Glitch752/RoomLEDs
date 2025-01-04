@@ -1,4 +1,4 @@
-use crate::{render::frame::Frame, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
 
 use super::Effect;
 
@@ -18,7 +18,7 @@ impl AlphaCompositorEffect {
 }
 
 impl Effect for AlphaCompositorEffect {
-    fn render(&mut self, delta: std::time::Duration, render_state: &crate::RenderState) -> Frame {
+    fn render(&mut self, delta: std::time::Duration, render_state: &mut RenderState) -> Frame {
         let mut final_frame = Frame::empty();
 
         for effect in &mut self.effects {
