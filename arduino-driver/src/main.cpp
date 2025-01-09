@@ -5,7 +5,10 @@
 
 #include <stdint.h>
 
-#define DEVICE_ID 0x01 // The ID of this device; used for addressing
+#define DEVICE_ID 0x02 // The ID of this device; used for addressing
+
+// Debug mode; if enabled; the built-in LED is used to indicate status
+// #define DEBUG
 
 // Uncomment if using Wokwi simulator
 // #define WOKWI
@@ -21,7 +24,7 @@
 
 // LED settings
 // Note that this is a preprocessing layer, so anything lower than 255 will reduce the LED brightness range.
-#define DEFAULT_BRIGHTNESS 100
+#define DEFAULT_BRIGHTNESS 255
 #define LED_TYPE           WS2812B
 #define COLOR_ORDER        GRB
 
@@ -32,30 +35,38 @@
 
 CRGB leds[NUM_LEDS];
 
-void wait_for_serial_connection() {
-  uint32_t timeout_end = millis() + 2000;
-  Serial.begin(1000000);
-  while(!Serial && timeout_end > millis()) {}
-}
 static uint32_t lastUpdate = 0;
 
+enum Command {
+  INITIAL_HANDSHAKE = 'i', // Initial handshake; identify ourself and reset the LED strip
+  SET_BRIGHTNESS = 'b', // Set the brightness
+  SEND_FRAME = '<' // Send a frame
+};
+
 void setup() {
-  wait_for_serial_connection(); // Optional, but seems to help Teensy out a lot.
-  
+  Serial.begin(1000000);
+
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(DEFAULT_BRIGHTNESS);
 
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // High is off for the built-in LED
+
   lastUpdate = micros();
 
-  Serial.setTimeout(200);
+  Serial.setTimeout(500);
 }
 
 void loop() {
+  // Clear the serial buffer and wait for data to stop coming in
+  while(Serial.available() > 0) {
+    Serial.read();
+  }
+  
   Serial.print('>'); // Indicate we're ready for the next command
 
   uint32_t start_time = millis();
-  while(!Serial.available()) {
+  while(Serial.available() == 0) {
     yield(); // Allow other tasks to run
     wdt_reset(); // Reset the watchdog timer
     if(millis() - start_time > 250) {
@@ -68,21 +79,21 @@ void loop() {
   }
 
   #ifdef DEBUG
-    digitalWrite(LED_BUILTIN, false);
+    digitalWrite(LED_BUILTIN, HIGH);
   #endif
 
   int command = Serial.read();
   switch(command) {
-    case 'i': // Initial handshake; identify ourself and reset the LED strip
+    case INITIAL_HANDSHAKE:
       Serial.write(DEVICE_ID);
       FastLED.clear();
       FastLED.setBrightness(DEFAULT_BRIGHTNESS);
       FastLED.show();
       break;
-    case 'b': // Set the brightness
+    case SET_BRIGHTNESS:
       FastLED.setBrightness(Serial.read());
       break;
-    case '<': // Send a new frame
+    case SEND_FRAME:
       // Read the frame
       Serial.readBytes((char*)leds, NUM_LEDS * 3);
 
@@ -102,8 +113,9 @@ void loop() {
       #ifdef DEBUG
         for(int i = 0; i < 5; i++) {
           digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-          delay(10);
+          delay(100);
         }
+        delay(100);
       #endif
       break;
   }

@@ -21,24 +21,23 @@ fn configure_driver_serial(paths: &Vec<&str>, index: usize) -> Result<Box<dyn se
 
     let path = paths[index];
 
-    let mut driver_serial_port = serialport::new(path, DRIVER_BAUD_RATE)
+    let driver_serial_port = serialport::new(path, DRIVER_BAUD_RATE)
         .timeout(Duration::from_millis(10))
+        .data_bits(serialport::DataBits::Eight)
+        .parity(serialport::Parity::None)
+        .stop_bits(serialport::StopBits::One)
+        .flow_control(serialport::FlowControl::None)
         .open()?;
-
-    driver_serial_port.set_data_bits(serialport::DataBits::Eight)?;
-    driver_serial_port.set_parity(serialport::Parity::None)?;
-    driver_serial_port.set_stop_bits(serialport::StopBits::One)?;
-    driver_serial_port.set_flow_control(serialport::FlowControl::None)?;
-    driver_serial_port.set_timeout(Duration::from_millis(10))?;
 
     Ok(driver_serial_port)
 }
 
-fn attempt_send_frame(port: &mut Result<Box<dyn serialport::SerialPort>, serialport::Error>, serial_buf: &mut [u8; 1], data: &[u8]) {
+fn send_command(port: &mut Result<Box<dyn serialport::SerialPort>, serialport::Error>, serial_buf: &mut [u8; 1], command: u8, data: &[u8]) {
     match port {
         Ok(ref mut port) => {
             // Wait for a '>' character indicating we can start sending data
             // We basically just use a spinlock here since we need the most precise timing possible
+            serial_buf[0] = 0;
             loop {
                 match port.read(serial_buf.as_mut()) {
                     Ok(_) => {
@@ -50,30 +49,35 @@ fn attempt_send_frame(port: &mut Result<Box<dyn serialport::SerialPort>, serialp
                     Err(e) => eprintln!("{:?}", e),
                 }
             }
-            serial_buf[0] = 0;
 
-            // Send a '<' character to indicate the start of the pixel data
-            match port.write("<".as_bytes()) {
+            match port.write(&[command]) {
                 Ok(_) => (),
-                Err(e) => eprintln!("{:?}", e),
+                Err(e) => eprintln!("Writing command failed: {:?}", e),
             }
 
-            // Send the pixel data
             match port.write(data) {
                 Ok(_) => (),
-                Err(e) => eprintln!("{:?}", e),
+                Err(e) => eprintln!("Writing data failed: {:?}", e),
             }
 
             // Clear the serial buffers
             match port.clear(serialport::ClearBuffer::All) {
                 Ok(_) => (),
-                Err(e) => eprintln!("{:?}", e),
+                Err(e) => eprintln!("Clearing buffer failed: {:?}", e),
             }
         }
         Err(_) => {
             // TODO: Try to reconnect to the serial port
         }
     }
+}
+
+fn attempt_set_brightness(port: &mut Result<Box<dyn serialport::SerialPort>, serialport::Error>, serial_buf: &mut [u8; 1], brightness: u8) {
+    send_command(port, serial_buf, b'b', &[brightness])
+}
+
+fn attempt_send_frame(port: &mut Result<Box<dyn serialport::SerialPort>, serialport::Error>, serial_buf: &mut [u8; 1], data: &[u8]) {
+    send_command(port, serial_buf, b'<' as u8, data)
 }
 
 fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufConsumer) {
@@ -125,6 +129,10 @@ fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufCo
 
     let mut serial_buf = [0; 1];
     let mut reverse_scratch_buffer = [0; TOTAL_PIXELS as usize / 2 * 3];
+
+    // TEMPORARY
+    attempt_set_brightness(&mut driver_1_serial_port, &mut serial_buf, 255);
+    attempt_set_brightness(&mut driver_2_serial_port, &mut serial_buf, 255);
     
     loop {
         // Since the controller only requests frames periodically, we expect them to "self-synchronize" if we sequentially send the data.

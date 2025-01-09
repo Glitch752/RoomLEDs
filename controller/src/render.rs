@@ -68,16 +68,16 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     // This is a temporary setup; I want to create a better builder pattern for this
 
     let effect: Box<dyn Effect> = effects::RotateEffect::new(
-        effects::MusicVisualizerEffect::new(3001),
-        // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
-        //     (255, 0, 0),
-        //     (255, 100, 0),
-        //     (255, 255, 0),
-        //     (0, 255, 0),
-        //     (0, 0, 255),
-        //     (143, 0, 255),
-        //     (255, 255, 255),
-        // ], 86.0),
+        // effects::MusicVisualizerEffect::new(3001),
+        effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
+            (255, 0, 0),
+            (255, 100, 0),
+            (255, 255, 0),
+            (0, 255, 0),
+            (0, 0, 255),
+            (143, 0, 255),
+            (255, 255, 255),
+        ], 86.0),
         -220
     );
     
