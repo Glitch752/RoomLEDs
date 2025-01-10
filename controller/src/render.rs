@@ -78,6 +78,7 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
             (143, 0, 255),
             (255, 255, 255),
         ], 86.0),
+        // FlashingColorEffect::new(1., frame::Pixel::new(255, 0, 0, 1.0)),
         -220
     );
     

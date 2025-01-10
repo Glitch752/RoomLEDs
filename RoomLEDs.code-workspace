@@ -14,6 +14,7 @@
 		}
 	],
 	"settings": {
-		"editor.indentSize": 4
+		"editor.indentSize": 4,
+		"rust-analyzer.cargo.targetDir": true
 	}
 }

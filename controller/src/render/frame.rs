@@ -20,6 +20,15 @@ impl Pixel {
             alpha
         }
     }
+
+    pub fn with_alpha(&self, alpha: f64) -> Pixel {
+        Pixel {
+            r: self.r,
+            g: self.g,
+            b: self.b,
+            alpha
+        }
+    }
 }
 
 impl From<Rgb> for Pixel {
@@ -71,6 +80,13 @@ impl Frame {
 #[derive(Debug, Clone)]
 pub struct PresentedFrame {
     pub pixel_data: [u8; TOTAL_PIXELS as usize * 3]
+}
+
+impl PresentedFrame {
+    pub fn get_pixel(&self, index: u32) -> (u8, u8, u8) {
+        let index = index as usize * 3;
+        (self.pixel_data[index], self.pixel_data[index + 1], self.pixel_data[index + 2])
+    }
 }
 
 impl From<Frame> for PresentedFrame {

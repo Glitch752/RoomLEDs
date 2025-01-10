@@ -85,10 +85,12 @@ impl Effect for MusicVisualizerEffect {
                 255, 0, 0,
                 (state.time * 2.).sin() * 0.4 + 0.4
             );
-            for i in -5_i32..5 {
+
+            static PULSE_SECTION_WIDTH: i32 = 3;
+            for i in -PULSE_SECTION_WIDTH..PULSE_SECTION_WIDTH {
                 frame.set_pixel(i.rem_euclid(TOTAL_PIXELS as i32) as u32, color.clone());
             }
-            for i in (TOTAL_PIXELS / 2 - 5)..(TOTAL_PIXELS / 2 + 5) {
+            for i in (TOTAL_PIXELS / 2 - PULSE_SECTION_WIDTH as u32)..(TOTAL_PIXELS / 2 + PULSE_SECTION_WIDTH as u32) {
                 frame.set_pixel(i, color.clone());
             }
             return frame;

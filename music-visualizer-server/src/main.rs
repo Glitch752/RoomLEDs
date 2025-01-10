@@ -225,7 +225,12 @@ noise_reduction = 70
 
     loop {
         // Read the audio data from `cava`
-        stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
+        // stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
+        // Temporary: Fill the buffer with flashing red
+        // for pixel in buffer.chunks_mut(3) {
+        //     pixel.copy_from_slice(&[255, 0, 0]);
+        // }
+        std::thread::sleep(std::time::Duration::from_millis(1000 / FRAMERATE as u64));
         if let Err(e) = udp_socket.send(&buffer) {
             eprintln!("Failed to send audio data to server: {}", e);
             std::thread::sleep(exponential_backoff);

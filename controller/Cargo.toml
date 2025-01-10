@@ -18,3 +18,4 @@ tower-http = { version = "0.6.2", features = ["fs", "trace"] }
 shared-types = { path = "../shared-types" }
 ringbuf = "0.4.7"
 sysinfo = "0.33.1"
+corncobs = "0.1.3"

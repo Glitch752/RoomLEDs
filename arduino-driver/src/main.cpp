@@ -2,10 +2,13 @@
 // 70% overclock
 #define FASTLED_LED_OVERCLOCK 1.7
 #include <FastLED.h>
+#include <PacketSerial.h>
 
 #include <stdint.h>
 
-#define DEVICE_ID 0x02 // The ID of this device; used for addressing
+// The ID of this device; used for identification in the handshake.
+// IDs are 0-indexed.
+#define DEVICE_ID 0x00
 
 // Debug mode; if enabled; the built-in LED is used to indicate status
 // #define DEBUG
@@ -38,13 +41,33 @@ CRGB leds[NUM_LEDS];
 static uint32_t lastUpdate = 0;
 
 enum Command {
-  INITIAL_HANDSHAKE = 'i', // Initial handshake; identify ourself and reset the LED strip
-  SET_BRIGHTNESS = 'b', // Set the brightness
-  SEND_FRAME = '<' // Send a frame
+  COMMAND_INITIAL_HANDSHAKE = 'i', // Initial handshake; identify ourself and reset the LED strip
+  COMMAND_SET_BRIGHTNESS = 'b', // Set the brightness
+  COMMAND_SEND_FRAME = '<' // Send a frame
+};
+enum Response {
+  RESPONSE_READY = 'r', // Ready to receive a frame
+  RESPONSE_HANDSHAKE = 'i', // Handshake response
+  RESPONSE_DEBUG = 'd' // Debug response
 };
 
+// Technically, 4608000 is the maximum supported baud rate, but it's unreliable in my experience
+#define SERIAL_BAUD 1000000
+// 10 bytes of extra space is arbitrary
+#define PACKET_SERIAL_BUFFER_SIZE (NUM_LEDS * 3 + 10)
+#define COBS_PACKET_BOUNDARY 0x00
+
+// By default, PacketSerial automatically wraps the built-in `Serial` object.
+// While it is still possible to use the Serial object directly, it is
+// recommended that the user let the PacketSerial object manage all serial
+// communication.
+PacketSerial_<COBS, COBS_PACKET_BOUNDARY, PACKET_SERIAL_BUFFER_SIZE> packetSerial;
+
+void onPacketReceived(const uint8_t* buffer, size_t size);
+
 void setup() {
-  Serial.begin(1000000);
+  packetSerial.begin(1000000);
+  packetSerial.setPacketHandler(&onPacketReceived);
 
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(DEFAULT_BRIGHTNESS);
@@ -55,59 +78,84 @@ void setup() {
   lastUpdate = micros();
 
   Serial.setTimeout(500);
+
+  #ifdef DEBUG
+    sendDebugResponse("Device ID: " + String(DEVICE_ID));
+  #endif
 }
 
 void loop() {
-  // Clear the serial buffer and wait for data to stop coming in
-  while(Serial.available() > 0) {
-    Serial.read();
-  }
-  
-  Serial.print('>'); // Indicate we're ready for the next command
+  packetSerial.update();
 
-  uint32_t start_time = millis();
-  while(Serial.available() == 0) {
-    yield(); // Allow other tasks to run
-    wdt_reset(); // Reset the watchdog timer
-    if(millis() - start_time > 250) {
-      // We've been waiting for a frame for over a second; blink the LED and restart the loop
-      #ifdef DEBUG
-        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-      #endif
-      return;
+  if(packetSerial.overflow()) {
+    #ifdef DEBUG
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+      sendDebugResponse("Receive buffer overflowed");
+    #endif
+  }
+}
+
+void sendDebugResponse(String message) {
+  uint8_t response[message.length() + 1];
+  response[0] = RESPONSE_DEBUG;
+  message.getBytes(response + 1, message.length() + 1);
+  packetSerial.send(response, message.length() + 1);
+}
+
+void handle_frame(const uint8_t* buffer, size_t size) {
+  // Copy the frame data to the LED buffer
+  for(int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
+  }
+
+  // Show the frame
+  FastLED.show();
+
+  #ifdef DEBUG
+    if(micros() - lastUpdate > 1000000 / TARGET_FPS) {
+      // We aren't hitting the target framerate; blink the LED if debug mode is on
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+
+      sendDebugResponse("Frame dropped; took " + String(micros() - lastUpdate) + " µs");
     }
-  }
+  #endif
+  lastUpdate = micros();
 
+  uint8_t response[1] = {RESPONSE_READY};
+  packetSerial.send(response, 1);
+}
+
+void handle_handshake(const uint8_t* buffer, size_t size) {
+  uint8_t response[2] = {RESPONSE_HANDSHAKE, DEVICE_ID};
+  packetSerial.send(response, 2);
+  
+  FastLED.clear();
+  FastLED.setBrightness(DEFAULT_BRIGHTNESS);
+  FastLED.show();
+}
+
+// When an encoded packet is received and decoded, it will be delivered here.
+void onPacketReceived(const uint8_t* buffer, size_t size) {
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  
   #ifdef DEBUG
     digitalWrite(LED_BUILTIN, HIGH);
   #endif
 
-  int command = Serial.read();
+  int command = buffer[0];
   switch(command) {
-    case INITIAL_HANDSHAKE:
-      Serial.write(DEVICE_ID);
-      FastLED.clear();
-      FastLED.setBrightness(DEFAULT_BRIGHTNESS);
-      FastLED.show();
+    case COMMAND_INITIAL_HANDSHAKE:
+      handle_handshake(buffer + 1, size - 1);
       break;
-    case SET_BRIGHTNESS:
-      FastLED.setBrightness(Serial.read());
+    
+    case COMMAND_SET_BRIGHTNESS:
+      FastLED.setBrightness(buffer[1]);
       break;
-    case SEND_FRAME:
-      // Read the frame
-      Serial.readBytes((char*)leds, NUM_LEDS * 3);
-
-      // Show the frame
-      FastLED.show();
-
-      #ifdef DEBUG
-        if(micros() - lastUpdate > 1000000 / TARGET_FPS) {
-          // We aren't hitting the target framerate; blink the LED if debug mode is on
-          digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-        }
-      #endif
-      lastUpdate = micros();
+    
+    case COMMAND_SEND_FRAME:
+      handle_frame(buffer + 1, size - 1);
       break;
+    
     default:
       // Unknown command; ignore it
       #ifdef DEBUG
@@ -116,6 +164,8 @@ void loop() {
           delay(100);
         }
         delay(100);
+
+        sendDebugResponse("Unknown command: " + String(command));
       #endif
       break;
   }
