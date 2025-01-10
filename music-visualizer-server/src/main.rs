@@ -3,7 +3,7 @@ use std::{env, io::Read, process::Stdio};
 static TOTAL_PIXELS: u32 = 812;
 static BLOCK_SIZE: usize = 4;
 
-static FRAMERATE: u32 = 90;
+static FRAMERATE: u32 = 80;
 
 fn main() {
     let address = env::args().nth(1).expect("Expected address of the server");
@@ -225,11 +225,7 @@ noise_reduction = 70
 
     loop {
         // Read the audio data from `cava`
-        // stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
-        // Temporary: Fill the buffer with flashing red
-        // for pixel in buffer.chunks_mut(3) {
-        //     pixel.copy_from_slice(&[255, 0, 0]);
-        // }
+        stdout.read_exact(&mut buffer).expect("Failed to read audio data from cava");
         std::thread::sleep(std::time::Duration::from_millis(1000 / FRAMERATE as u64));
         if let Err(e) = udp_socket.send(&buffer) {
             eprintln!("Failed to send audio data to server: {}", e);

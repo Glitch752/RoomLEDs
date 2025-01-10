@@ -7,7 +7,7 @@ use parking_lot::Mutex;
 use ringbuf::{traits::{Observer, Producer, Split}, StaticRb};
 use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 
-use crate::{RenderState, FRAME_TIMES_STORED, TOTAL_PIXELS};
+use crate::{RenderState, FRAME_TIMES_STORED};
 
 mod effects;
 mod filters;
@@ -68,18 +68,18 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     // This is a temporary setup; I want to create a better builder pattern for this
 
     let effect: Box<dyn Effect> = effects::RotateEffect::new(
-        // effects::MusicVisualizerEffect::new(3001),
-        effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
-            (255, 0, 0),
-            (255, 100, 0),
-            (255, 255, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (143, 0, 255),
-            (255, 255, 255),
-        ], 86.0),
+        effects::MusicVisualizerEffect::new(3001),
+        // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
+        //     (255, 0, 0),
+        //     (255, 100, 0),
+        //     (255, 255, 0),
+        //     (0, 255, 0),
+        //     (0, 0, 255),
+        //     (143, 0, 255),
+        //     (255, 255, 255),
+        // ], 84.0),
         // FlashingColorEffect::new(1., frame::Pixel::new(255, 0, 0, 1.0)),
-        -220
+        -219
     );
     
     let filters: Vec<Box<dyn Filter>> = vec![

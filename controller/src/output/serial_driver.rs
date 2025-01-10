@@ -249,17 +249,18 @@ impl SerialDriver {
         _ = self.wait_for_packet_discard_others(RESPONSE_READY, Duration::from_millis(100));
 
         let mut start = location.start as usize;
-        let mut end = location.end as usize + 1;
+        let mut end = location.end as usize;
         let reverse = location.end < location.start;
         if reverse {
             (start, end) = (end, start);
         }
+        end += 1; // Inclusive range
 
         let length = end - start;
         let mut data = vec![0; length * 3];
         for i in 0..length {
             let pixel = if reverse {
-                frame.get_pixel((start - i) as u32)
+                frame.get_pixel((end - i) as u32)
             } else {
                 frame.get_pixel((start + i) as u32)
             };

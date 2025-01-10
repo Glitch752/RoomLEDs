@@ -8,7 +8,7 @@
 
 // The ID of this device; used for identification in the handshake.
 // IDs are 0-indexed.
-#define DEVICE_ID 0x00
+#define DEVICE_ID 0x01
 
 // Debug mode; if enabled; the built-in LED is used to indicate status
 // #define DEBUG
@@ -136,8 +136,6 @@ void handle_handshake(const uint8_t* buffer, size_t size) {
 
 // When an encoded packet is received and decoded, it will be delivered here.
 void onPacketReceived(const uint8_t* buffer, size_t size) {
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  
   #ifdef DEBUG
     digitalWrite(LED_BUILTIN, HIGH);
   #endif
