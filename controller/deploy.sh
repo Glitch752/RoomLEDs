@@ -57,10 +57,10 @@ rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
   --update -ratlz \
   . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
 
-# We also need to copy the shared-types folder
+# We also need to copy the shared folder
 rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
   --update -ratlz \
-  ../shared-types/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/shared-types"
+  ../shared/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/shared"
 
 echo "Copied the controller folder"
 

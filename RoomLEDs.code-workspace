@@ -7,10 +7,10 @@
 			"path": "controller"
 		},
 		{
-			"path": "shared-types"
+			"path": "shared"
 		},
 		{
-			"path": "music-visualizer-server"
+			"path": "roomlightsctl"
 		}
 	],
 	"settings": {

@@ -24,6 +24,7 @@
 
           pkg-config
           libudev-zero
+          openssl # For reqwest
 
           # For the frontend
           pnpm
