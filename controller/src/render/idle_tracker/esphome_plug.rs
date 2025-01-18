@@ -18,10 +18,8 @@ impl ESPHomePlug {
 
 impl PowerDevice for ESPHomePlug {
     fn get_stats(&self) -> Option<PowerStats> {
-        // It's okay to use the blocking client here, since we should
-        // only change the power state infrequently and when there isn't any
-        // other important data to send anyway.
-        // Maybe this should be in the render thread instead, though.
+        // TODO: Use async here
+        
         let power_usage_result =
             reqwest::blocking::get(&format!("http://{}/sensor/{}", self.ip, self.power_sensor_id))
             .ok()?
@@ -34,16 +32,15 @@ impl PowerDevice for ESPHomePlug {
     }
 
     fn set_power(&self, power: bool) {
-        // It's okay to use the blocking client here, since we should
-        // only change the power state infrequently and when there isn't any
-        // other important data to send anyway.
-        // Maybe this should be in the render thread instead, though.
+        // TODO: Use async here
 
-        match reqwest::blocking::get(
-            &format!("http://{}/switch/{}/turn_{}", self.ip, self.switch_id, if power { "on" } else { "off" })
-        ) {
-            Ok(_) => (),
-            Err(e) => eprintln!("Error setting power: {:?}", e)
+        println!("Setting power to: {}", power);
+
+        let url = format!("http://{}/switch/{}/turn_{}", self.ip, self.switch_id, if power { "on" } else { "off" });
+        // Send a post request to the switch to turn it on or off
+        match reqwest::blocking::Client::new().post(&url).send() {
+            Ok(_) => println!("Successfully set power to: {}", power),
+            Err(e) => eprintln!("Failed to set power to: {}: {:?}", power, e)
         }
     }
 }

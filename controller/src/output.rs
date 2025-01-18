@@ -7,7 +7,6 @@ use std::{thread::Thread, time::Duration};
 use crate::render::RenderRingBufConsumer;
 
 mod serial_driver;
-mod idle_tracker;
 
 fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufConsumer) {
     let mut drivers = SerialDriver::get_all_connected_drivers();
@@ -22,16 +21,6 @@ fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufCo
         eprintln!("Output: too many drivers connected! Only the first two will be used.");
         drivers.truncate(2);
     }
-
-    let idle_tracker = idle_tracker::IdleTracker::new(
-        Duration::from_secs(60),
-        || false,
-        Box::new(idle_tracker::esphome_plug::ESPHomePlug::new(
-            "192.168.68.131".to_string(),
-            "kauf_plug".to_string(),
-            "kauf_plug_power".to_string(),
-        ))
-    ); // TODO
 
     loop {
         // Since the controller only requests frames periodically, we expect them to "self-synchronize" if we sequentially send the data.

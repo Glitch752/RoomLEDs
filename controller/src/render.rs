@@ -14,6 +14,7 @@ mod filters;
 pub mod spatial_map;
 
 pub mod frame;
+mod idle_tracker;
 
 /// The number of frames we render ahead of time. We use this to avoid
 /// dropping frames if the render thread runs slightly behind for a frame.
@@ -88,6 +89,16 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
 
     let mut render_constructs: RenderConstructs = (effect, filters);
 
+    let mut idle_tracker = idle_tracker::IdleTracker::new(
+        Duration::from_secs(5 * 60),
+        Duration::from_secs(0),
+        Box::new(idle_tracker::esphome_plug::ESPHomePlug::new(
+            "192.168.68.131".to_string(),
+            "kauf_plug".to_string(),
+            "kauf_plug_power".to_string(),
+        ))
+    );
+
     loop {
         loop {
             let start_time = std::time::Instant::now();
@@ -95,6 +106,8 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
             last_frame_time = start_time;
     
             if let Some(frame) = render_frame(delta, &render_state, &mut render_constructs) {
+                idle_tracker.update(&frame);
+
                 // It's possible that we continue looping but the ring buffer is full in
                 // some edge cases. In that case, we just drop the frame.
                 _ = producer.try_push(frame);

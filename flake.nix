@@ -39,6 +39,7 @@
 
         shellHook = let additionalLibraryPath = pkgs.lib.makeLibraryPath [
           pkgs.libudev-zero
+          pkgs.openssl
         ]; in ''
         LD_LIBRARY_PATH=${additionalLibraryPath}:$LD_LIBRARY_PATH
         '';

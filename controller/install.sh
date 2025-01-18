@@ -64,6 +64,12 @@ if [ -z "$quick_install" ]; then
     sudo_pass apt-get install libudev-dev -y
   fi
 
+  # If libssl-dev isn't installed, install it
+  if ! dpkg -l | grep libssl-dev &> /dev/null; then
+    echo "Installing libssl-dev..."
+    sudo_pass apt-get install libssl-dev -y
+  fi
+
   # If $HOME/.cargo/env exists, source it
   if [ -f "$HOME/.cargo/env" ]; then
     source $HOME/.cargo/env
@@ -85,7 +91,7 @@ if [ -z "$quick_install" ]; then
 
   # Build the project in release mode
   echo "Building the project in release mode..."
-  cargo build --release
+  cargo build +nightly --release
 
   # Add the required capabilities to the binary
   add_executable_permissions target/release/lights-controller
