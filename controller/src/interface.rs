@@ -17,7 +17,8 @@ use crate::{LightingState, FRAME_TIMES_STORED};
 static WEB_SERVER_PORT: u16 = 3000;
 
 pub async fn serve(lighting_state: Arc<LightingState>) {
-    let serve_dir = ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
+    let serve_dir = ServeDir::new("static")
+        .not_found_service(ServeFile::new("static/index.html"));
 
     let api_router = Router::new()
         .route("/light_positions", get(light_positions_handler));
