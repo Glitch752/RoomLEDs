@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build --mode development --sourcemap true --watch",
+    "dev": "vite",
+    "build-dev": "vite build --mode development --sourcemap true --watch",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"

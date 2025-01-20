@@ -6,6 +6,16 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from "path";
 
 export default {
+  server: {
+    port: 5173,
+    proxy: {
+      '/websocket': {
+        target: 'ws://localhost:3000',
+        changeOrigin: true,
+        ws: true
+      }
+    }
+  },
   build: {
     outDir: '../static',
     emptyOutDir: true,
