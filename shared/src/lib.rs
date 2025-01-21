@@ -6,16 +6,18 @@ pub type LightPositions = Vec<LightPosition>;
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export)]
 pub struct LightPosition {
-    x: f32,
-    y: f32
+    pub x: f32,
+    pub y: f32
 }
 
 #[derive(TS, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[ts(export)]
 pub enum ServerToClientMessage {
-    UpdatePixelData(Vec<u8>),
-    LightPositionsUpdate(LightPositions),
+    // Pixel data updates use a binary message instead of JSON
+    // PixelDataUpdate(Vec<u8>),
+    StatusUpdate(StatusUpdateMessage),
+    SystemStatusUpdate(SystemStatusUpdateMessage),
     Initialize(InitializeMessage),
 }
 
@@ -23,6 +25,26 @@ pub enum ServerToClientMessage {
 #[ts(export)]
 pub struct InitializeMessage {
     pub light_positions: LightPositions,
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
+pub struct StatusUpdateMessage {
+    pub frames: u32,
+    pub average_window: u32,
+    pub average_frame_time: f64,
+    pub max_frame_time: f64,
+    pub min_frame_time: f64,
+    pub debug_text: String,
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
+pub struct SystemStatusUpdateMessage {
+    pub global_cpu: f32,
+    pub free_memory: f64,
+    pub total_memory: f64,
+    pub used_swap: f64
 }
 
 #[derive(TS, Serialize, Deserialize)]

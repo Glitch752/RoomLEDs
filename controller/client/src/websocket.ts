@@ -1,10 +1,41 @@
+import type { LightPosition } from "@bindings/LightPosition";
+import type { ServerToClientMessage } from "@bindings/ServerToClientMessage";
+import type { StatusUpdateMessage } from "@bindings/StatusUpdateMessage";
+import type { SystemStatusUpdateMessage } from "@bindings/SystemStatusUpdateMessage";
+import { writable } from "svelte/store";
 
 const websocket = new WebSocket(`ws://${window.location.host}/websocket`);
 websocket.binaryType = "arraybuffer";
 
+export type LightPositionData = {
+    positions: LightPosition[],
+    xMin: number,
+    xMax: number,
+    yMin: number,
+    yMax: number
+};
+
+export let lightPositions: LightPositionData | null = null;
+export let lightData = new Uint8Array(0);
+export let statusMessage = writable("");
+
+let currentData: StatusUpdateMessage = {
+    frames: 0,
+    average_window: 0,
+    average_frame_time: 0,
+    max_frame_time: 0,
+    min_frame_time: 0,
+    debug_text: ""
+};
+let currentSystemData: SystemStatusUpdateMessage = {
+    global_cpu: 0,
+    free_memory: 0,
+    total_memory: 0,
+    used_swap: 0
+};
+
 websocket.onopen = () => {
     console.log("Connection opened");
-    websocket.send("Hello from the client!");
 };
 websocket.onclose = () => {
     console.log("Connection closed");
@@ -12,89 +43,58 @@ websocket.onclose = () => {
 websocket.onmessage = (e: MessageEvent) => {
     // If the message is a string, it's a JSON update. If binary, it's an update on the state of the lights.
     if(typeof e.data === "string") {
-        const data = JSON.parse(e.data);
-        currentData = mergeIntoObject(currentData, data);
-        updateStatus();
-    } else if(e.data instanceof ArrayBuffer) {
-        const data = new Uint8Array(e.data);
-
-        // let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-        // for(const [x, y] of data) {
-        //     xMin = Math.min(xMin, x);
-        //     xMax = Math.max(xMax, x);
-        //     yMin = Math.min(yMin, y);
-        //     yMax = Math.max(yMax, y);
-        // }
-
-        // const margin = 0.1;
-        // xMin -= (xMax - xMin) * margin;
-        // xMax += (xMax - xMin) * margin;
-        // yMin -= (yMax - yMin) * margin;
-        // yMax += (yMax - yMin) * margin;
-
-        // lightPositions = {
-        //     positions: data,
-        //     xMin, xMax, yMin, yMax
-        // };
-    }
-};
-
-function mergeIntoObject<T>(obj: T, ...sources: Partial<T>[]): T {
-    for(const source of sources) {
-        for(const key in source) {
-            if(source[key] !== undefined) {
-                obj[key] = source[key];
-            }
+        const data: ServerToClientMessage = JSON.parse(e.data);
+        switch(data.type) {
+            case "Initialize":
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                for(const light of data.light_positions) {
+                    minX = Math.min(minX, light.x);
+                    maxX = Math.max(maxX, light.x);
+                    minY = Math.min(minY, light.y);
+                    maxY = Math.max(maxY, light.y);
+                }
+                lightPositions = {
+                    positions: data.light_positions,
+                    xMin: minX,
+                    xMax: maxX,
+                    yMin: minY,
+                    yMax: maxY
+                };
+                break;
+            case "StatusUpdate":
+                currentData = data;
+                updateStatus();
+                break;
+            case "SystemStatusUpdate":
+                currentSystemData = data;
+                updateStatus();
+                break;
+            default:
+                const _exhaustiveCheck: never = data;
+                console.error("Unhandled message type: ", data);
+                break;
         }
-    }
-    return obj;
-}
-
-type LightingData = {
-    frames: number;
-    average_window: number;
-    average_frame_time: number;
-    max_frame_time: number;
-    min_frame_time: number;
-    debug_text: string;
-    system: {
-        global_cpu: number;
-        free_memory: number;
-        total_memory: number;
-        used_swap: number;
-    };
-};
-let currentData: LightingData = {
-    frames: 0,
-    average_window: 0,
-    average_frame_time: 0,
-    max_frame_time: 0,
-    min_frame_time: 0,
-    debug_text: "",
-    system: {
-        global_cpu: 0,
-        free_memory: 0,
-        total_memory: 0,
-        used_swap: 0
+    } else if(e.data instanceof ArrayBuffer) {
+        lightData = new Uint8Array(e.data);
     }
 };
 
 function updateStatus() {
     const data = currentData;
 
-//     status.innerHTML = `
-// Frames: ${data.frames}<br>
-// <br>
-// <b>Frame times over the last ${data.average_window} frames:</b><br>
-// Average frame time: ${Math.round(data.average_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.average_frame_time)}fps)<br>
-// Max frame time: ${Math.round(data.max_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.max_frame_time)}fps)<br>
-// Min frame time: ${Math.round(data.min_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.min_frame_time)}fps)<br>
-// <br>
-// Debug text: ${data.debug_text}<br>
-// <br>
-// <b>System:</b><br>
-// Global CPU: ${Math.round(data.system.global_cpu * 10) / 10}%<br>
-// Free memory: ${Math.round(data.system.free_memory / 1024 / 1024)}MB / ${Math.round(data.system.total_memory / 1024 / 1024)}MB (${Math.round(data.system.free_memory / data.system.total_memory * 100)}%)<br>
-// Used swap: ${Math.round(data.system.used_swap / 1024 / 1024 * 10) / 10}MB
-// `;
+    statusMessage.set(`
+Frames: ${data.frames}<br>
+<br>
+<b>Frame times over the last ${data.average_window} frames:</b><br>
+Average frame time: ${Math.round(data.average_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.average_frame_time)}fps)<br>
+Max frame time: ${Math.round(data.max_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.max_frame_time)}fps)<br>
+Min frame time: ${Math.round(data.min_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.min_frame_time)}fps)<br>
+<br>
+Debug text: ${data.debug_text}<br>
+<br>
+<b>System:</b><br>
+Global CPU: ${Math.round(currentSystemData.global_cpu * 10) / 10}%<br>
+Free memory: ${Math.round(currentSystemData.free_memory / 1024 / 1024)}MB / ${Math.round(currentSystemData.total_memory / 1024 / 1024)}MB (${Math.round(currentSystemData.free_memory / currentSystemData.total_memory * 100)}%)<br>
+Used swap: ${Math.round(currentSystemData.used_swap / 1024 / 1024 * 10) / 10}MB
+`);
 }

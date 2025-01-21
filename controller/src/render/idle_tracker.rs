@@ -9,7 +9,7 @@ pub mod esphome_plug;
  * We always send an update at this interval, so we can be sure we don't
  * accidentally leave the lights in the wrong state somehow.
  */
-static POWER_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
+static POWER_UPDATE_INTERVAL: Duration = Duration::from_secs(60 * 10);
 
 /**
  * Tracks when the lights are idle and disables power to them.

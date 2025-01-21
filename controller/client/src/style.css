@@ -32,8 +32,3 @@ p {
   padding: 1em;
   text-align: center;
 }
-
-#status {
-  text-align: left;
-  width: max(40%, 300px);
-}

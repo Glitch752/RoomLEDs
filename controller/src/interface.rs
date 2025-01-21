@@ -7,7 +7,7 @@ use axum::{
     }, response::IntoResponse, routing::get, Json, Router
 };
 use futures::{stream::SplitSink, SinkExt, StreamExt};
-use serde_json::json;
+use shared::{ServerToClientMessage, StatusUpdateMessage};
 use sysinfo::{CpuRefreshKind, MemoryRefreshKind, RefreshKind};
 use tokio::time;
 use tower_http::services::{ServeDir, ServeFile};
@@ -54,16 +54,40 @@ async fn websocket_handler(
     ws.on_upgrade(|socket| websocket(socket, state))
 }
 
+struct WebsocketSender {
+    sender: SplitSink<WebSocket, Message>
+}
+
+impl WebsocketSender {
+    async fn send(&mut self, message: ServerToClientMessage) -> Result<(), axum::Error> {
+        self.sender.send(Message::Text(serde_json::to_string(&message).unwrap())).await
+    }
+    async fn send_binary(&mut self, message: Vec<u8>) -> Result<(), axum::Error> {
+        self.sender.send(Message::Binary(message)).await
+    }
+}
+
 // This function deals with a single websocket connection, i.e., a single
 // connected client / user, for which we will spawn two independent tasks (for
 // receiving / sending chat messages).
 async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
     // By splitting, we can send and receive at the same time.
-    let (mut sender, mut receiver) = stream.split();
+    let (sender, mut receiver) = stream.split();
+    let mut websocket_sender = WebsocketSender { sender };
+
+    let light_positions = state.render_state.lock().pixel_locations.clone()
+        .iter().map(|location| shared::LightPosition {
+            x: location.x,
+            y: location.y
+        }).collect();
+
+    websocket_sender.send(ServerToClientMessage::Initialize(shared::InitializeMessage {
+        light_positions
+    }).into()).await.unwrap();
 
     // While this stream is open, periodically (20 times per second) send an update
     // to the client with the current state of the lights.
-    send_frequent_state_update(&mut sender, state.clone()).await;
+    send_frequent_state_update(&mut websocket_sender, state.clone()).await;
 
     let mut system = sysinfo::System::new();
 
@@ -85,53 +109,52 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
                 }
             }
             _ = fast_interval.tick() => {
-                send_frequent_state_update(&mut sender, state.clone()).await;
+                send_frequent_state_update(&mut websocket_sender, state.clone()).await;
             }
             _ = slow_interval.tick() => {
-                send_infrequent_state_update(&mut sender, &mut system).await;
+                send_infrequent_state_update(&mut websocket_sender, &mut system).await;
             }
         }
     }
 }
 
-async fn send_frequent_state_update(sender: &mut SplitSink<WebSocket, Message>, state: Arc<LightingState>) {
+async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<LightingState>) {
     let (message, pixel_data) = {
         let render_state = state.render_state.lock();
 
         let frames_to_average =  min(FRAME_TIMES_STORED, render_state.frames);
         let frame_times = render_state.frame_times.iter().take(frames_to_average).cloned();
-        let message = json!({
-            "frames": render_state.frames,
-            "average_window": frames_to_average,
-            "average_frame_time": frame_times.clone().sum::<f64>() / frames_to_average as f64,
-            "max_frame_time": frame_times.clone().fold(0.0, f64::max),
-            "min_frame_time": frame_times.clone().fold(f64::INFINITY, f64::min),
-            "debug_text": render_state.debug_text
+
+        let message = ServerToClientMessage::StatusUpdate(StatusUpdateMessage {
+            frames: render_state.frames as u32,
+            average_window: frames_to_average as u32,
+            average_frame_time: frame_times.clone().sum::<f64>() / frames_to_average as f64,
+            max_frame_time: frame_times.clone().fold(0.0, f64::max),
+            min_frame_time: frame_times.clone().fold(f64::INFINITY, f64::min),
+            debug_text: render_state.debug_text.clone()
         });
 
         (message, render_state.current_presented_frame.as_ref().unwrap().pixel_data)
     };
 
-    sender.send(Message::Text(message.to_string())).await.unwrap();
+    sender.send(message).await.unwrap();
 
     // We also send a binary message with the current pixel data
-    sender.send(Message::Binary(pixel_data.to_vec())).await.unwrap();
+    sender.send_binary(pixel_data.to_vec()).await.unwrap();
 }
 
-async fn send_infrequent_state_update(sender: &mut SplitSink<WebSocket, Message>, system: &mut sysinfo::System) {    
+async fn send_infrequent_state_update(sender: &mut WebsocketSender, system: &mut sysinfo::System) {    
     system.refresh_specifics(
         RefreshKind::nothing()
             .with_cpu(CpuRefreshKind::everything())
             .with_memory(MemoryRefreshKind::everything())
     );
 
-    let message = json!({
-        "system": {
-            "global_cpu": system.global_cpu_usage(),
-            "free_memory": system.free_memory(),
-            "total_memory": system.total_memory(),
-            "used_swap": system.used_swap()
-        }
+    let message = ServerToClientMessage::SystemStatusUpdate(shared::SystemStatusUpdateMessage {
+        global_cpu: system.global_cpu_usage(),
+        free_memory: system.free_memory() as f64,
+        total_memory: system.total_memory() as f64,
+        used_swap: system.used_swap() as f64
     });
-    sender.send(Message::Text(message.to_string())).await.unwrap();
+    sender.send(message).await.unwrap();
 }

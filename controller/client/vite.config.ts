@@ -12,7 +12,8 @@ export default {
       '/websocket': {
         target: 'ws://localhost:3000',
         changeOrigin: true,
-        ws: true
+        ws: true,
+        rewriteWsOrigin: true,
       }
     }
   },
