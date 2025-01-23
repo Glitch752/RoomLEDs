@@ -1,10 +1,14 @@
 use std::time::Duration;
 
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
+
 use crate::{render::frame::{self, Pixel}, RenderState, TOTAL_PIXELS};
 
-use super::Effect;
+use super::{AnyEffect, Effect};
 
-
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
 pub struct FlashingColorEffect {
     time: f64,
     speed: f64,
@@ -14,10 +18,10 @@ pub struct FlashingColorEffect {
 impl FlashingColorEffect {
     /// Creates a new flashing color effect with the specified speed and color.
     /// Speed is in Hz.
-    pub fn new(speed: f64, color: Pixel) -> Box<Self> {
+    pub fn new(speed: f64, color: Pixel) -> Box<AnyEffect> {
         Box::new(Self {
             time: 0., speed, color
-        })
+        }.into())
     }
 }
 

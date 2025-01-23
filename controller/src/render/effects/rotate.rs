@@ -1,10 +1,15 @@
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
+
 use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
 
-use super::Effect;
+use super::{AnyEffect, Effect};
 
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
 pub struct RotateEffect {
     /// The effect to rotate
-    effect: Box<dyn Effect>,
+    effect: Box<AnyEffect>,
     /// The number of pixels to rotate the frame by
     rotation: i32
 }
@@ -12,11 +17,11 @@ pub struct RotateEffect {
 impl RotateEffect {
     /// Creates a new 
     /// Returns a boxed effect.
-    pub fn new(effect: Box<dyn Effect>, rotation: i32) -> Box<RotateEffect> {
+    pub fn new(effect: Box<AnyEffect>, rotation: i32) -> Box<AnyEffect> {
         Box::new(RotateEffect {
             effect,
             rotation
-        })
+        }.into())
     }
 }
 

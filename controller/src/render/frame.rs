@@ -1,9 +1,12 @@
 use color_space::{Hsl, Rgb};
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::TOTAL_PIXELS;
 
 /// A pixel is a single unit of color data with an alpha value.
-#[derive(Clone)]
+#[derive(TS, Serialize, Deserialize, Clone)]
+#[ts(export)]
 pub struct Pixel {
     pub r: u8,
     pub g: u8,

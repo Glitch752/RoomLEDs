@@ -24,7 +24,9 @@ export default {
   resolve: {
     alias: {
       // @ts-expect-error I'm not sure how to set up these types properly
-      "@bindings": path.resolve(__dirname, "../../shared/bindings"),
+      "@shared-bindings/*": path.resolve(__dirname, "../../shared/bindings"),
+      // @ts-expect-error I'm not sure how to set up these types properly
+      "@bindings/*": path.resolve(__dirname, "../bindings/*")
     }
   },
   plugins: [svelte()],

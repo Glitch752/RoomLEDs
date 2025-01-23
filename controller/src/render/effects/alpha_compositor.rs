@@ -1,19 +1,24 @@
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
+
 use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
 
-use super::Effect;
+use super::{AnyEffect, Effect};
 
 /// An alpha compositor composites other effects together using alpha blending.
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
 pub struct AlphaCompositorEffect {
-    effects: Vec<Box<dyn Effect>>
+    effects: Vec<Box<AnyEffect>>
 }
 
 impl AlphaCompositorEffect {
     /// Creates a new alpha compositor effect with the specified effects.
     /// Returns a boxed effect.
-    pub fn new(effects: Vec<Box<dyn Effect>>) -> Box<AlphaCompositorEffect> {
+    pub fn new(effects: Vec<Box<AnyEffect>>) -> Box<AnyEffect> {
         Box::new(AlphaCompositorEffect {
             effects
-        })
+        }.into())
     }
 }
 

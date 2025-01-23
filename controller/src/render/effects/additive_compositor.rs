@@ -1,21 +1,26 @@
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
+
 use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
 
-use super::Effect;
+use super::{Effect, AnyEffect};
 
 // TODO: Deduplicate the compositor code with a macro
 
 /// An additive compositor composites other effects together using additive blending.
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
 pub struct AdditiveCompositorEffect {
-    effects: Vec<Box<dyn Effect>>
+    effects: Vec<Box<AnyEffect>>
 }
 
 impl AdditiveCompositorEffect {
     /// Creates a new additive compositor effect with the specified effects.
     /// Returns a boxed effect.
-    pub fn new(effects: Vec<Box<dyn Effect>>) -> Box<AdditiveCompositorEffect> {
+    pub fn new(effects: Vec<Box<AnyEffect>>) -> Box<AnyEffect> {
         Box::new(AdditiveCompositorEffect {
             effects
-        })
+        }.into())
     }
 }
 

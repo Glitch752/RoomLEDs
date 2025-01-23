@@ -1,10 +1,12 @@
 use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}, time::Duration};
 
 use color_space::Hsl;
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
 
-use super::Effect;
+use super::{AnyEffect, Effect};
 
 static PACKET_FROP_FRAMES: usize = 500;
 
@@ -31,7 +33,7 @@ pub struct MusicVisualizerEffect {
 impl MusicVisualizerEffect {
     /// Creates a new music visualizer effect that listens on the specified port.
     /// Returns a boxed effect.
-    pub fn new(port: u16) -> Box<Self> {
+    pub fn new(port: u16) -> Box<AnyEffect> {
         let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
         listener.set_nonblocking(true).unwrap();
 
@@ -44,7 +46,7 @@ impl MusicVisualizerEffect {
 
             #[cfg(debug_assertions)]
             packet_receive_frames: [false; PACKET_FROP_FRAMES],
-        })
+        }.into())
     }
 }
 
