@@ -42,7 +42,7 @@ pub async fn serve(lighting_state: Arc<LightingState>) {
 }
 
 async fn light_positions_handler(State(state): State<Arc<LightingState>>) -> impl IntoResponse {
-    let pixel_locations = state.render_state.lock().pixel_locations.clone();
+    let pixel_locations = state.render_state.lock().info.pixel_locations.clone();
     let pixel_locations = pixel_locations.iter().map(|location| (location.x, location.y)).collect::<Vec<_>>();
     Json(pixel_locations)
 }
@@ -75,7 +75,7 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
     let (sender, mut receiver) = stream.split();
     let mut websocket_sender = WebsocketSender { sender };
 
-    let light_positions = state.render_state.lock().pixel_locations.clone()
+    let light_positions = state.render_state.lock().info.pixel_locations.clone()
         .iter().map(|location| shared::LightPosition {
             x: location.x,
             y: location.y
@@ -120,21 +120,21 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
 
 async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<LightingState>) {
     let (message, pixel_data) = {
-        let render_state = state.render_state.lock();
+        let render_info = &state.render_state.lock().info;
 
-        let frames_to_average =  min(FRAME_TIMES_STORED, render_state.frames);
-        let frame_times = render_state.frame_times.iter().take(frames_to_average).cloned();
+        let frames_to_average =  min(FRAME_TIMES_STORED, render_info.frames);
+        let frame_times = render_info.frame_times.iter().take(frames_to_average).cloned();
 
         let message = ServerToClientMessage::StatusUpdate(StatusUpdateMessage {
-            frames: render_state.frames as u32,
+            frames: render_info.frames as u32,
             average_window: frames_to_average as u32,
             average_frame_time: frame_times.clone().sum::<f64>() / frames_to_average as f64,
             max_frame_time: frame_times.clone().fold(0.0, f64::max),
             min_frame_time: frame_times.clone().fold(f64::INFINITY, f64::min),
-            debug_text: render_state.debug_text.clone()
+            debug_text: render_info.debug_text.clone()
         });
 
-        (message, render_state.current_presented_frame.as_ref().unwrap().pixel_data)
+        (message, render_info.current_presented_frame.as_ref().unwrap().pixel_data)
     };
 
     sender.send(message).await.unwrap();

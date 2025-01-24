@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::RenderState;
+use crate::{RenderInfo, RenderState};
 use super::frame::Frame;
 
 mod additive_compositor;
@@ -17,6 +17,7 @@ mod rotate;
 
 pub use additive_compositor::AdditiveCompositorEffect;
 pub use alpha_compositor::AlphaCompositorEffect;
+use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 pub use stripes::StripeEffect;
 pub use music_visualizer::MusicVisualizerEffect;
@@ -26,13 +27,18 @@ use ts_rs::TS;
 
 /// An effect is a render construct that returns a frame of pixel data with opacity.
 /// Effects can take other effects as an input.
+#[enum_dispatch]
 pub trait Effect {
-    fn render(&mut self, delta: Duration, render_state: &mut RenderState) -> Frame;
+    fn render(&mut self, delta: Duration, render_info: &mut RenderInfo) -> Frame;
 }
 
-#[derive(TS, Serialize, Deserialize)]
+// TODO: Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
+// to avoid this enum? I'm not sure if ts-rs will be able to create bindings for it, though.
+
+#[derive(TS, Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 #[ts(export)]
+#[enum_dispatch(Effect)]
 pub enum AnyEffect {
     AdditiveCompositor(AdditiveCompositorEffect),
     AlphaCompositor(AlphaCompositorEffect),
@@ -43,34 +49,3 @@ pub enum AnyEffect {
     Rotate(RotateEffect),
     FlashingColor(FlashingColorEffect)
 }
-
-
-macro_rules! from_effect {
-    ($effect:ty, $variant:ident) => {
-        impl From<$effect> for AnyEffect {
-            fn from(effect: $effect) -> Self {
-                AnyEffect::$variant(effect)
-            }
-        }
-    };
-}
-
-impl Effect for AnyEffect {
-    fn render(&mut self, delta: Duration, render_state: &mut RenderState) -> Frame {
-        match self {
-            AnyEffect::AdditiveCompositor(effect) => effect.render(delta, render_state),
-            AnyEffect::AlphaCompositor(effect) => effect.render(delta, render_state),
-            AnyEffect::Stripe(effect) => effect.render(delta, render_state),
-            AnyEffect::MusicVisualizer(effect) => effect.render(delta, render_state),
-            AnyEffect::Rotate(effect) => effect.render(delta, render_state),
-            AnyEffect::FlashingColor(effect) => effect.render(delta, render_state)
-        }
-    }
-}
-
-from_effect!(AdditiveCompositorEffect, AdditiveCompositor);
-from_effect!(AlphaCompositorEffect, AlphaCompositor);
-from_effect!(StripeEffect, Stripe);
-from_effect!(MusicVisualizerEffect, MusicVisualizer);
-from_effect!(RotateEffect, Rotate);
-from_effect!(FlashingColorEffect, FlashingColor);

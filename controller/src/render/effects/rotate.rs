@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
-#[derive(TS, Serialize, Deserialize)]
+#[derive(TS, Serialize, Deserialize, Debug)]
 #[ts(export)]
 pub struct RotateEffect {
     /// The effect to rotate
@@ -15,7 +15,7 @@ pub struct RotateEffect {
 }
 
 impl RotateEffect {
-    /// Creates a new 
+    /// Creates a new rotate effect.
     /// Returns a boxed effect.
     pub fn new(effect: Box<AnyEffect>, rotation: i32) -> Box<AnyEffect> {
         Box::new(RotateEffect {
@@ -26,8 +26,8 @@ impl RotateEffect {
 }
 
 impl Effect for RotateEffect {
-    fn render(&mut self, delta: std::time::Duration, render_state: &mut RenderState) -> Frame {
-        let rendered_frame = self.effect.render(delta, render_state);
+    fn render(&mut self, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
+        let rendered_frame = self.effect.render(delta, render_info);
         
         let mut rotated_frame = Frame::empty();
         for i in 0..TOTAL_PIXELS {

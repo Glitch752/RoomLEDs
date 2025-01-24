@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::frame::Frame, RenderState, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
 
 use super::{Effect, AnyEffect};
 
 // TODO: Deduplicate the compositor code with a macro
 
 /// An additive compositor composites other effects together using additive blending.
-#[derive(TS, Serialize, Deserialize)]
+#[derive(TS, Serialize, Deserialize, Debug)]
 #[ts(export)]
 pub struct AdditiveCompositorEffect {
     effects: Vec<Box<AnyEffect>>
@@ -25,11 +25,11 @@ impl AdditiveCompositorEffect {
 }
 
 impl Effect for AdditiveCompositorEffect {
-    fn render(&mut self, delta: std::time::Duration, render_state: &mut RenderState) -> Frame {
+    fn render(&mut self, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
         let mut final_frame = Frame::empty();
 
         for effect in &mut self.effects {
-            let rendered_frame = effect.render(delta, render_state);
+            let rendered_frame = effect.render(delta, render_info);
 
             for i in 0..TOTAL_PIXELS {
                 let pixel = rendered_frame.get_pixel(i);

@@ -4,7 +4,7 @@ use color_space::Hsl;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::frame::{Frame, Pixel}, RenderState, TOTAL_PIXELS};
+use crate::{render::frame::{Frame, Pixel}, RenderInfo, RenderState, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
@@ -13,6 +13,7 @@ static PACKET_FROP_FRAMES: usize = 500;
 /// The music visualizer effect runs a TCP socket server that listens for
 /// audio data from the music visualizer client. Then, it renders the audio
 /// data as a visualizer.
+#[derive(Debug)]
 pub struct MusicVisualizerEffect {
     /// The UDP listener that listens for audio data from the music visualizer client
     listener: UdpSocket,
@@ -51,7 +52,7 @@ impl MusicVisualizerEffect {
 }
 
 impl Effect for MusicVisualizerEffect {
-    fn render(&mut self, delta: Duration, state: &mut RenderState) -> Frame {
+    fn render(&mut self, delta: Duration, info: &mut RenderInfo) -> Frame {
         static BLOCK_SIZE: usize = 4;
 
         // Read audio data from the client
@@ -67,7 +68,7 @@ impl Effect for MusicVisualizerEffect {
             self.data_last_received = Some(std::time::Instant::now());
 
             #[cfg(debug_assertions)] {
-                self.packet_receive_frames[state.frames % PACKET_FROP_FRAMES] = true;
+                self.packet_receive_frames[info.frames % PACKET_FROP_FRAMES] = true;
             }
         } else {
             // No audio data is available, so slowly fade out the audio data to make it feel slightly more responsive
@@ -76,7 +77,7 @@ impl Effect for MusicVisualizerEffect {
             }
 
             #[cfg(debug_assertions)] {
-                self.packet_receive_frames[state.frames % PACKET_FROP_FRAMES] = false;
+                self.packet_receive_frames[info.frames % PACKET_FROP_FRAMES] = false;
             }
         }
 
@@ -85,7 +86,7 @@ impl Effect for MusicVisualizerEffect {
             let mut frame = Frame::empty();
             let color = Pixel::new(
                 255, 0, 0,
-                (state.time * 2.).sin() * 0.4 + 0.4
+                (info.time * 2.).sin() * 0.4 + 0.4
             );
 
             static PULSE_SECTION_WIDTH: i32 = 3;
@@ -126,11 +127,11 @@ impl Effect for MusicVisualizerEffect {
 
         #[cfg(debug_assertions)] {
             // Calculate packet drop rate
-            let frames = min(state.frames, PACKET_FROP_FRAMES);
+            let frames = min(info.frames, PACKET_FROP_FRAMES);
             let packets_received = self.packet_receive_frames.iter().take(frames).filter(|&&x| x).count();
             let packets_dropped = PACKET_FROP_FRAMES - packets_received;
             let packet_drop_rate = packets_dropped as f64 / (packets_received + packets_dropped) as f64;
-            state.debug_text = format!("Packet drop rate over {} frames: {:.1}% ({} dropped)", frames, packet_drop_rate * 100., packets_dropped);
+            info.debug_text = format!("Packet drop rate over {} frames: {:.1}% ({} dropped)", frames, packet_drop_rate * 100., packets_dropped);
         }
 
         return frame;

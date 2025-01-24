@@ -5,7 +5,7 @@ use ts_rs::TS;
 use crate::TOTAL_PIXELS;
 
 /// A pixel is a single unit of color data with an alpha value.
-#[derive(TS, Serialize, Deserialize, Clone)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct Pixel {
     pub r: u8,

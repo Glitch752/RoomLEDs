@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use render::{frame::PresentedFrame, spatial_map::{Location, SpatialMap}};
+use render::{effects::{self, AnyEffect}, frame::PresentedFrame, spatial_map::{Location, SpatialMap}};
 
 mod output;
 mod interface;
@@ -12,8 +12,20 @@ static FRAME_TIMES_STORED: usize = 100;
 static TOTAL_PIXELS: u32 = 812;
 
 // State for rendering the lights that needs to be shared between the web server and the output thread
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct RenderState {
+    info: RenderInfo,
+    effect: Box<AnyEffect>
+}
+
+impl RenderState {
+    fn split(&mut self) -> (&mut RenderInfo, &mut dyn effects::Effect) {
+        (&mut self.info, self.effect.as_mut())
+    }
+}
+
+#[derive(Debug)]
+struct RenderInfo {
     time: f64,
 
     // Statistics we collect to display on the web interface
@@ -47,20 +59,38 @@ async fn main() {
 
     let lighting_state = Arc::new(LightingState {
         render_state: Arc::new(Mutex::new(RenderState {
-            time: 0.0,
+            info: RenderInfo {
+                time: 0.0,
 
-            frame_times: [0.0; FRAME_TIMES_STORED],
-            frames: 0,
+                frame_times: [0.0; FRAME_TIMES_STORED],
+                frames: 0,
 
-            current_presented_frame: None,
+                current_presented_frame: None,
 
-            debug_text: String::new(),
+                debug_text: String::new(),
 
-            pixel_locations
+                pixel_locations,
+            },
+
+            effect: effects::RotateEffect::new(
+                effects::MusicVisualizerEffect::new(3001),
+                // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
+                //     (255, 0, 0),
+                //     (255, 100, 0),
+                //     (255, 255, 0),
+                //     (0, 255, 0),
+                //     (0, 0, 255),
+                //     (143, 0, 255),
+                //     (255, 255, 255),
+                // ], 84.0),
+                // FlashingColorEffect::new(1., frame::Pixel::new(255, 0, 0, 1.0)),
+                -219
+            )
         }))
     });
 
-    let (render_thread, render_consumer) = render::start_render_thread(Arc::clone(&lighting_state.render_state));
+    let (render_thread, render_consumer) =
+        render::start_render_thread(Arc::clone(&lighting_state.render_state));
     output::start_output_thread(render_thread.thread().clone(), render_consumer);
 
     interface::serve(lighting_state).await;

@@ -3,11 +3,11 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::frame::{self, Pixel}, RenderState, TOTAL_PIXELS};
+use crate::{render::frame::{self, Pixel}, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
-#[derive(TS, Serialize, Deserialize)]
+#[derive(TS, Serialize, Deserialize, Debug)]
 #[ts(export)]
 pub struct FlashingColorEffect {
     time: f64,
@@ -26,7 +26,7 @@ impl FlashingColorEffect {
 }
 
 impl Effect for FlashingColorEffect {
-    fn render(&mut self, delta: Duration, _render_state: &mut RenderState) -> frame::Frame {
+    fn render(&mut self, delta: Duration, _render_info: &mut RenderInfo) -> frame::Frame {
         self.time += delta.as_secs_f64();
 
         let mut frame: frame::Frame = frame::Frame::empty();

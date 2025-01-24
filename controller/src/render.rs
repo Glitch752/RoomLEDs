@@ -2,14 +2,13 @@ use std::{sync::Arc, thread::JoinHandle, time::Duration};
 
 use filters::Filter;
 use frame::PresentedFrame;
-use effects::Effect;
 use parking_lot::Mutex;
 use ringbuf::{traits::{Observer, Producer, Split}, StaticRb};
 use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 
 use crate::{RenderState, FRAME_TIMES_STORED};
 
-mod effects;
+pub mod effects;
 mod filters;
 pub mod spatial_map;
 
@@ -24,30 +23,28 @@ type RenderRingBuf = StaticRb::<PresentedFrame, RENDER_BUFFER_SIZE>;
 pub type RenderRingBufConsumer = <RenderRingBuf as Split>::Cons;
 type RenderRingBufProducer = <RenderRingBuf as Split>::Prod;
 
-type RenderConstructs = (Box<dyn Effect>, Vec<Box<dyn Filter>>);
-
-pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, render_constructs: &mut RenderConstructs) -> Option<PresentedFrame> {
-    let (effect, filters) = render_constructs;
-
+pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, filters: &Vec<Box<dyn Filter>>) -> Option<PresentedFrame> {
     // We should never hold a lock on the render state for a significant amount of time in other threads
     match render_state.try_lock_for(Duration::from_millis(1)) {
         Some(mut state) => {
-            state.time += delta.as_secs_f64();
-            
-            state.frames += 1;
+            let (info, effect) = state.split();
 
-            let frames = state.frames;
-            state.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
+            info.time += delta.as_secs_f64();
+            
+            info.frames += 1;
+
+            let frames = info.frames;
+            info.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
 
             // Render the effect
-            let effect_frame = effect.render(delta, &mut state);
+            let effect_frame = effect.render(delta, info);
 
             let mut presented_frame: PresentedFrame = effect_frame.into();
 
             // We store the frame before applying filters so we can display it in the UI
             // before filtering. Filters are used to correct the colors of the frame, which
             // just makes colors look worse in the UI.
-            state.current_presented_frame = Some(presented_frame.clone());
+            info.current_presented_frame = Some(presented_frame.clone());
 
             // Apply filters
             for filter in filters {
@@ -65,29 +62,10 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, ren
 
 fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: RenderRingBufProducer) {
     let mut last_frame_time = std::time::Instant::now();
-
-    // This is a temporary setup; I want to create a better builder pattern for this
-
-    let effect: Box<dyn Effect> = effects::RotateEffect::new(
-        effects::MusicVisualizerEffect::new(3001),
-        // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
-        //     (255, 0, 0),
-        //     (255, 100, 0),
-        //     (255, 255, 0),
-        //     (0, 255, 0),
-        //     (0, 0, 255),
-        //     (143, 0, 255),
-        //     (255, 255, 255),
-        // ], 84.0),
-        // FlashingColorEffect::new(1., frame::Pixel::new(255, 0, 0, 1.0)),
-        -219
-    );
     
     let filters: Vec<Box<dyn Filter>> = vec![
         filters::GammaCorrectionFilter::new(2.2)
     ];
-
-    let mut render_constructs: RenderConstructs = (effect, filters);
 
     let mut idle_tracker = idle_tracker::IdleTracker::new(
         Duration::from_secs(5 * 60),
@@ -105,7 +83,7 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
             let delta = start_time - last_frame_time;
             last_frame_time = start_time;
     
-            if let Some(frame) = render_frame(delta, &render_state, &mut render_constructs) {
+            if let Some(frame) = render_frame(delta, &render_state, &filters) {
                 idle_tracker.update(&frame);
 
                 // It's possible that we continue looping but the ring buffer is full in
