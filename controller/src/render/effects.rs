@@ -12,6 +12,7 @@ mod stripes;
 mod music_visualizer;
 
 mod flashing_color;
+mod solid_color;
 
 mod rotate;
 
@@ -23,6 +24,7 @@ pub use stripes::StripeEffect;
 pub use music_visualizer::MusicVisualizerEffect;
 pub use rotate::RotateEffect;
 pub use flashing_color::FlashingColorEffect;
+pub use solid_color::SolidColorEffect;
 use ts_rs::TS;
 
 /// An effect is a render construct that returns a frame of pixel data with opacity.
@@ -47,5 +49,6 @@ pub enum AnyEffect {
     // TODO: Implement serialization for MusicVisualizerEffect
     MusicVisualizer(MusicVisualizerEffect),
     Rotate(RotateEffect),
-    FlashingColor(FlashingColorEffect)
+    FlashingColor(FlashingColorEffect),
+    SolidColor(SolidColorEffect)
 }
