@@ -79,6 +79,13 @@ websocket.onmessage = (e: MessageEvent) => {
     }
 };
 
+// Send light data to the server; sent data will
+// be rendered by websocket input effects.
+// Data should be a Uint8Array of r, g, b pairs.
+export function sendLightData(data: Uint8Array) {
+    websocket.send(data);
+}
+
 function updateStatus() {
     const data = currentData;
 

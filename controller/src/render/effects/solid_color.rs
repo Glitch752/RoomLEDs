@@ -3,7 +3,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::frame::{self, Pixel}, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::{self, Pixel}, RenderInfo};
 
 use super::{AnyEffect, Effect};
 
@@ -18,6 +18,7 @@ pub struct SolidColorEffect {
 impl SolidColorEffect {
     /// Creates a new solid color effect with the specified color, start, and stop.
     /// Returns a boxed effect.
+    #[allow(unused)]
     pub fn new(color: Pixel, start: u32, stop: u32) -> Box<AnyEffect> {
         Box::new(Self {
             color, start, stop

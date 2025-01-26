@@ -28,7 +28,7 @@
     }
 
     function draw(ctx: CanvasRenderingContext2D) {
-        if(lightData) {
+        if(lightData && canvas) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for(let i = 0; i < lightData.length; i += 3) {
                 const size = 2;

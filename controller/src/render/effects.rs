@@ -1,8 +1,6 @@
-#![allow(unused)]
-
 use std::time::Duration;
-
-use crate::{RenderInfo, RenderState};
+use ts_rs::TS;
+use crate::RenderInfo;
 use super::frame::Frame;
 
 mod additive_compositor;
@@ -13,6 +11,8 @@ mod music_visualizer;
 
 mod flashing_color;
 mod solid_color;
+
+mod websocket_input;
 
 mod rotate;
 
@@ -25,7 +25,7 @@ pub use music_visualizer::MusicVisualizerEffect;
 pub use rotate::RotateEffect;
 pub use flashing_color::FlashingColorEffect;
 pub use solid_color::SolidColorEffect;
-use ts_rs::TS;
+pub use websocket_input::WebsocketInputEffect;
 
 /// An effect is a render construct that returns a frame of pixel data with opacity.
 /// Effects can take other effects as an input.
@@ -50,5 +50,6 @@ pub enum AnyEffect {
     MusicVisualizer(MusicVisualizerEffect),
     Rotate(RotateEffect),
     FlashingColor(FlashingColorEffect),
-    SolidColor(SolidColorEffect)
+    SolidColor(SolidColorEffect),
+    WebsocketInput(WebsocketInputEffect),
 }

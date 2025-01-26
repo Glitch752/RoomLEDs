@@ -18,6 +18,7 @@ pub struct FlashingColorEffect {
 impl FlashingColorEffect {
     /// Creates a new flashing color effect with the specified speed and color.
     /// Speed is in Hz.
+    #[allow(unused)]
     pub fn new(speed: f64, color: Pixel) -> Box<AnyEffect> {
         Box::new(Self {
             time: 0., speed, color

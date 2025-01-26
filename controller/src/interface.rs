@@ -103,6 +103,9 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
                         Message::Text(text) => {
                             println!("Received message: {}", text);
                         }
+                        Message::Binary(data) => {
+                            state.render_state.lock().info.websocket_input = Some(data);
+                        }
                         Message::Close(_) => break,
                         _ => ()
                     }

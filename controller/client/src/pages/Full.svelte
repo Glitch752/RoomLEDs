@@ -38,8 +38,8 @@ let activeTab = tabs[0];
   width: 100%;
   height: 100vh;
 
-  grid-template-rows: 3rem 1fr;
-  grid-template-columns: 25rem 1fr;
+  grid-template-rows: 3rem minmax(0, 1fr);
+  grid-template-columns: 25rem minmax(0, 1fr);
 }
 
 header {

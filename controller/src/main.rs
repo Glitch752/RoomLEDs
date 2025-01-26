@@ -26,6 +26,7 @@ impl RenderState {
 
 #[derive(Debug)]
 struct RenderInfo {
+    // TODO: Move this to the render module
     time: f64,
 
     // Statistics we collect to display on the web interface
@@ -38,6 +39,8 @@ struct RenderInfo {
     debug_text: String,
 
     pixel_locations: [Location; TOTAL_PIXELS as usize],
+
+    websocket_input: Option<Vec<u8>>
 }
 
 // Shared global state for the web application
@@ -70,10 +73,13 @@ async fn main() {
                 debug_text: String::new(),
 
                 pixel_locations,
+
+                websocket_input: None
             },
 
             effect: effects::RotateEffect::new(
-                effects::MusicVisualizerEffect::new(3001),
+                // effects::MusicVisualizerEffect::new(3001),
+                effects::WebsocketInputEffect::new(),
                 // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
                 //     (255, 0, 0),
                 //     (255, 100, 0),

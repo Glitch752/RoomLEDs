@@ -17,6 +17,7 @@ pub struct AdditiveCompositorEffect {
 impl AdditiveCompositorEffect {
     /// Creates a new additive compositor effect with the specified effects.
     /// Returns a boxed effect.
+    #[allow(unused)]
     pub fn new(effects: Vec<Box<AnyEffect>>) -> Box<AnyEffect> {
         Box::new(AdditiveCompositorEffect {
             effects

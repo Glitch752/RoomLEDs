@@ -15,6 +15,7 @@ pub struct AlphaCompositorEffect {
 impl AlphaCompositorEffect {
     /// Creates a new alpha compositor effect with the specified effects.
     /// Returns a boxed effect.
+    #[allow(unused)]
     pub fn new(effects: Vec<Box<AnyEffect>>) -> Box<AnyEffect> {
         Box::new(AlphaCompositorEffect {
             effects
