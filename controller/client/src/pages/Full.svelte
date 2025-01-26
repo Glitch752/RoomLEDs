@@ -1,9 +1,11 @@
 <script lang="ts">
+  import LayoutTab from "./tabs/LayoutTab.svelte";
 import OverviewTab from "./tabs/OverviewTab.svelte";
 import SettingsTab from "./tabs/SettingsTab.svelte";
 
 const tabs: { name: string; component: any }[] = [
   { name: "Overview", component: OverviewTab },
+  { name: "Layout", component: LayoutTab },
   { name: "Settings", component: SettingsTab }
 ];
 
@@ -107,9 +109,5 @@ nav {
 main {
   grid-row: 2 / 3;
   grid-column: 2 / 3;
-  
-  padding: 3rem;
-
-  overflow-y: auto;
 }
 </style>

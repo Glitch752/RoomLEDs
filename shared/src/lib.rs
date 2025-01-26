@@ -42,7 +42,7 @@ pub struct StatusUpdateMessage {
 #[ts(export)]
 pub struct SystemStatusUpdateMessage {
     pub global_cpu: f32,
-    pub free_memory: f64,
+    pub available_memory: f64,
     pub total_memory: f64,
     pub used_swap: f64
 }

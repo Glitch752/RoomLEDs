@@ -29,7 +29,7 @@ let currentData: StatusUpdateMessage = {
 };
 let currentSystemData: SystemStatusUpdateMessage = {
     global_cpu: 0,
-    free_memory: 0,
+    available_memory: 0,
     total_memory: 0,
     used_swap: 0
 };
@@ -94,7 +94,7 @@ Debug text: ${data.debug_text}<br>
 <br>
 <b>System:</b><br>
 Global CPU: ${Math.round(currentSystemData.global_cpu * 10) / 10}%<br>
-Free memory: ${Math.round(currentSystemData.free_memory / 1024 / 1024)}MB / ${Math.round(currentSystemData.total_memory / 1024 / 1024)}MB (${Math.round(currentSystemData.free_memory / currentSystemData.total_memory * 100)}%)<br>
+Free memory: ${Math.round(currentSystemData.available_memory / 1024 / 1024)}MB / ${Math.round(currentSystemData.total_memory / 1024 / 1024)}MB (${Math.round(currentSystemData.available_memory / currentSystemData.total_memory * 100)}%)<br>
 Used swap: ${Math.round(currentSystemData.used_swap / 1024 / 1024 * 10) / 10}MB
 `);
 }

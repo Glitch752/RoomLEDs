@@ -152,7 +152,7 @@ async fn send_infrequent_state_update(sender: &mut WebsocketSender, system: &mut
 
     let message = ServerToClientMessage::SystemStatusUpdate(shared::SystemStatusUpdateMessage {
         global_cpu: system.global_cpu_usage(),
-        free_memory: system.free_memory() as f64,
+        available_memory: system.available_memory() as f64,
         total_memory: system.total_memory() as f64,
         used_swap: system.used_swap() as f64
     });
