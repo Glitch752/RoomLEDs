@@ -1,9 +1,10 @@
 # RoomLEDs
 
-A project to drive a strip of NeoPixels (WS2812B LEDs) mounted around the edge of a room. The strips are controlled by two ESP8266 microcontrollers, and the microcontrollers are sent data over serial from an SBC (currently the Libre Computer Le Potato) running a Rust application.  
+The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) mounted around the edge of a room. The strips are controlled by two ESP8266 microcontrollers, and the microcontrollers are sent data over serial from an SBC (currently the Libre Computer Le Potato) running a Rust application. Other hardware components, including a custom power system, make the system more robust and powerful.  
 
 ## Features
 - Custom ESP8266 firmware to control a strip of LEDs over serial
+- Integration with ESPHome to control a Kauf Plug for automatic idle power management
 - Rust controller server and deploy scripts
   - Web interface with a preview and statistics
   - System to render complex animations
