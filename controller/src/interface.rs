@@ -48,7 +48,7 @@ static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
         icon: "fas fa-music".to_string(),
         effect: Box::new(|| effects::RotateEffect::new(
             effects::MusicVisualizerEffect::new(3001),
-            219
+            -219
         ))
     },
     EffectPreset {
@@ -145,7 +145,10 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
 
     // While this stream is open, periodically (20 times per second) send an update
     // to the client with the current state of the lights.
-    send_frequent_state_update(&mut websocket_sender, state.clone()).await;
+    if let Err(e) = send_frequent_state_update(&mut websocket_sender, state.clone()).await {
+        eprintln!("Error sending state update: {:?}", e);
+        return;
+    }
 
     let mut system = sysinfo::System::new();
 
@@ -170,7 +173,10 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
                 }
             }
             _ = fast_interval.tick() => {
-                send_frequent_state_update(&mut websocket_sender, state.clone()).await;
+                if let Err(e) = send_frequent_state_update(&mut websocket_sender, state.clone()).await {
+                    eprintln!("Error sending state update: {:?}", e);
+                    break;
+                }
             }
             _ = slow_interval.tick() => {
                 send_infrequent_state_update(&mut websocket_sender, &mut system).await;
@@ -199,7 +205,7 @@ async fn handle_client_message(message: String, state: &Arc<LightingState>) {
     }
 }
 
-async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<LightingState>) {
+async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<LightingState>) -> Result<(), axum::Error> {
     let (message, pixel_data) = {
         let render_info = &state.render_state.lock().info;
 
@@ -218,10 +224,12 @@ async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<Lig
         (message, render_info.current_presented_frame.as_ref().unwrap().pixel_data)
     };
 
-    sender.send(message).await.unwrap();
+    sender.send(message).await?;
 
     // We also send a binary message with the current pixel data
-    sender.send_binary(pixel_data.to_vec()).await.unwrap();
+    sender.send_binary(pixel_data.to_vec()).await?;
+
+    Ok(())
 }
 
 async fn send_infrequent_state_update(sender: &mut WebsocketSender, system: &mut sysinfo::System) {    

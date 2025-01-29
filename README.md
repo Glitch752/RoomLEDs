@@ -6,8 +6,8 @@ The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) m
 - Custom ESP8266 firmware to control a strip of LEDs over serial
 - Integration with ESPHome to control a Kauf Plug for automatic idle power management
 - Rust controller server and deploy scripts
-  - Web interface with a preview and statistics
-  - System to render complex animations
+  - Web interface with a preview, statistics, and preset controls (with more to come)
+  - System to render complex animations with spatial data
   - Precise real-time system to send data to the LEDs at the correct time
 - Control client with features to integrate devices with the LEDs
   - Music visualizer using Cava

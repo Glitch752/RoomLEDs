@@ -12,6 +12,9 @@ let cameraPosition = { x: 0, y: 0 };
 let mousePosition = { x: 0, y: 0 };
 let mouseDown = false;
 
+let pixelValues: Uint8Array | null = null;
+let litPixelValues: Uint8Array | null = null;
+
 function getCanvasPosition(x: number, y: number) {
     return {
         x: (x - cameraPosition.x) * cameraZoom + canvas.width / 2,
@@ -30,35 +33,53 @@ function draw() {
 
     const bounds = canvas.getBoundingClientRect();
 
-    let pixelValues = new Uint8Array(positions.length * 3);
+    if(!pixelValues || pixelValues.length !== positions.length * 3) {
+        pixelValues = new Uint8Array(positions.length * 3);
+    }
+    if(!litPixelValues || litPixelValues.length !== positions.length * 3) {
+        litPixelValues = new Uint8Array(positions.length * 3);
+    }
 
     for(let i = 0; i < positions.length; i++) {
         const position = positions[i];
-
         const { x, y } = getCanvasPosition(position.x, position.y);
         const distance = Math.sqrt((mousePosition.x - bounds.left - x) ** 2 + (mousePosition.y - bounds.top - y) ** 2);
         
-        if(distance > 20) {
-            const brightness = Math.max(0, 255 - distance / 2);
-            ctx.fillStyle = `rgba(${brightness}, ${brightness}, ${brightness}, 1)`;
+        // If the pixel has any value other than 0 in litPixelValues, use that color instead
+        if(litPixelValues[i * 3] !== 0 || litPixelValues[i * 3 + 1] !== 0 || litPixelValues[i * 3 + 2] !== 0) {
+            ctx.fillStyle = `rgba(${litPixelValues[i * 3]}, ${litPixelValues[i * 3 + 1]}, ${litPixelValues[i * 3 + 2]}, 1)`;
+            
+            pixelValues[i * 3] = litPixelValues[i * 3];
+            pixelValues[i * 3 + 1] = litPixelValues[i * 3 + 1];
+            pixelValues[i * 3 + 2] = litPixelValues[i * 3 + 2];
 
-            pixelValues[i * 3] = brightness;
-            pixelValues[i * 3 + 1] = brightness;
-            pixelValues[i * 3 + 2] = brightness;
+            // If hovered, draw the light index at the top of the screen
+            if(distance < 20) {
+                ctx.fillStyle = "white";
+                ctx.font = "20px Arial";
+                ctx.fillText(`Pixel index: ${i}`, 10, 20);
+            }
         } else {
-            ctx.fillStyle = "yellow";
+            if(distance > 20) {
+                const brightness = Math.max(0, 100 - distance / 4);
+                ctx.fillStyle = `rgba(${brightness}, ${brightness}, ${brightness}, 1)`;
 
-            pixelValues[i * 3] = 255;
-            pixelValues[i * 3 + 1] = 255;
-            pixelValues[i * 3 + 2] = 0;
+                pixelValues[i * 3] = brightness;
+                pixelValues[i * 3 + 1] = brightness;
+                pixelValues[i * 3 + 2] = brightness;
+            } else {
+                ctx.fillStyle = "yellow";
+
+                pixelValues[i * 3] = 255;
+                pixelValues[i * 3 + 1] = 255;
+                pixelValues[i * 3 + 2] = 0;
+            }
         }
 
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fill();
     }
-
-    console.log("Sending light data", pixelValues);
 
     sendLightData(pixelValues);
 }
@@ -84,6 +105,35 @@ function handleWheel(event: WheelEvent) {
 function handleMouseDown(event: MouseEvent) {
     mouseDown = true;
     mousePosition = { x: event.clientX, y: event.clientY };
+
+    // If within 20 pixels of any lights, toggle the nearest light
+    if(litPixelValues && lightPositions) {
+        const { positions } = lightPositions;
+
+        const bounds = canvas.getBoundingClientRect();
+
+        let closestDistance = Infinity;
+        let closestIndex = -1;
+        for(let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const { x, y } = getCanvasPosition(position.x, position.y);
+            const distance = Math.sqrt((mousePosition.x - bounds.left - x) ** 2 + (mousePosition.y - bounds.top - y) ** 2);
+
+            if(distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = i;
+            }
+        }
+
+        if(closestDistance < 20) {
+            const index = closestIndex * 3;
+            const value = litPixelValues[index] === 0 ? 255 : 0;
+
+            litPixelValues[index] = value;
+            litPixelValues[index + 1] = value;
+            litPixelValues[index + 2] = value;
+        }
+    }
 }
 
 function handleMouseMove(event: MouseEvent) {
