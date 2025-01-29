@@ -16,7 +16,7 @@ The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) m
 - [ ] Make custom ESPHome replacement firmware for the Kauf Plug to make the power system more robust and allow for more control
 - [ ] Implement momentary effects triggered by an API call
 - [ ] Add a door sensor integration
-- [ ] Make the web interface powerful enough to compose animations and effects
+- [ ] Allow composing animations and effects with the web interface
 - [ ] Add an alarm system that flashes the lights
 - [ ] Create an Alexa integration
 - [ ] Document the hardware required

@@ -84,7 +84,7 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
             last_frame_time = start_time;
     
             if let Some(frame) = render_frame(delta, &render_state, &filters) {
-                idle_tracker.update(&frame);
+                // idle_tracker.update(&frame);
 
                 // It's possible that we continue looping but the ring buffer is full in
                 // some edge cases. In that case, we just drop the frame.

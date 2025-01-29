@@ -1,4 +1,4 @@
-use std::{cmp::min, net::{self, Ipv4Addr}, sync::Arc, time::Duration};
+use std::{cmp::min, net::{self, Ipv4Addr}, sync::{Arc, LazyLock}, time::Duration};
 
 use axum::{
     extract::{
@@ -12,9 +12,61 @@ use sysinfo::{CpuRefreshKind, MemoryRefreshKind, RefreshKind};
 use tokio::time;
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::{LightingState, FRAME_TIMES_STORED};
+use crate::{render::{effects::{self, AnyEffect}, frame::Pixel}, LightingState, FRAME_TIMES_STORED, TOTAL_PIXELS};
 
 static WEB_SERVER_PORT: u16 = 3000;
+
+// This is a temporary solution; I intend to replace this with a way to
+// compose effects using the web interface.
+struct EffectPreset {
+    name: String,
+    icon: String,
+    effect: Box<dyn Fn() -> Box<AnyEffect> + Send + Sync>
+}
+
+static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
+    EffectPreset {
+        name: "Websocket Input".to_string(),
+        icon: "fas fa-plug".to_string(),
+        effect: Box::new(|| effects::WebsocketInputEffect::new())
+    },
+    EffectPreset {
+        name: "Rainbow stripes".to_string(),
+        icon: "fas fa-rainbow".to_string(),
+        effect: Box::new(|| effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
+            (255, 0, 0),
+            (255, 100, 0),
+            (255, 255, 0),
+            (0, 255, 0),
+            (0, 0, 255),
+            (143, 0, 255),
+            (255, 255, 255),
+        ], 84.0))
+    },
+    EffectPreset {
+        name: "Music visualizer".to_string(),
+        icon: "fas fa-music".to_string(),
+        effect: Box::new(|| effects::RotateEffect::new(
+            effects::MusicVisualizerEffect::new(3001),
+            219
+        ))
+    },
+    EffectPreset {
+        name: "Flashing red".to_string(),
+        icon: "fas fa-bolt".to_string(),
+        effect: Box::new(|| effects::FlashingColorEffect::new(1., Pixel::new(255, 0, 0, 1.0)))
+    },
+    EffectPreset {
+        name: "Solid white".to_string(),
+        icon: "fas fa-sun".to_string(),
+        effect: Box::new(|| effects::SolidColorEffect::new(Pixel::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS))
+    },
+    EffectPreset {
+        name: "Solid black".to_string(),
+        icon: "fas fa-moon".to_string(),
+        effect: Box::new(|| effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS))
+    },
+]);
 
 pub async fn serve(lighting_state: Arc<LightingState>) {
     let serve_dir = ServeDir::new("static")
@@ -81,8 +133,14 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
             y: location.y
         }).collect();
 
+    let effect_presets = EFFECTS.iter().map(|preset| shared::EffectPreset {
+        name: preset.name.clone(),
+        icon: preset.icon.clone()
+    }).collect();
+
     websocket_sender.send(ServerToClientMessage::Initialize(shared::InitializeMessage {
-        light_positions
+        light_positions,
+        effect_presets
     }).into()).await.unwrap();
 
     // While this stream is open, periodically (20 times per second) send an update
@@ -101,7 +159,7 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
                 if let Ok(message) = message {
                     match message {
                         Message::Text(text) => {
-                            println!("Received message: {}", text);
+                            handle_client_message(text, &state).await;
                         }
                         Message::Binary(data) => {
                             state.render_state.lock().info.websocket_input = Some(data);
@@ -118,6 +176,26 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
                 send_infrequent_state_update(&mut websocket_sender, &mut system).await;
             }
         }
+    }
+}
+
+// Attempts to deserialize into a ClientToServerMessage and handle it
+async fn handle_client_message(message: String, state: &Arc<LightingState>) {
+    let deserialized_message: Result<shared::ClientToServerMessage, _> = serde_json::from_str(&message);
+    if let Ok(message) = deserialized_message {
+        match message {
+            shared::ClientToServerMessage::UsePreset(preset_message) => {
+                let effect = EFFECTS
+                    .iter()
+                    .find(|preset| preset.name == preset_message.preset_name)
+                    .map(|preset| (preset.effect)());
+                if let Some(effect) = effect {
+                    state.render_state.lock().effect = effect;
+                }
+            }
+        }
+    } else {
+        println!("Received invalid message: {}", message);
     }
 }
 

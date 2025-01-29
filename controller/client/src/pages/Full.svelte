@@ -109,5 +109,9 @@ nav {
 main {
   grid-row: 2 / 3;
   grid-column: 2 / 3;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 </style>

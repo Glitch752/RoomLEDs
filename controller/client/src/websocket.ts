@@ -2,6 +2,8 @@ import type { LightPosition } from "@shared-bindings/LightPosition";
 import type { ServerToClientMessage } from "@shared-bindings/ServerToClientMessage";
 import type { StatusUpdateMessage } from "@shared-bindings/StatusUpdateMessage";
 import type { SystemStatusUpdateMessage } from "@shared-bindings/SystemStatusUpdateMessage";
+import type { EffectPreset } from "@shared-bindings/EffectPreset";
+import type { ClientToServerMessage } from "@shared-bindings/ClientToServerMessage";
 import { writable } from "svelte/store";
 
 const websocket = new WebSocket(`ws://${window.location.host}/websocket`);
@@ -18,6 +20,7 @@ export type LightPositionData = {
 export let lightPositions: LightPositionData | null = null;
 export let lightData = new Uint8Array(0);
 export let statusMessage = writable("");
+export let presets = writable<EffectPreset[]>([]);
 
 let currentData: StatusUpdateMessage = {
     frames: 0,
@@ -60,6 +63,7 @@ websocket.onmessage = (e: MessageEvent) => {
                     yMin: minY,
                     yMax: maxY
                 };
+                presets.set(data.effect_presets);
                 break;
             case "StatusUpdate":
                 currentData = data;
@@ -78,6 +82,13 @@ websocket.onmessage = (e: MessageEvent) => {
         lightData = new Uint8Array(e.data);
     }
 };
+
+export function setPreset(preset: string) {
+    websocket.send(JSON.stringify({
+        type: "UsePreset",
+        preset_name: preset
+    } satisfies ClientToServerMessage));
+}
 
 // Send light data to the server; sent data will
 // be rendered by websocket input effects.

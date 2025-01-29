@@ -38,3 +38,10 @@ p {
   padding: 1em;
   text-align: center;
 }
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #333;
+}

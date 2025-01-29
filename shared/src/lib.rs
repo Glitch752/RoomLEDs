@@ -14,17 +14,38 @@ pub struct LightPosition {
 #[serde(tag = "type")]
 #[ts(export)]
 pub enum ServerToClientMessage {
-    // Pixel data updates use a binary message instead of JSON
-    // PixelDataUpdate(Vec<u8>),
     StatusUpdate(StatusUpdateMessage),
     SystemStatusUpdate(SystemStatusUpdateMessage),
     Initialize(InitializeMessage),
 }
 
 #[derive(TS, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[ts(export)]
+pub enum ClientToServerMessage {
+    // Pixel data updates use a binary message instead of JSON
+    // PixelDataUpdate(Vec<u8>),
+    UsePreset(UsePresetMesssage),
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
+pub struct UsePresetMesssage {
+    pub preset_name: String
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
+pub struct EffectPreset {
+    pub name: String,
+    pub icon: String
+}
+
+#[derive(TS, Serialize, Deserialize)]
 #[ts(export)]
 pub struct InitializeMessage {
     pub light_positions: LightPositions,
+    pub effect_presets: Vec<EffectPreset>
 }
 
 #[derive(TS, Serialize, Deserialize)]

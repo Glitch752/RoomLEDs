@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use render::{effects::{self, AnyEffect}, frame::PresentedFrame, spatial_map::{Location, SpatialMap}};
+use render::{effects::{self, AnyEffect}, frame::{Pixel, PresentedFrame}, spatial_map::{Location, SpatialMap}};
 
 mod output;
 mod interface;
@@ -77,21 +77,7 @@ async fn main() {
                 websocket_input: None
             },
 
-            effect: effects::RotateEffect::new(
-                // effects::MusicVisualizerEffect::new(3001),
-                effects::WebsocketInputEffect::new(),
-                // effects::StripeEffect::new(TOTAL_PIXELS  as f64 / 28., vec![
-                //     (255, 0, 0),
-                //     (255, 100, 0),
-                //     (255, 255, 0),
-                //     (0, 255, 0),
-                //     (0, 0, 255),
-                //     (143, 0, 255),
-                //     (255, 255, 255),
-                // ], 84.0),
-                // FlashingColorEffect::new(1., frame::Pixel::new(255, 0, 0, 1.0)),
-                -219
-            )
+            effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
         }))
     });
 
