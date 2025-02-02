@@ -16,6 +16,8 @@ mod websocket_input;
 
 mod rotate;
 
+mod temporary;
+
 pub use additive_compositor::AdditiveCompositorEffect;
 pub use alpha_compositor::AlphaCompositorEffect;
 use enum_dispatch::enum_dispatch;
@@ -27,11 +29,21 @@ pub use flashing_color::FlashingColorEffect;
 pub use solid_color::SolidColorEffect;
 pub use websocket_input::WebsocketInputEffect;
 
+pub use temporary::duration::DurationTemporaryEffect;
+
 /// An effect is a render construct that returns a frame of pixel data with opacity.
 /// Effects can take other effects as an input.
 #[enum_dispatch]
 pub trait Effect {
     fn render(&mut self, delta: Duration, render_info: &mut RenderInfo) -> Frame;
+}
+
+/// A temporary effect is a type of effect that determines when it should be removed.
+#[enum_dispatch]
+pub trait TemporaryEffect {
+    fn start(&mut self, render_info: &mut RenderInfo);
+    fn is_finished(&self, render_info: &RenderInfo) -> bool;
+    fn stop(&mut self, render_info: &mut RenderInfo);
 }
 
 // TODO: Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
@@ -52,4 +64,12 @@ pub enum AnyEffect {
     FlashingColor(FlashingColorEffect),
     SolidColor(SolidColorEffect),
     WebsocketInput(WebsocketInputEffect),
+}
+
+#[derive(TS, Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
+#[ts(export)]
+#[enum_dispatch(TemporaryEffect)]
+pub enum AnyTemporaryEffect {
+    TemporaryEffectWrapper(DurationTemporaryEffect),
 }

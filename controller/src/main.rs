@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use render::{effects::{self, AnyEffect}, frame::{Pixel, PresentedFrame}, spatial_map::{Location, SpatialMap}};
+use render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::{Pixel, PresentedFrame}, spatial_map::{Location, SpatialMap}};
 
 mod output;
 mod interface;
@@ -15,6 +15,7 @@ static TOTAL_PIXELS: u32 = 812;
 #[derive(Debug)]
 struct RenderState {
     info: RenderInfo,
+    temporary_effects: Vec<Box<AnyTemporaryEffect>>,
     effect: Box<AnyEffect>
 }
 
@@ -77,6 +78,7 @@ async fn main() {
                 websocket_input: None
             },
 
+            temporary_effects: Vec::new(),
             effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
         }))
     });
