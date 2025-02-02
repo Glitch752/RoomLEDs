@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::{Pixel, PresentedFrame}, spatial_map::{Location, SpatialMap}};
+use render::{effects::{self, TemporaryEffectCompositor}, frame::Pixel, spatial_map::{Location, SpatialMap}, RenderInfo, RenderState};
 
 mod output;
 mod interface;
@@ -10,39 +10,6 @@ mod render;
 static FRAME_TIMES_STORED: usize = 100;
 
 static TOTAL_PIXELS: u32 = 812;
-
-// State for rendering the lights that needs to be shared between the web server and the output thread
-#[derive(Debug)]
-struct RenderState {
-    info: RenderInfo,
-    temporary_effects: Vec<Box<AnyTemporaryEffect>>,
-    effect: Box<AnyEffect>
-}
-
-impl RenderState {
-    fn split(&mut self) -> (&mut RenderInfo, &mut dyn effects::Effect) {
-        (&mut self.info, self.effect.as_mut())
-    }
-}
-
-#[derive(Debug)]
-struct RenderInfo {
-    // TODO: Move this to the render module
-    time: f64,
-
-    // Statistics we collect to display on the web interface
-    // We can't use a dynamic array here because allocating in the output thread is not allowed
-    frame_times: [f64; FRAME_TIMES_STORED],
-    frames: usize,
-
-    current_presented_frame: Option<PresentedFrame>,
-
-    debug_text: String,
-
-    pixel_locations: [Location; TOTAL_PIXELS as usize],
-
-    websocket_input: Option<Vec<u8>>
-}
 
 // Shared global state for the web application
 struct LightingState {
@@ -63,22 +30,8 @@ async fn main() {
 
     let lighting_state = Arc::new(LightingState {
         render_state: Arc::new(Mutex::new(RenderState {
-            info: RenderInfo {
-                time: 0.0,
-
-                frame_times: [0.0; FRAME_TIMES_STORED],
-                frames: 0,
-
-                current_presented_frame: None,
-
-                debug_text: String::new(),
-
-                pixel_locations,
-
-                websocket_input: None
-            },
-
-            temporary_effects: Vec::new(),
+            info: RenderInfo::new(pixel_locations),
+            temporary_effect_compositor: TemporaryEffectCompositor::new(vec![]),
             effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
         }))
     });

@@ -40,7 +40,7 @@ impl PowerDevice for ESPHomePlug {
         // Send a post request to the switch to turn it on or off
         match reqwest::blocking::Client::new().post(&url).send() {
             Ok(_) => println!("Successfully set power to: {}", power),
-            Err(e) => eprintln!("Failed to set power to: {}: {:?}", power, e)
+            Err(e) => eprintln!("Failed to set power to {}: {:?}", power, e)
         }
     }
 }

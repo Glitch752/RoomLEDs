@@ -1,6 +1,7 @@
 pub struct PowerStats {
     /**
      * The current power usage in watts.
+     * TODO: Graphing/logging this information would be useful.
      */
     pub current_power_usage: f32
 }

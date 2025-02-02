@@ -14,13 +14,13 @@ The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) m
 
 ## TODO
 - [ ] Make custom ESPHome replacement firmware for the Kauf Plug to make the power system more robust and allow for more control
-- [ ] Implement momentary effects triggered by an API call
-- [ ] Add a door sensor integration
+- [ ] Create an Alexa integration
+- [ ] Add a door sensor system to turn on the lights when someone enters the room
 - [ ] Allow composing animations and effects with the web interface
 - [ ] Add an alarm system that flashes the lights
-- [ ] Create an Alexa integration
 - [ ] Document the hardware required
 - [ ] Add images to the README
+- [ ] Graphing/logging power usage data
 
 ## Using
 I don't have a proper deploy system set up, but running the script `install.sh` under `controller` should install the necessary dependencies and set up a systemd service to run the Python script at boot. Maybe Nix would be appropriate for this project, but I'm honestly a bit tired of Nix after setting up my whole system with it for now haha.

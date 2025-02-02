@@ -30,6 +30,7 @@ pub use solid_color::SolidColorEffect;
 pub use websocket_input::WebsocketInputEffect;
 
 pub use temporary::duration::DurationTemporaryEffect;
+pub use temporary::TemporaryEffectCompositor;
 
 /// An effect is a render construct that returns a frame of pixel data with opacity.
 /// Effects can take other effects as an input.
@@ -69,7 +70,7 @@ pub enum AnyEffect {
 #[derive(TS, Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 #[ts(export)]
-#[enum_dispatch(TemporaryEffect)]
+#[enum_dispatch(TemporaryEffect, Effect)]
 pub enum AnyTemporaryEffect {
     TemporaryEffectWrapper(DurationTemporaryEffect),
 }

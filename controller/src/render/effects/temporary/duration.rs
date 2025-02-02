@@ -1,19 +1,32 @@
-use std::time::{Duration};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::{render::{effects::{AnyEffect, Effect, TemporaryEffect}, frame::{self}}, RenderInfo};
+use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, Effect, TemporaryEffect}, frame::{self}}, RenderInfo};
 
 #[derive(TS, Serialize, Deserialize, Debug)]
 #[ts(export)]
 pub struct DurationTemporaryEffect {
-    duration: Duration,
+    // The effect duration in seconds
+    duration: f64,
+    // The time the effect started
+    #[serde(skip)]
     start_time: f64,
-    effect: AnyEffect
+    // The effect to apply
+    effect: Box<AnyEffect>
 }
 
 impl DurationTemporaryEffect {
+    /// Creates a new temporary effect with the specified duration and effect.
+    /// Returns a boxed temporary effect.
+    pub fn new(duration: f64, effect: Box<AnyEffect>) -> Box<AnyTemporaryEffect> {
+        Box::new(Self {
+            duration,
+            start_time: 0.0,
+            effect
+        }.into())
+    }
 }
 
 impl Effect for DurationTemporaryEffect {
@@ -28,9 +41,8 @@ impl TemporaryEffect for DurationTemporaryEffect {
     }
 
     fn is_finished(&self, render_info: &RenderInfo) -> bool {
-        self.start_time >= self.duration.as_secs_f64()
+        render_info.time - self.start_time >= self.duration
     }
 
-    fn stop(&mut self, _render_info: &mut RenderInfo) {
-    }
+    fn stop(&mut self, _render_info: &mut RenderInfo) {}
 }

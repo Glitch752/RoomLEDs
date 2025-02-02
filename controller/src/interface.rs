@@ -4,7 +4,7 @@ use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
-    }, response::IntoResponse, routing::get, Json, Router
+    }, response::IntoResponse, routing::{get, post}, Json, Router
 };
 use futures::{stream::SplitSink, SinkExt, StreamExt};
 use shared::{ServerToClientMessage, StatusUpdateMessage};
@@ -12,7 +12,7 @@ use sysinfo::{CpuRefreshKind, MemoryRefreshKind, RefreshKind};
 use tokio::time;
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::{render::{effects::{self, AnyEffect}, frame::Pixel}, LightingState, FRAME_TIMES_STORED, TOTAL_PIXELS};
+use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::Pixel}, LightingState, FRAME_TIMES_STORED, TOTAL_PIXELS};
 
 static WEB_SERVER_PORT: u16 = 3000;
 
@@ -22,6 +22,11 @@ struct EffectPreset {
     name: String,
     icon: String,
     effect: Box<dyn Fn() -> Box<AnyEffect> + Send + Sync>
+}
+
+struct TemporaryEffectPreset {
+    name: String,
+    effect: Box<dyn Fn() -> Box<AnyTemporaryEffect> + Send + Sync>
 }
 
 static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
@@ -68,12 +73,23 @@ static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
     },
 ]);
 
+static TEMPORARY_EFFECTS: LazyLock<Vec<TemporaryEffectPreset>> = LazyLock::new(|| vec![
+    TemporaryEffectPreset {
+        name: "1 second red".to_string(),
+        effect: Box::new(|| effects::DurationTemporaryEffect::new(
+            1.,
+            effects::SolidColorEffect::new(Pixel::new(255, 0, 0, 1.0), 0, TOTAL_PIXELS)
+        ))
+    }
+]);
+
 pub async fn serve(lighting_state: Arc<LightingState>) {
     let serve_dir = ServeDir::new("static")
         .not_found_service(ServeFile::new("static/index.html"));
 
     let api_router = Router::new()
-        .route("/light_positions", get(light_positions_handler));
+        .route("/light_positions", get(light_positions_handler))
+        .route("/run_effect", post(run_effect_handler));
 
     let app = Router::new()
         .route("/websocket", get(websocket_handler))
@@ -97,6 +113,22 @@ async fn light_positions_handler(State(state): State<Arc<LightingState>>) -> imp
     let pixel_locations = state.render_state.lock().info.pixel_locations.clone();
     let pixel_locations = pixel_locations.iter().map(|location| (location.x, location.y)).collect::<Vec<_>>();
     Json(pixel_locations)
+}
+
+async fn run_effect_handler(
+    State(state): State<Arc<LightingState>>,
+    Json(effect_name): Json<String>
+) -> impl IntoResponse {
+    let effect = TEMPORARY_EFFECTS
+        .iter()
+        .find(|preset| preset.name == effect_name)
+        .map(|preset| (preset.effect)());
+    
+    if let Some(effect) = effect {
+        state.render_state.lock().temporary_effect_compositor.add_effect(effect);
+    }
+
+    "OK"
 }
 
 async fn websocket_handler(
