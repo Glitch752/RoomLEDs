@@ -2,6 +2,8 @@
 
 The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) mounted around the edge of a room. The strips are controlled by two ESP8266 microcontrollers, and the microcontrollers are sent data over serial from an SBC (currently the Libre Computer Le Potato) running a Rust application. Other hardware components, including a custom power system, make the system more robust and powerful.  
 
+Oh, and it's in Rust (BTW)... because why not have complete memory safety for your room lights, I guess?
+
 ## Features
 - Custom ESP8266 firmware to control a strip of LEDs over serial
 - Integration with ESPHome to control a Kauf Plug for automatic idle power management
@@ -9,6 +11,7 @@ The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) m
   - Web interface with a preview, statistics, and preset controls (with more to come)
   - System to render complex animations with spatial data
   - Precise real-time system to send data to the LEDs at the correct time
+  - Momentary effects triggered by an API call
 - Control client with features to integrate devices with the LEDs
   - Music visualizer using Cava
 
@@ -19,7 +22,6 @@ The most over-engineered solution to drive a strip of NeoPixels (WS2812B LEDs) m
 - [ ] Allow composing animations and effects with the web interface
 - [ ] Add an alarm system that flashes the lights
 - [ ] Document the hardware required
-- [ ] Add images to the README
 - [ ] Graphing/logging power usage data
 
 ## Using
