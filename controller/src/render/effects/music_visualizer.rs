@@ -1,6 +1,8 @@
 use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}, time::Duration};
 
 use color_space::Hsl;
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::{render::frame::{Frame, Pixel}, RenderInfo, TOTAL_PIXELS};
 
@@ -11,22 +13,73 @@ static PACKET_FROP_FRAMES: usize = 500;
 /// The music visualizer effect runs a TCP socket server that listens for
 /// audio data from the music visualizer client. Then, it renders the audio
 /// data as a visualizer.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MusicVisualizerEffect {
     /// The UDP listener that listens for audio data from the music visualizer client
-    listener: UdpSocket,
+    #[serde(rename = "port")]
+    listener: PortUDPSocket,
 
     /// The buffer that stores the audio data
+    #[serde(skip)]
     audio_buffer: Vec<f32>,
 
     /// The time at which the last audio data was received
     /// If no audio data has been received in a while, the visualizer will
     /// display a pulsing red color
+    #[serde(skip)]
     data_last_received: Option<std::time::Instant>,
 
     /// Used to calculate last frames' packet drop rate
     #[cfg(debug_assertions)]
+    #[serde(skip, default="default_packet_receive_frames")]
     packet_receive_frames: [bool; PACKET_FROP_FRAMES],
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct PortUDPSocket {
+    #[serde(serialize_with = "serialize_udp_socket", deserialize_with = "deserialize_udp_socket")]
+    socket: UdpSocket
+}
+
+impl From<UdpSocket> for PortUDPSocket {
+    fn from(listener: UdpSocket) -> Self {
+        Self {
+            socket: listener
+        }
+    }
+}
+
+impl PortUDPSocket {
+    fn new(port: u16) -> Self {
+        let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        Self {
+            socket: listener
+        }
+    }
+}
+
+fn default_packet_receive_frames() -> [bool; PACKET_FROP_FRAMES] {
+    [false; PACKET_FROP_FRAMES]
+}
+
+/// Deserialize a UDP socket from a port number
+fn deserialize_udp_socket<'de, D>(deserializer: D) -> Result<UdpSocket, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let port = u16::deserialize(deserializer)?;
+    let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
+    listener.set_nonblocking(true).unwrap();
+    Ok(listener)
+}
+
+fn serialize_udp_socket<S>(listener: &UdpSocket, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    listener.local_addr().unwrap().port().serialize(serializer)
 }
 
 impl MusicVisualizerEffect {
@@ -40,7 +93,7 @@ impl MusicVisualizerEffect {
         println!("Music visualizer effect listening on port {}", port);
         
         Box::new(Self {
-            listener,
+            listener: listener.into(),
             audio_buffer: vec![],
             data_last_received: None,
 
@@ -57,9 +110,9 @@ impl Effect for MusicVisualizerEffect {
         // Read audio data from the client
         let mut looped = false;
         let mut audio_data = vec![0; TOTAL_PIXELS as usize / BLOCK_SIZE];
-        while self.listener.peek_from(&mut [0; 1]).is_ok() {
+        while self.listener.socket.peek_from(&mut [0; 1]).is_ok() {
             looped = true;
-            self.listener.recv(&mut audio_data).unwrap();
+            self.listener.socket.recv(&mut audio_data).unwrap();
         }
         
         if looped {
