@@ -58,8 +58,6 @@ pub enum AnyEffect {
     AdditiveCompositor(AdditiveCompositorEffect),
     AlphaCompositor(AlphaCompositorEffect),
     Stripe(StripeEffect),
-    #[serde(skip)]
-    // TODO: Implement serialization for MusicVisualizerEffect
     MusicVisualizer(MusicVisualizerEffect),
     Rotate(RotateEffect),
     FlashingColor(FlashingColorEffect),

@@ -2,9 +2,10 @@
 import type { AdditiveCompositorEffect } from "./AdditiveCompositorEffect";
 import type { AlphaCompositorEffect } from "./AlphaCompositorEffect";
 import type { FlashingColorEffect } from "./FlashingColorEffect";
+import type { MusicVisualizerEffect } from "./MusicVisualizerEffect";
 import type { RotateEffect } from "./RotateEffect";
 import type { SolidColorEffect } from "./SolidColorEffect";
 import type { StripeEffect } from "./StripeEffect";
 import type { WebsocketInputEffect } from "./WebsocketInputEffect";
 
-export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect;
+export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "MusicVisualizer" } & MusicVisualizerEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect;
