@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.28", features = ["cargo"] }
+reqwest = { version = "0.12.12", features = ["blocking"] }
 shared = { path = "../shared" }
