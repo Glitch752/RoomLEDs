@@ -14,7 +14,7 @@ use tower_http::services::{ServeDir, ServeFile};
 
 use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::Pixel}, LightingState, FRAME_TIMES_STORED, TOTAL_PIXELS};
 
-static WEB_SERVER_PORT: u16 = 3000;
+static WEB_SERVER_PORT: u16 = shared::constants::API_PORT;
 
 // This is a temporary solution; I intend to replace this with a way to
 // compose effects using the web interface.
@@ -52,7 +52,7 @@ static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
         name: "Music visualizer".to_string(),
         icon: "fas fa-music".to_string(),
         effect: Box::new(|| effects::RotateEffect::new(
-            effects::MusicVisualizerEffect::new(3001),
+            effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT),
             -219
         ))
     },

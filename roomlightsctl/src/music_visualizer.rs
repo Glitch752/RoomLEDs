@@ -1,11 +1,13 @@
-use std::{io::Read, process::Stdio};
+use std::{io::Read, net::IpAddr, process::Stdio};
 
 use crate::TOTAL_PIXELS;
 
 static BLOCK_SIZE: usize = 4;
 static FRAMERATE: u32 = 80;
 
-pub fn run(address: &str) {
+pub fn run(address: IpAddr) {
+    let socket_address: std::net::SocketAddr = (address, shared::constants::MUSIC_VISUALIZER_PORT).into();
+
     // Ensure the `cava` command is installed
     let cava_installed = std::process::Command::new("which")
         .arg("cava")
@@ -21,7 +23,9 @@ pub fn run(address: &str) {
 
     // Connect to the server
     let udp_socket = std::net::UdpSocket::bind("0.0.0.0:0").expect("Failed to bind to UDP socket");
-    udp_socket.connect(address).expect("Failed to connect to server");
+    udp_socket.connect(socket_address).expect("Failed to connect to server");
+
+    println!("Connected to server at {} (probably... because UDP)", socket_address);
 
     // Create a configuration file for `cava` so it outputs raw data
     let cava_config = format!(r#"

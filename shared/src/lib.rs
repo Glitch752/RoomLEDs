@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+pub mod constants;
+
 pub type LightPositions = Vec<LightPosition>;
 
 #[derive(TS, Serialize, Deserialize)]

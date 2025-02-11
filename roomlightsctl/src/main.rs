@@ -1,7 +1,9 @@
 use clap::arg;
+use config::Configuration;
 
 mod music_visualizer;
 mod temporary_effect;
+mod config;
 
 // TODO: Retrieve from server?
 static TOTAL_PIXELS: u32 = 812;
@@ -13,25 +15,24 @@ fn main() {
         .version("0.1.0")
         .subcommand_required(true)
         .subcommands([
-            clap::command!("music-visualizer")
-                .arg(arg!(-a --address <ADDRESS> "The address of the server to connect to"))
-                .arg_required_else_help(true),
+            clap::command!("music-visualizer"),
             clap::command!("temporary-effect")
-                .arg(arg!(-e --effect <EFFECT> "The effect to run"))
-                .arg(arg!(-a --address <ADDRESS> "The address of the server to connect to"))
-                .arg_required_else_help(true)
+                .arg(arg!(<EFFECT> "The effect to run")),
+            config::command()
         ]);
     
     let matches = cmd.get_matches();
-    
+    let address = Configuration::load().controller_ip;
+
     match matches.subcommand() {
-        Some(("music-visualizer", matches)) => music_visualizer::run(
-            matches.get_one::<String>("address").unwrap()
+        Some(("music-visualizer", _matches)) => music_visualizer::run(
+            address
         ),
         Some(("temporary-effect", matches)) => temporary_effect::run(
-            matches.get_one::<String>("address").expect("Address is required"),
+            address,
             matches.get_one::<String>("effect").expect("Effect is required")
         ),
+        Some(("config", matches)) => config::run(matches),
         _ => unreachable!()
     };
 }
