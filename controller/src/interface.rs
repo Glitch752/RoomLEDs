@@ -1,87 +1,115 @@
-use std::{cmp::min, net::{self, Ipv4Addr}, sync::{Arc, LazyLock}, time::Duration};
+use std::{cmp::min, net::{self, Ipv4Addr}, sync::Arc, time::Duration};
 
 use axum::{
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
-        State,
+        ws::{Message, WebSocket, WebSocketUpgrade}, Path, State
     }, response::IntoResponse, routing::{get, post}, Json, Router
 };
 use futures::{stream::SplitSink, SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
 use shared::{ServerToClientMessage, StatusUpdateMessage};
 use sysinfo::{CpuRefreshKind, MemoryRefreshKind, RefreshKind};
 use tokio::time;
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::Pixel}, LightingState, FRAME_TIMES_STORED, TOTAL_PIXELS};
+use crate::{render::effects::{AnyEffect, AnyTemporaryEffect}, LightingState, FRAME_TIMES_STORED};
 
 static WEB_SERVER_PORT: u16 = shared::constants::API_PORT;
 
-// This is a temporary solution; I intend to replace this with a way to
-// compose effects using the web interface.
+#[derive(Serialize, Deserialize)]
 struct EffectPreset {
     name: String,
     icon: String,
-    effect: Box<dyn Fn() -> Box<AnyEffect> + Send + Sync>
+    effect: AnyEffect
 }
 
+#[derive(Serialize, Deserialize)]
 struct TemporaryEffectPreset {
     name: String,
-    effect: Box<dyn Fn() -> Box<AnyTemporaryEffect> + Send + Sync>
+    effect: AnyTemporaryEffect
 }
 
-static EFFECTS: LazyLock<Vec<EffectPreset>> = LazyLock::new(|| vec![
-    EffectPreset {
-        name: "Websocket Input".to_string(),
-        icon: "fas fa-plug".to_string(),
-        effect: Box::new(|| effects::WebsocketInputEffect::new())
-    },
-    EffectPreset {
-        name: "Rainbow stripes".to_string(),
-        icon: "fas fa-rainbow".to_string(),
-        effect: Box::new(|| effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
-            (255, 0, 0),
-            (255, 100, 0),
-            (255, 255, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (143, 0, 255),
-            (255, 255, 255),
-        ], 84.0))
-    },
-    EffectPreset {
-        name: "Music visualizer".to_string(),
-        icon: "fas fa-music".to_string(),
-        effect: Box::new(|| effects::RotateEffect::new(
-            effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT),
-            -219
-        ))
-    },
-    EffectPreset {
-        name: "Flashing red".to_string(),
-        icon: "fas fa-bolt".to_string(),
-        effect: Box::new(|| effects::FlashingColorEffect::new(1., Pixel::new(255, 0, 0, 1.0)))
-    },
-    EffectPreset {
-        name: "Solid white".to_string(),
-        icon: "fas fa-sun".to_string(),
-        effect: Box::new(|| effects::SolidColorEffect::new(Pixel::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS))
-    },
-    EffectPreset {
-        name: "Solid black".to_string(),
-        icon: "fas fa-moon".to_string(),
-        effect: Box::new(|| effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS))
-    },
-]);
+/// Stores the web interface effect presets and persists them to disk.
+#[derive(Serialize, Deserialize)]
+pub(crate) struct EffectPresets {
+    presets: Vec<EffectPreset>,
+    temporary_effects: Vec<TemporaryEffectPreset>
+}
 
-static TEMPORARY_EFFECTS: LazyLock<Vec<TemporaryEffectPreset>> = LazyLock::new(|| vec![
-    TemporaryEffectPreset {
-        name: "1 second red".to_string(),
-        effect: Box::new(|| effects::DurationTemporaryEffect::new(
-            1.,
-            effects::SolidColorEffect::new(Pixel::new(255, 0, 0, 1.0), 0, TOTAL_PIXELS)
-        ))
+static EFFECT_PRESET_FILE: &str = "effect_presets.json";
+
+impl EffectPresets {
+    pub fn load() -> Self {
+        if let Ok(file) = std::fs::File::open(EFFECT_PRESET_FILE) {
+            serde_json::from_reader(file).unwrap()
+        } else {
+            EffectPresets {
+                presets: vec![],
+                temporary_effects: vec![]
+            }
+        }
     }
-]);
+
+    fn add_preset(&mut self, preset: EffectPreset) -> Result<(), ()> {
+        // Ensure that the preset doesn't already exist
+        if self.presets.iter().any(|existing_preset| existing_preset.name == preset.name) {
+            return Err(());
+        }
+
+        self.presets.push(preset);
+        Ok(())
+    }
+
+    fn add_temporary_effect(&mut self, preset: TemporaryEffectPreset) -> Result<(), ()> {
+        // Ensure that the preset doesn't already exist
+        if self.temporary_effects.iter().any(|existing_preset| existing_preset.name == preset.name) {
+            return Err(());
+        }
+
+        self.temporary_effects.push(preset);
+        Ok(())
+    }
+
+    fn remove_preset(&mut self, name: &str) -> Result<(), ()> {
+        let index = self.presets.iter().position(|preset| preset.name == name);
+        if let Some(index) = index {
+            self.presets.remove(index);
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    fn remove_temporary_effect(&mut self, name: &str) -> Result<(), ()> {
+        let index = self.temporary_effects.iter().position(|preset| preset.name == name);
+        if let Some(index) = index {
+            self.temporary_effects.remove(index);
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    fn get_preset(&self, name: &str) -> Option<AnyEffect> {
+        self.presets.iter().find(|preset| preset.name == name).map(|preset| preset.effect.clone())
+    }
+
+    fn get_temporary_effect(&self, name: &str) -> Option<AnyTemporaryEffect> {
+        self.temporary_effects.iter().find(|preset| preset.name == name).map(|preset| preset.effect.clone())
+    }
+
+    fn get_preset_list(&self) -> Vec<shared::EffectPreset> {
+        self.presets.iter().map(|preset| shared::EffectPreset {
+            name: preset.name.clone(),
+            icon: preset.icon.clone()
+        }).collect()
+    }
+
+    fn save(&self) {
+        let file = std::fs::File::create(EFFECT_PRESET_FILE).unwrap();
+        serde_json::to_writer(file, self).unwrap();
+    }
+}
 
 pub async fn serve(lighting_state: Arc<LightingState>) {
     let serve_dir = ServeDir::new("static")
@@ -89,7 +117,8 @@ pub async fn serve(lighting_state: Arc<LightingState>) {
 
     let api_router = Router::new()
         .route("/light_positions", get(light_positions_handler))
-        .route("/run_effect", post(run_effect_handler));
+        .route("/run_effect", post(run_effect_handler))
+        .route("/temporary_effect/:effect", post(temporary_effect_handler));
 
     let app = Router::new()
         .route("/websocket", get(websocket_handler))
@@ -117,12 +146,18 @@ async fn light_positions_handler(State(state): State<Arc<LightingState>>) -> imp
 
 async fn run_effect_handler(
     State(state): State<Arc<LightingState>>,
-    Json(effect_name): Json<String>
+    Json(effect): Json<AnyEffect>
 ) -> impl IntoResponse {
-    let effect = TEMPORARY_EFFECTS
-        .iter()
-        .find(|preset| preset.name == effect_name)
-        .map(|preset| (preset.effect)());
+    state.render_state.lock().effect = Box::new(effect);
+
+    "OK"
+}
+
+async fn temporary_effect_handler(
+    State(state): State<Arc<LightingState>>,
+    Path(effect_name): Path<String>
+) -> impl IntoResponse {
+    let effect = state.presets.get_temporary_effect(&effect_name);
     
     if let Some(effect) = effect {
         state.render_state.lock().temporary_effect_compositor.add_effect(effect);
@@ -165,14 +200,9 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
             y: location.y
         }).collect();
 
-    let effect_presets = EFFECTS.iter().map(|preset| shared::EffectPreset {
-        name: preset.name.clone(),
-        icon: preset.icon.clone()
-    }).collect();
-
     websocket_sender.send(ServerToClientMessage::Initialize(shared::InitializeMessage {
         light_positions,
-        effect_presets
+        effect_presets: state.presets.get_preset_list()
     }).into()).await.unwrap();
 
     // While this stream is open, periodically (20 times per second) send an update
@@ -223,12 +253,9 @@ async fn handle_client_message(message: String, state: &Arc<LightingState>) {
     if let Ok(message) = deserialized_message {
         match message {
             shared::ClientToServerMessage::UsePreset(preset_message) => {
-                let effect = EFFECTS
-                    .iter()
-                    .find(|preset| preset.name == preset_message.preset_name)
-                    .map(|preset| (preset.effect)());
+                let effect = state.presets.get_preset(&preset_message.preset_name);
                 if let Some(effect) = effect {
-                    state.render_state.lock().effect = effect;
+                    state.render_state.lock().effect = Box::new(effect);
                 }
             }
         }

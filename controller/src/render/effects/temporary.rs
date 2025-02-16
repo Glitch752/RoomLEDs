@@ -26,8 +26,8 @@ impl TemporaryEffectCompositor {
 
     /// Adds a new effect to the compositor.
     /// The effect will be rendered after all the other effects in the sequence.
-    pub fn add_effect(&mut self, effect: Box<AnyTemporaryEffect>) {
-        self.effects.push(effect);
+    pub fn add_effect(&mut self, effect: AnyTemporaryEffect) {
+        self.effects.push(Box::new(effect));
     }
 }
 

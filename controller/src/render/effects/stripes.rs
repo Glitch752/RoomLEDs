@@ -8,7 +8,7 @@ use crate::{render::frame::{Frame, Pixel}, RenderInfo, TOTAL_PIXELS};
 use super::{AnyEffect, Effect};
 
 /// The stripes effect renders a rotating pattern with stripes of color.
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct StripeEffect {
     stripe_width: f64,

@@ -8,7 +8,7 @@ use super::{Effect, AnyEffect};
 // TODO: Deduplicate the compositor code with a macro
 
 /// An additive compositor composites other effects together using additive blending.
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct AdditiveCompositorEffect {
     effects: Vec<Box<AnyEffect>>

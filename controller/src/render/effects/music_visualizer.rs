@@ -38,6 +38,18 @@ pub struct MusicVisualizerEffect {
     packet_receive_frames: [bool; PACKET_FROP_FRAMES],
 }
 
+impl Clone for MusicVisualizerEffect {
+    fn clone(&self) -> Self {
+        Self {
+            listener: self.listener.try_clone().unwrap(),
+            audio_buffer: self.audio_buffer.clone(),
+            data_last_received: self.data_last_received,
+            #[cfg(debug_assertions)]
+            packet_receive_frames: self.packet_receive_frames.clone(),
+        }
+    }
+}
+
 fn default_packet_receive_frames() -> [bool; PACKET_FROP_FRAMES] {
     [false; PACKET_FROP_FRAMES]
 }

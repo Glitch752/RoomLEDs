@@ -5,7 +5,7 @@ use ts_rs::TS;
 
 use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, Effect, TemporaryEffect}, frame::{self}}, RenderInfo};
 
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct DurationTemporaryEffect {
     // The effect duration in seconds

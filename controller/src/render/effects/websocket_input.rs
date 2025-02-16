@@ -7,7 +7,7 @@ use crate::{render::frame, RenderInfo};
 
 use super::{AnyEffect, Effect};
 
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct WebsocketInputEffect {}
 

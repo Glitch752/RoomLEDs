@@ -7,7 +7,7 @@ use crate::{render::frame::{self, Pixel}, RenderInfo};
 
 use super::{AnyEffect, Effect};
 
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct SolidColorEffect {
     color: Pixel,

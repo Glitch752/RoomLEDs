@@ -6,7 +6,7 @@ use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
 use super::{AnyEffect, Effect};
 
 /// An alpha compositor composites other effects together using alpha blending.
-#[derive(TS, Serialize, Deserialize, Debug)]
+#[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct AlphaCompositorEffect {
     effects: Vec<Box<AnyEffect>>
