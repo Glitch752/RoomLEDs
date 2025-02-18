@@ -1,12 +1,14 @@
 use std::{io::Read, net::IpAddr, process::Stdio};
 
+use shared::constants::MUSIC_VISUALIZER_PORT;
+
 use crate::TOTAL_PIXELS;
 
 static BLOCK_SIZE: usize = 4;
 static FRAMERATE: u32 = 80;
 
 pub fn run(address: IpAddr) {
-    let socket_address: std::net::SocketAddr = (address, shared::constants::MUSIC_VISUALIZER_PORT).into();
+    let socket_address: std::net::SocketAddr = (address, MUSIC_VISUALIZER_PORT).into();
 
     // Ensure the `cava` command is installed
     let cava_installed = std::process::Command::new("which")

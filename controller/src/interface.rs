@@ -2,127 +2,29 @@ use std::{cmp::min, net::{self, Ipv4Addr}, sync::Arc, time::Duration};
 
 use axum::{
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade}, Path, State
-    }, response::IntoResponse, routing::{get, post}, Json, Router
+        ws::{Message, WebSocket, WebSocketUpgrade}, State
+    }, response::IntoResponse, routing::get, Router
 };
 use futures::{stream::SplitSink, SinkExt, StreamExt};
-use serde::{Deserialize, Serialize};
 use shared::{ServerToClientMessage, StatusUpdateMessage};
 use sysinfo::{CpuRefreshKind, MemoryRefreshKind, RefreshKind};
 use tokio::time;
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::{render::effects::{AnyEffect, AnyTemporaryEffect}, LightingState, FRAME_TIMES_STORED};
+use crate::{LightingState, FRAME_TIMES_STORED};
 
 static WEB_SERVER_PORT: u16 = shared::constants::API_PORT;
 
-#[derive(Serialize, Deserialize)]
-struct EffectPreset {
-    name: String,
-    icon: String,
-    effect: AnyEffect
-}
-
-#[derive(Serialize, Deserialize)]
-struct TemporaryEffectPreset {
-    name: String,
-    effect: AnyTemporaryEffect
-}
-
-/// Stores the web interface effect presets and persists them to disk.
-#[derive(Serialize, Deserialize)]
-pub(crate) struct EffectPresets {
-    presets: Vec<EffectPreset>,
-    temporary_effects: Vec<TemporaryEffectPreset>
-}
-
-static EFFECT_PRESET_FILE: &str = "effect_presets.json";
-
-impl EffectPresets {
-    pub fn load() -> Self {
-        if let Ok(file) = std::fs::File::open(EFFECT_PRESET_FILE) {
-            serde_json::from_reader(file).unwrap()
-        } else {
-            EffectPresets {
-                presets: vec![],
-                temporary_effects: vec![]
-            }
-        }
-    }
-
-    fn add_preset(&mut self, preset: EffectPreset) -> Result<(), ()> {
-        // Ensure that the preset doesn't already exist
-        if self.presets.iter().any(|existing_preset| existing_preset.name == preset.name) {
-            return Err(());
-        }
-
-        self.presets.push(preset);
-        Ok(())
-    }
-
-    fn add_temporary_effect(&mut self, preset: TemporaryEffectPreset) -> Result<(), ()> {
-        // Ensure that the preset doesn't already exist
-        if self.temporary_effects.iter().any(|existing_preset| existing_preset.name == preset.name) {
-            return Err(());
-        }
-
-        self.temporary_effects.push(preset);
-        Ok(())
-    }
-
-    fn remove_preset(&mut self, name: &str) -> Result<(), ()> {
-        let index = self.presets.iter().position(|preset| preset.name == name);
-        if let Some(index) = index {
-            self.presets.remove(index);
-            Ok(())
-        } else {
-            Err(())
-        }
-    }
-
-    fn remove_temporary_effect(&mut self, name: &str) -> Result<(), ()> {
-        let index = self.temporary_effects.iter().position(|preset| preset.name == name);
-        if let Some(index) = index {
-            self.temporary_effects.remove(index);
-            Ok(())
-        } else {
-            Err(())
-        }
-    }
-
-    fn get_preset(&self, name: &str) -> Option<AnyEffect> {
-        self.presets.iter().find(|preset| preset.name == name).map(|preset| preset.effect.clone())
-    }
-
-    fn get_temporary_effect(&self, name: &str) -> Option<AnyTemporaryEffect> {
-        self.temporary_effects.iter().find(|preset| preset.name == name).map(|preset| preset.effect.clone())
-    }
-
-    fn get_preset_list(&self) -> Vec<shared::EffectPreset> {
-        self.presets.iter().map(|preset| shared::EffectPreset {
-            name: preset.name.clone(),
-            icon: preset.icon.clone()
-        }).collect()
-    }
-
-    fn save(&self) {
-        let file = std::fs::File::create(EFFECT_PRESET_FILE).unwrap();
-        serde_json::to_writer(file, self).unwrap();
-    }
-}
+pub mod presets;
+pub mod api;
 
 pub async fn serve(lighting_state: Arc<LightingState>) {
     let serve_dir = ServeDir::new("static")
         .not_found_service(ServeFile::new("static/index.html"));
 
-    let api_router = Router::new()
-        .route("/light_positions", get(light_positions_handler))
-        .route("/run_effect", post(run_effect_handler))
-        .route("/temporary_effect/:effect", post(temporary_effect_handler));
-
     let app = Router::new()
         .route("/websocket", get(websocket_handler))
-        .nest("/api", api_router)
+        .nest("/api", api::router())
         .fallback_service(serve_dir)
         .with_state(lighting_state);
 
@@ -136,34 +38,6 @@ pub async fn serve(lighting_state: Arc<LightingState>) {
 
     println!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn light_positions_handler(State(state): State<Arc<LightingState>>) -> impl IntoResponse {
-    let pixel_locations = state.render_state.lock().info.pixel_locations.clone();
-    let pixel_locations = pixel_locations.iter().map(|location| (location.x, location.y)).collect::<Vec<_>>();
-    Json(pixel_locations)
-}
-
-async fn run_effect_handler(
-    State(state): State<Arc<LightingState>>,
-    Json(effect): Json<AnyEffect>
-) -> impl IntoResponse {
-    state.render_state.lock().effect = Box::new(effect);
-
-    "OK"
-}
-
-async fn temporary_effect_handler(
-    State(state): State<Arc<LightingState>>,
-    Path(effect_name): Path<String>
-) -> impl IntoResponse {
-    let effect = state.presets.get_temporary_effect(&effect_name);
-    
-    if let Some(effect) = effect {
-        state.render_state.lock().temporary_effect_compositor.add_effect(effect);
-    }
-
-    "OK"
 }
 
 async fn websocket_handler(

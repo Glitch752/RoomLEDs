@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use interface::EffectPresets;
+use interface::presets::EffectPresets;
 use parking_lot::Mutex;
 use render::{effects::{self, TemporaryEffectCompositor}, frame::Pixel, spatial_map::{Location, SpatialMap}, RenderInfo, RenderState};
 
