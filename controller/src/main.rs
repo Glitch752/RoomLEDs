@@ -3,6 +3,7 @@ use std::sync::Arc;
 use interface::presets::EffectPresets;
 use parking_lot::Mutex;
 use render::{effects::{self, TemporaryEffectCompositor}, frame::Pixel, spatial_map::{Location, SpatialMap}, RenderInfo, RenderState};
+use tokio::sync::RwLock;
 
 mod output;
 mod interface;
@@ -15,7 +16,7 @@ static TOTAL_PIXELS: u32 = 812;
 // Shared global state for the web application
 struct LightingState {
     render_state: Arc<Mutex<RenderState>>,
-    presets: EffectPresets
+    presets: RwLock<EffectPresets>
 }
 
 #[tokio::main]
@@ -36,7 +37,7 @@ async fn main() {
             temporary_effect_compositor: TemporaryEffectCompositor::new(vec![]),
             effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
         })),
-        presets: EffectPresets::load()
+        presets: RwLock::new(EffectPresets::load())
     });
 
     let (render_thread, render_consumer) =

@@ -76,7 +76,7 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
 
     websocket_sender.send(ServerToClientMessage::Initialize(shared::InitializeMessage {
         light_positions,
-        effect_presets: state.presets.get_preset_list()
+        effect_presets: state.presets.read().await.get_preset_list()
     }).into()).await.unwrap();
 
     // While this stream is open, periodically (20 times per second) send an update
@@ -127,7 +127,7 @@ async fn handle_client_message(message: String, state: &Arc<LightingState>) {
     if let Ok(message) = deserialized_message {
         match message {
             shared::ClientToServerMessage::UsePreset(preset_message) => {
-                let effect = state.presets.get_preset(&preset_message.preset_name);
+                let effect = state.presets.read().await.get_preset(&preset_message.preset_name);
                 if let Some(effect) = effect {
                     state.render_state.lock().effect = Box::new(effect);
                 }

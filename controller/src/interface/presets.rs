@@ -38,7 +38,12 @@ impl EffectPresets {
         }
     }
 
-    pub fn add_preset(&mut self, preset: EffectPreset) -> Result<(), Error> {
+    pub fn add_preset(&mut self, name: String, icon: String, effect: AnyEffect) -> Result<(), Error> {
+        let preset = EffectPreset {
+            name,
+            icon,
+            effect
+        };
         // Ensure that the preset doesn't already exist
         if self.presets.iter().any(|existing_preset| existing_preset.name == preset.name) {
             return Err(Error::new(ErrorKind::AlreadyExists, "Preset already exists"));
@@ -49,7 +54,11 @@ impl EffectPresets {
         Ok(())
     }
 
-    pub fn add_temporary_effect(&mut self, preset: TemporaryEffectPreset) -> Result<(), Error> {
+    pub fn add_temporary_effect(&mut self, name: String, effect: AnyTemporaryEffect) -> Result<(), Error> {
+        let preset = TemporaryEffectPreset {
+            name,
+            effect
+        };
         // Ensure that the preset doesn't already exist
         if self.temporary_effects.iter().any(|existing_preset| existing_preset.name == preset.name) {
             return Err(Error::new(ErrorKind::AlreadyExists, "Effect already exists"));
@@ -88,6 +97,10 @@ impl EffectPresets {
 
     pub fn get_temporary_effect(&self, name: &str) -> Option<AnyTemporaryEffect> {
         self.temporary_effects.iter().find(|preset| preset.name == name).map(|preset| preset.effect.clone())
+    }
+
+    pub fn get_temporary_effect_list(&self) -> Vec<String> {
+        self.temporary_effects.iter().map(|preset| preset.name.clone()).collect()
     }
 
     pub fn get_preset_list(&self) -> Vec<shared::EffectPreset> {
