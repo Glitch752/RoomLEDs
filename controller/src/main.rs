@@ -35,7 +35,7 @@ async fn main() {
         render_state: Arc::new(Mutex::new(RenderState {
             info: RenderInfo::new(pixel_locations),
             temporary_effect_compositor: TemporaryEffectCompositor::new(vec![]),
-            effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
+            effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS).into()
         })),
         presets: RwLock::new(EffectPresets::load())
     });

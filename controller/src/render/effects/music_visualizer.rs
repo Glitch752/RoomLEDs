@@ -74,22 +74,21 @@ where
 
 impl MusicVisualizerEffect {
     /// Creates a new music visualizer effect that listens on the specified port.
-    /// Returns a boxed effect.
     #[allow(unused)]
-    pub fn new(port: u16) -> Box<AnyEffect> {
+    pub fn new(port: u16) -> AnyEffect {
         let listener = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port))).unwrap();
         listener.set_nonblocking(true).unwrap();
 
         println!("Music visualizer effect listening on port {}", port);
         
-        Box::new(Self {
+        Self {
             listener,
             audio_buffer: vec![],
             data_last_received: None,
 
             #[cfg(debug_assertions)]
             packet_receive_frames: [false; PACKET_FROP_FRAMES],
-        }.into())
+        }.into()
     }
 }
 

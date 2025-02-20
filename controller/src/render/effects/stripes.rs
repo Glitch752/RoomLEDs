@@ -18,14 +18,13 @@ pub struct StripeEffect {
 
 impl StripeEffect {
     /// Creates a new stripes effect with the specified stripe width, colors, and speed.
-    /// Returns a boxed effect.
     #[allow(unused)]
-    pub fn new(stripe_width: f64, stripe_colors: Vec<(u8, u8, u8)>, speed: f64) -> Box<AnyEffect> {
-        Box::new(StripeEffect {
+    pub fn new(stripe_width: f64, stripe_colors: Vec<(u8, u8, u8)>, speed: f64) -> AnyEffect {
+        StripeEffect {
             stripe_width,
             stripe_colors,
             speed,
-        }.into())
+        }.into()
     }
 }
 

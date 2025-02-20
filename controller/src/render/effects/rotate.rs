@@ -16,12 +16,12 @@ pub struct RotateEffect {
 
 impl RotateEffect {
     /// Creates a new rotate effect.
-    /// Returns a boxed effect.
-    pub fn new(effect: Box<AnyEffect>, rotation: i32) -> Box<AnyEffect> {
-        Box::new(RotateEffect {
+    #[allow(unused)]
+    pub fn new(effect: Box<AnyEffect>, rotation: i32) -> AnyEffect {
+        RotateEffect {
             effect,
             rotation
-        }.into())
+        }.into()
     }
 }
 

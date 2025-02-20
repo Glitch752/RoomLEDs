@@ -13,10 +13,9 @@ pub struct WebsocketInputEffect {}
 
 impl WebsocketInputEffect {
     /// Creates a new websocket input effect.
-    /// Returns a boxed effect.
     #[allow(unused)]
-    pub fn new() -> Box<AnyEffect> {
-        Box::new(Self {}.into())
+    pub fn new() -> AnyEffect {
+        Self {}.into()
     }
 }
 

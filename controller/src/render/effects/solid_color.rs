@@ -17,12 +17,11 @@ pub struct SolidColorEffect {
 
 impl SolidColorEffect {
     /// Creates a new solid color effect with the specified color, start, and stop.
-    /// Returns a boxed effect.
     #[allow(unused)]
-    pub fn new(color: Pixel, start: u32, stop: u32) -> Box<AnyEffect> {
-        Box::new(Self {
+    pub fn new(color: Pixel, start: u32, stop: u32) -> AnyEffect {
+        Self {
             color, start, stop
-        }.into())
+        }.into()
     }
 }
 

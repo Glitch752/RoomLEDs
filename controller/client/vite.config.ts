@@ -14,7 +14,11 @@ export default {
         changeOrigin: true,
         ws: true,
         rewriteWsOrigin: true,
-      }
+      },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
     }
   },
   build: {

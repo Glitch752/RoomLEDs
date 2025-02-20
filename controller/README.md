@@ -11,6 +11,6 @@ You may also optionally set `$PASSWORD` to the password for the target machine; 
 This is probably really insecure and bad, but I don't particularly care about the security of my lighting system for now. Hopefully I can come up with a better solution in the future.
 
 ## TODO
-- [ ] Make the serial communication much more robust
+- [X] Make the serial communication much more robust
 - [X] Make a simple web interface for controlling the lights
 - [X] Rewrite in Rust or some other language with stronger real-time guarantees

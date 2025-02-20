@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { runEffectPreset } from "../../api/presets";
 import LightVisualization from "../../lib/LightVisualization.svelte";
-import { presets, setPreset, statusMessage } from "../../websocket";
+import { presets, statusMessage } from "../../websocket";
 </script>
 
 <div class="content">
@@ -9,7 +10,7 @@ import { presets, setPreset, statusMessage } from "../../websocket";
   <br />
   <h1>Presets</h1>
   {#each $presets as preset}
-    <button title={preset.name} on:click={() => setPreset(preset.name)} aria-label={preset.name}>
+    <button title={preset.name} on:click={() => runEffectPreset(preset.name)} aria-label={preset.name}>
       <i class={preset.icon}></i>
     </button>
   {/each}

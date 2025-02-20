@@ -27,13 +27,12 @@ pub enum ServerToClientMessage {
 pub enum ClientToServerMessage {
     // Pixel data updates use a binary message instead of JSON
     // PixelDataUpdate(Vec<u8>),
-    UsePreset(UsePresetMesssage),
 }
 
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export)]
-pub struct UsePresetMesssage {
-    pub preset_name: String
+pub struct EffectPresetList {
+    pub effects: Vec<EffectPreset>
 }
 
 #[derive(TS, Serialize, Deserialize)]
@@ -41,6 +40,12 @@ pub struct UsePresetMesssage {
 pub struct EffectPreset {
     pub name: String,
     pub icon: String
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export)]
+pub struct TemporaryEffectList {
+    pub effects: Vec<String>
 }
 
 #[derive(TS, Serialize, Deserialize)]

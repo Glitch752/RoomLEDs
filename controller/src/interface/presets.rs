@@ -1,8 +1,8 @@
-use std::io::{Error, ErrorKind};
+use std::{io::{Error, ErrorKind}, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::render::effects::{AnyEffect, AnyTemporaryEffect};
+use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::Pixel}, TOTAL_PIXELS};
 
 static EFFECT_PRESET_FILE: &str = "effect_presets.json";
 
@@ -28,11 +28,54 @@ pub(crate) struct EffectPresets {
 
 impl EffectPresets {
     pub fn load() -> Self {
-        if let Ok(file) = std::fs::File::open(EFFECT_PRESET_FILE) {
+        if let Ok(file) = std::fs::File::open(EffectPresets::get_file_path()) {
             serde_json::from_reader(file).expect("Failed to load effect presets")
         } else {
+            println!("No effect presets found; starting with a default list");
             EffectPresets {
-                presets: vec![],
+                presets: vec![
+                    EffectPreset {
+                        name: "Websocket Input".to_string(),
+                        icon: "fas fa-plug".to_string(),
+                        effect: effects::WebsocketInputEffect::new()
+                    },
+                    EffectPreset {
+                        name: "Rainbow stripes".to_string(),
+                        icon: "fas fa-rainbow".to_string(),
+                        effect: effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
+                            (255, 0, 0),
+                            (255, 100, 0),
+                            (255, 255, 0),
+                            (0, 255, 0),
+                            (0, 0, 255),
+                            (143, 0, 255),
+                            (255, 255, 255),
+                        ], 84.0)
+                    },
+                    EffectPreset {
+                        name: "Music visualizer".to_string(),
+                        icon: "fas fa-music".to_string(),
+                        effect: effects::RotateEffect::new(
+                            effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT).into(),
+                            -219
+                        )
+                    },
+                    EffectPreset {
+                        name: "Flashing red".to_string(),
+                        icon: "fas fa-bolt".to_string(),
+                        effect: effects::FlashingColorEffect::new(1., Pixel::new(255, 0, 0, 1.0)).into()
+                    },
+                    EffectPreset {
+                        name: "Solid white".to_string(),
+                        icon: "fas fa-sun".to_string(),
+                        effect: effects::SolidColorEffect::new(Pixel::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS)
+                    },
+                    EffectPreset {
+                        name: "Solid black".to_string(),
+                        icon: "fas fa-moon".to_string(),
+                        effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
+                    },
+                ],
                 temporary_effects: vec![]
             }
         }
@@ -111,8 +154,12 @@ impl EffectPresets {
     }
 
     fn save(&self) -> Result<(), Error> {
-        let file = std::fs::File::create(EFFECT_PRESET_FILE)?;
+        let file = std::fs::File::create(EffectPresets::get_file_path())?;
         serde_json::to_writer(file, self)?;
         Ok(())
+    }
+
+    fn get_file_path() -> PathBuf {
+        dirs::data_dir().unwrap().join(EFFECT_PRESET_FILE)
     }
 }

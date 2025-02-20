@@ -20,6 +20,7 @@ pub struct DurationTemporaryEffect {
 impl DurationTemporaryEffect {
     /// Creates a new temporary effect with the specified duration and effect.
     /// Returns a boxed temporary effect.
+    #[allow(unused)]
     pub fn new(duration: f64, effect: Box<AnyEffect>) -> Box<AnyTemporaryEffect> {
         Box::new(Self {
             duration,

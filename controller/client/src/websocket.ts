@@ -83,13 +83,6 @@ websocket.onmessage = (e: MessageEvent) => {
     }
 };
 
-export function setPreset(preset: string) {
-    websocket.send(JSON.stringify({
-        type: "UsePreset",
-        preset_name: preset
-    } satisfies ClientToServerMessage));
-}
-
 // Send light data to the server; sent data will
 // be rendered by websocket input effects.
 // Data should be a Uint8Array of r, g, b pairs.

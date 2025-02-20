@@ -122,16 +122,13 @@ async fn websocket(stream: WebSocket, state: Arc<LightingState>) {
 }
 
 // Attempts to deserialize into a ClientToServerMessage and handle it
-async fn handle_client_message(message: String, state: &Arc<LightingState>) {
+async fn handle_client_message(message: String, _state: &Arc<LightingState>) {
     let deserialized_message: Result<shared::ClientToServerMessage, _> = serde_json::from_str(&message);
     if let Ok(message) = deserialized_message {
         match message {
-            shared::ClientToServerMessage::UsePreset(preset_message) => {
-                let effect = state.presets.read().await.get_preset(&preset_message.preset_name);
-                if let Some(effect) = effect {
-                    state.render_state.lock().effect = Box::new(effect);
-                }
-            }
+            // There are no messages to handle yet
+            #[allow(unreachable_patterns)]
+            _ => ()
         }
     } else {
         println!("Received invalid message: {}", message);
