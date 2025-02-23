@@ -62,6 +62,11 @@ rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
   --update -ratlz \
   ../shared/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/shared"
 
+# ...and the reflection folder
+rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
+  --update -ratlz \
+  ../reflection/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/reflection"
+
 echo "Copied the controller folder"
 
 PARAMS=""

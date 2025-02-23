@@ -1,14 +1,13 @@
 use std::time::Duration;
 
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use crate::{render::frame, RenderInfo};
 
 use super::{AnyEffect, Effect};
 
-#[derive(TS, Serialize, Deserialize, Clone, Debug)]
-#[ts(export)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct WebsocketInputEffect {}
 
 impl WebsocketInputEffect {

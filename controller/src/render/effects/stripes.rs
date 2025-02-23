@@ -1,15 +1,14 @@
 use std::time::Duration;
 
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use crate::{render::frame::{Frame, Pixel}, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
 /// The stripes effect renders a rotating pattern with stripes of color.
-#[derive(TS, Serialize, Deserialize, Clone, Debug)]
-#[ts(export)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct StripeEffect {
     stripe_width: f64,
     stripe_colors: Vec<(u8, u8, u8)>,

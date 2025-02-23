@@ -1,13 +1,12 @@
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
 /// An alpha compositor composites other effects together using alpha blending.
-#[derive(TS, Serialize, Deserialize, Clone, Debug)]
-#[ts(export)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct AlphaCompositorEffect {
     effects: Vec<Box<AnyEffect>>
 }

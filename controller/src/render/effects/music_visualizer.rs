@@ -1,8 +1,8 @@
 use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}, time::Duration};
 
 use color_space::Hsl;
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use crate::{render::frame::{Frame, Pixel}, RenderInfo, TOTAL_PIXELS};
 
@@ -13,13 +13,12 @@ static PACKET_FROP_FRAMES: usize = 500;
 /// The music visualizer effect runs a TCP socket server that listens for
 /// audio data from the music visualizer client. Then, it renders the audio
 /// data as a visualizer.
-#[derive(TS, Debug, Serialize, Deserialize)]
+#[derive(Reflect, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[ts(export)]
 pub struct MusicVisualizerEffect {
     /// The UDP listener that listens for audio data from the music visualizer client
     #[serde(rename = "port", deserialize_with = "deserialize_udp_socket", serialize_with = "serialize_udp_socket")]
-    #[ts(as = "u16", rename = "port")]
+    #[reflect(as = "u16")]
     listener: UdpSocket,
 
     /// The buffer that stores the audio data

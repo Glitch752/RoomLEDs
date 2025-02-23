@@ -1,5 +1,4 @@
 use std::time::Duration;
-use ts_rs::TS;
 use crate::RenderInfo;
 use super::frame::Frame;
 
@@ -21,6 +20,7 @@ mod temporary;
 pub use additive_compositor::AdditiveCompositorEffect;
 pub use alpha_compositor::AlphaCompositorEffect;
 use enum_dispatch::enum_dispatch;
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 pub use stripes::StripeEffect;
 pub use music_visualizer::MusicVisualizerEffect;
@@ -50,9 +50,8 @@ pub trait TemporaryEffect {
 // TODO: Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
 // to avoid this enum? I'm not sure if ts-rs will be able to create bindings for it, though.
 
-#[derive(TS, Serialize, Deserialize, Clone, Debug)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-#[ts(export)]
 #[enum_dispatch(Effect)]
 pub enum AnyEffect {
     AdditiveCompositor(AdditiveCompositorEffect),
@@ -65,9 +64,8 @@ pub enum AnyEffect {
     WebsocketInput(WebsocketInputEffect),
 }
 
-#[derive(TS, Serialize, Deserialize, Clone, Debug)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-#[ts(export)]
 #[enum_dispatch(TemporaryEffect, Effect)]
 pub enum AnyTemporaryEffect {
     TemporaryEffectWrapper(DurationTemporaryEffect),
