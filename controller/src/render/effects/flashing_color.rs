@@ -7,7 +7,7 @@ use crate::{render::frame::{self, Pixel}, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FlashingColorEffect {
     time: f64,
     speed: f64,
