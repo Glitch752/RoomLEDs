@@ -20,7 +20,6 @@ mod temporary;
 pub use additive_compositor::AdditiveCompositorEffect;
 pub use alpha_compositor::AlphaCompositorEffect;
 use enum_dispatch::enum_dispatch;
-use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 pub use stripes::StripeEffect;
 pub use music_visualizer::MusicVisualizerEffect;

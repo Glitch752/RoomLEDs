@@ -52,7 +52,6 @@ pub(crate) fn export_to_string<T: Reflect + ?Sized + 'static>() -> Result<String
 }
 
 fn generate_declaration<T: Reflect + ?Sized + 'static>(buffer: &mut String) {
-
     buffer.push_str("\n\n/**\n * Generated binding.\n */\n");
     buffer.push_str(T::JSDOC_COMMENT.unwrap_or(""));
     buffer.push_str(" */\nexport ");
