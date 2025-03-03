@@ -3,6 +3,8 @@
 
 mod export;
 
+pub use reflection_derive::Reflect;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("IO error: {0}")]
@@ -20,6 +22,13 @@ pub trait Reflect {
     const JSDOC_COMMENT: Option<&'static str> = None;
 
     fn ts_definition() -> String;
+
+    fn ts_type_name() -> String {
+        // Remove the module path from the type name
+        let type_name = std::any::type_name::<Self>();
+        let type_name = type_name.split("::").last().unwrap();
+        type_name.to_string()
+    }
     
     fn visit_dependencies(_: &mut impl TypeVisitor)
     where

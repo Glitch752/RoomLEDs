@@ -1388,6 +1388,7 @@ dependencies = [
 name = "reflection"
 version = "0.1.0"
 dependencies = [
+ "reflection_derive",
  "thiserror 2.0.11",
 ]
 
