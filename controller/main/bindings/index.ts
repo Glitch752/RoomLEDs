@@ -5,11 +5,13 @@
 
 /**
  * Generated binding.
+ * Tagged with Some("type").
  */
 export type AnyEffect = any;
 
 /**
  * Generated binding.
+ * Tagged with Some("type").
  */
 export type AnyTemporaryEffect = any;
 

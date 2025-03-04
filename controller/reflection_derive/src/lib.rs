@@ -3,7 +3,7 @@
 
 extern crate proc_macro;
 
-use darling::FromDeriveInput;
+use darling::{FromDeriveInput, FromMeta};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item};
@@ -19,10 +19,14 @@ impl DerivedReflect {
             "export_bindings_{}",
             ty.to_string().to_lowercase().replace("r#", "")
         );
+        let comment_option = match self.comment {
+            Some(comment) => quote!(Some(#comment)),
+            None => quote!(None)
+        };
 
         quote! {
             impl reflection::Reflect for #ty {
-                const JSDOC_COMMENT: Option<&'static str> = None;
+                const JSDOC_COMMENT: Option<&'static str> = #comment_option;
 
                 fn ts_definition() -> String {
                     String::from("any")
@@ -39,10 +43,16 @@ impl DerivedReflect {
 }
 
 /// Options for the derive macro.
-#[derive(FromDeriveInput, Default)]
-#[darling(default, attributes(my_trait))]
-struct DeriveOptions {
-    
+#[derive(FromDeriveInput, Default, Debug)]
+#[darling(default, attributes(reflect), forward_attrs(doc, serde))]
+struct ReflectDeriveOptions {
+    attrs: Vec<syn::Attribute>
+}
+
+// Values from serde's attribute we care about
+#[derive(FromMeta, Debug)]
+struct SerdeValues {
+    tag: Option<String>
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -55,20 +65,20 @@ enum Error {
 #[proc_macro_derive(Reflect, attributes(reflect))]
 pub fn derive_reflect(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = parse_macro_input!(input);
-    let options = DeriveOptions::from_derive_input(&derive_input).expect("Wrong options");
+    let options = ReflectDeriveOptions::from_derive_input(&derive_input).expect("Wrong options");
 
     let span = derive_input.span();
-    match reflect(derive_input) {
+    match reflect(derive_input, options) {
         Err(err) => syn::Error::new(span, err.to_string()).to_compile_error().into(),
         Ok(output) => output.into(),
     }
 }
 
-fn reflect(ast: DeriveInput) -> Result<TokenStream, Error> {
+fn reflect(ast: DeriveInput, options: ReflectDeriveOptions) -> Result<TokenStream, Error> {
     let ident = ast.ident;
     match &ast.data {
         syn::Data::Struct(s) => Ok(struct_definition(s)),
-        syn::Data::Enum(e) => Ok(enum_definition(e)),
+        syn::Data::Enum(e) => Ok(enum_definition(e, options)),
         _ => Err(Error::UnsupportedUse("only structs and enums are supported")),
     }?.map(|reflect| reflect.implementation(ident))
 }
@@ -80,9 +90,18 @@ fn struct_definition(s: &syn::DataStruct) -> Result<DerivedReflect, Error> {
     })
 }
 
-fn enum_definition(e: &syn::DataEnum) -> Result<DerivedReflect, Error> {
-    // TODO
+fn enum_definition(e: &syn::DataEnum, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
+    let serde_values: Option<SerdeValues> = options.attrs.iter().find_map(|attr| {
+        if attr.path().is_ident("serde") {
+            SerdeValues::from_meta(&attr.meta).ok()
+        } else {
+            None
+        }
+    });
+    
+    let tag = serde_values.and_then(|values| values.tag);
+
     Ok(DerivedReflect {
-        comment: None
+        comment: Some(format!("Tagged with {:?}.", tag)) // Temporary
     })
 }
