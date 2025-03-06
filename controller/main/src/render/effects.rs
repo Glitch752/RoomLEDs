@@ -50,6 +50,8 @@ pub trait TemporaryEffect {
 // TODO: Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
 // to avoid this enum? I'm not sure if ts-rs will be able to create bindings for it, though.
 
+/// A wrapper for any effect that can be rendered.
+/// Used for serialization and deserialization.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
 #[enum_dispatch(Effect)]
@@ -64,6 +66,8 @@ pub enum AnyEffect {
     WebsocketInput(WebsocketInputEffect),
 }
 
+/// A wrapper for any temporary effect that can be rendered.
+/// Used for serialization and deserialization.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
 #[enum_dispatch(TemporaryEffect, Effect)]

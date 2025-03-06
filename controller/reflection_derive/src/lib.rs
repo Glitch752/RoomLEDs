@@ -3,13 +3,18 @@
 
 extern crate proc_macro;
 
+use std::rc::Rc;
+
 use darling::{FromDeriveInput, FromMeta};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item};
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item, Path, Type};
+
+mod fields;
 
 struct DerivedReflect {
-    pub comment: Option<String>
+    pub comment: Option<String>,
+    pub dependencies: Vec<Rc<Path>>
 }
 
 impl DerivedReflect {
@@ -23,6 +28,12 @@ impl DerivedReflect {
             Some(comment) => quote!(Some(#comment)),
             None => quote!(None)
         };
+        let dependencies = self.dependencies.iter().map(|ty| {
+            quote! {
+                visitor.visit::<#ty>();
+                <#ty as reflection::Reflect>::visit_dependencies(visitor);
+            }
+        }).collect::<TokenStream>();
 
         quote! {
             impl reflection::Reflect for #ty {
@@ -30,6 +41,10 @@ impl DerivedReflect {
 
                 fn ts_definition() -> String {
                     String::from("any")
+                }
+
+                fn visit_dependencies(visitor: &mut impl reflection::TypeVisitor) where Self: 'static {
+                    #dependencies
                 }
             }
 
@@ -57,6 +72,10 @@ struct SerdeValues {
 
 #[derive(thiserror::Error, Debug)]
 enum Error {
+    #[error("Syn error: {0}")]
+    Syn(#[from] syn::Error),
+    #[error("Darling error: {0}")]
+    Darling(#[from] darling::Error),
     #[error("Unsupported use: {0}")]
     UnsupportedUse(&'static str)
 }
@@ -69,28 +88,64 @@ pub fn derive_reflect(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 
     let span = derive_input.span();
     match reflect(derive_input, options) {
+        Err(Error::Darling(err)) => syn::Error::new(err.span(), err.to_string()).to_compile_error().into(),
+        Err(Error::Syn(err)) => err.to_compile_error().into(),
         Err(err) => syn::Error::new(span, err.to_string()).to_compile_error().into(),
         Ok(output) => output.into(),
     }
 }
 
-fn reflect(ast: DeriveInput, options: ReflectDeriveOptions) -> Result<TokenStream, Error> {
-    let ident = ast.ident;
-    match &ast.data {
-        syn::Data::Struct(s) => Ok(struct_definition(s)),
-        syn::Data::Enum(e) => Ok(enum_definition(e, options)),
+fn reflect(derive_input: DeriveInput, options: ReflectDeriveOptions) -> Result<TokenStream, Error> {
+    let ast = derive_input.into();
+    let (reflect, identifier) = match &ast {
+        Item::Struct(s) => Ok((struct_definition(s, options)?, s.ident.clone())),
+        Item::Enum(e) => Ok((enum_definition(e, options)?, e.ident.clone())),
         _ => Err(Error::UnsupportedUse("only structs and enums are supported")),
-    }?.map(|reflect| reflect.implementation(ident))
+    }?;
+
+    Ok(reflect.implementation(identifier))
 }
 
-fn struct_definition(s: &syn::DataStruct) -> Result<DerivedReflect, Error> {
-    // TODO
+fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
+    let doc = options.attrs.iter().find_map(|attr| {
+        if attr.path().is_ident("doc") {
+            attr.parse_args::<syn::LitStr>().ok().map(|lit| lit.value())
+        } else {
+            None
+        }
+    });
+
+    // Parse the attributes on each struct field
+    let fields = s.fields.iter().filter_map(|field| {
+        let attr = match fields::StructFieldAttr::from_field(field) {
+            Ok(attr) => attr,
+            Err(err) => return Some(Err(err))
+        };
+        if attr.skip {
+            return None;
+        }
+        Some(Ok((field, attr)))
+    }).collect::<Result<Vec<_>, Error>>()?;
+
+    let dependencies = fields.iter().filter_map(|field| {
+        if field.1.as_type.is_some() {
+            return Some(Rc::new(field.1.as_type.as_ref().unwrap().clone()));
+        }
+        
+        if let Type::Path(path) = &field.0.ty {
+            Some(Rc::new(path.path.clone()))
+        } else {
+            None
+        }
+    }).collect::<Vec<_>>();
+
     Ok(DerivedReflect {
-        comment: None
+        comment: doc,
+        dependencies
     })
 }
 
-fn enum_definition(e: &syn::DataEnum, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
+fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
     let serde_values: Option<SerdeValues> = options.attrs.iter().find_map(|attr| {
         if attr.path().is_ident("serde") {
             SerdeValues::from_meta(&attr.meta).ok()
@@ -102,6 +157,7 @@ fn enum_definition(e: &syn::DataEnum, options: ReflectDeriveOptions) -> Result<D
     let tag = serde_values.and_then(|values| values.tag);
 
     Ok(DerivedReflect {
-        comment: Some(format!("Tagged with {:?}.", tag)) // Temporary
+        comment: Some(format!("Tagged with {:?}.", tag)), // Temporary
+        dependencies: vec![]
     })
 }

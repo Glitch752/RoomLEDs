@@ -30,18 +30,62 @@ pub trait Reflect {
         type_name.to_string()
     }
     
-    fn visit_dependencies(_: &mut impl TypeVisitor)
-    where
-        Self: 'static,
-    {
-    }
+    /// Visits the dependencies of this type.
+    fn visit_dependencies(_: &mut impl TypeVisitor) where Self: 'static;
 
     // Exports this type and its dependencies to a file.
-    fn export_all() -> Result<(), Error>
-    where
-        Self: 'static,
-    {
-        export::export::<Self>()
-        // TODO: Export dependencies
+    fn export_all() -> Result<(), Error> where Self: 'static {
+        export::export_recursively::<Self>()
     }
+}
+
+// Implement Reflect for common types
+impl <T: Reflect> Reflect for Option<T> {
+    fn ts_definition() -> String {
+        format!("{} | null", T::ts_definition())
+    }
+
+    fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+        T::visit_dependencies(visitor);
+    }
+}
+
+impl <T: Reflect> Reflect for Vec<T> {
+    fn ts_definition() -> String {
+        format!("Array<{}>", T::ts_definition())
+    }
+
+    fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+        T::visit_dependencies(visitor);
+    }
+}
+
+macro_rules! basic_reflect {
+    ($($ty:ty, $def:expr);*) => {
+        $(
+            impl Reflect for $ty {
+                fn ts_definition() -> String {
+                    $def.to_string()
+                }
+
+                fn visit_dependencies(_: &mut impl TypeVisitor) {}
+            }
+        )*
+    };
+}
+
+basic_reflect! {
+    bool, "boolean";
+    i8, "number";
+    i16, "number";
+    i32, "number";
+    i64, "number";
+    u8, "number";
+    u16, "number";
+    u32, "number";
+    u64, "number";
+    f32, "number";
+    f64, "number";
+    char, "string";
+    String, "string"
 }

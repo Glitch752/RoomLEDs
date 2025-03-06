@@ -20,3 +20,8 @@ export type AnyTemporaryEffect = any;
  */
 export type MusicVisualizerEffect = any;
 
+/**
+ * Generated binding.
+ */
+export type u16 = number;
+

@@ -30,6 +30,8 @@ impl TypeVisitor for Visitor {
             return;
         }
 
+        // TODO: Inline trivial types like i32, f32, String, etc.
+
         self.error = export_recursively::<T>().err();
     }
 }
