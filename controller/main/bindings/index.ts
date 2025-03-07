@@ -18,10 +18,5 @@ export type AnyTemporaryEffect = any;
 /**
  * Generated binding.
  */
-export type MusicVisualizerEffect = any;
-
-/**
- * Generated binding.
- */
-export type u16 = number;
+export type MusicVisualizerEffect = { port: number };
 
