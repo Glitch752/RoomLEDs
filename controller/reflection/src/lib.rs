@@ -20,8 +20,17 @@ pub trait TypeVisitor: Sized {
 
 pub trait Reflect {
     const JSDOC_COMMENT: Option<&'static str> = None;
+    const INLINE: bool = false;
 
     fn ts_definition() -> String;
+
+    fn inline_ts_definition() -> String {
+        if Self::INLINE {
+            Self::ts_definition()
+        } else {
+            Self::ts_type_name()
+        }
+    }
 
     fn ts_type_name() -> String {
         // Remove the module path from the type name
@@ -41,6 +50,8 @@ pub trait Reflect {
 
 // Implement Reflect for common types
 impl <T: Reflect> Reflect for Option<T> {
+    const INLINE: bool = true;
+
     fn ts_definition() -> String {
         format!("{} | null", T::ts_definition())
     }
@@ -51,6 +62,8 @@ impl <T: Reflect> Reflect for Option<T> {
 }
 
 impl <T: Reflect> Reflect for Vec<T> {
+    const INLINE: bool = true;
+
     fn ts_definition() -> String {
         format!("Array<{}>", T::ts_definition())
     }
@@ -64,6 +77,7 @@ macro_rules! basic_reflect {
     ($($ty:ty, $def:expr);*) => {
         $(
             impl Reflect for $ty {
+                const INLINE: bool = true;
                 fn ts_definition() -> String {
                     $def.to_string()
                 }

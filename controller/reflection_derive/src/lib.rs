@@ -13,6 +13,7 @@ use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item, Path, Type};
 mod fields;
 
 struct DerivedReflect {
+    pub generate_ts_definition: TokenStream,
     pub comment: Option<String>,
     pub dependencies: Vec<Rc<Path>>
 }
@@ -35,12 +36,14 @@ impl DerivedReflect {
             }
         }).collect::<TokenStream>();
 
+        let generate_ts_definition = self.generate_ts_definition;
+
         quote! {
             impl reflection::Reflect for #ty {
                 const JSDOC_COMMENT: Option<&'static str> = #comment_option;
 
                 fn ts_definition() -> String {
-                    String::from("any")
+                    #generate_ts_definition
                 }
 
                 fn visit_dependencies(visitor: &mut impl reflection::TypeVisitor) where Self: 'static {
@@ -139,9 +142,36 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
         }
     }).collect::<Vec<_>>();
 
+    let field_definitions = fields.iter().map(|(field, attr)| {
+        let ts_definition = match &attr.as_type {
+            Some(ty) => {
+                quote!(<#ty as reflection::Reflect>::inline_ts_definition())
+            },
+            None => {
+                let ty = &field.ty;
+                quote!(<#ty as reflection::Reflect>::inline_ts_definition())
+            }
+        };
+
+        let field_name = field.ident.as_ref().unwrap();
+        let field_name = field_name.to_string();
+        let field_name = syn::Ident::new(&field_name, field_name.span());
+        let field_name = match &attr.rename {
+            Some(rename) => format_ident!("{}", rename),
+            None => field_name
+        };
+
+        quote! {
+            format!("{}: {}", stringify!(#field_name), #ts_definition)
+        }
+    }).collect::<TokenStream>();
+
     Ok(DerivedReflect {
         comment: doc,
-        dependencies
+        dependencies,
+        generate_ts_definition: quote! {
+            format!("{{ {} }}", #field_definitions)
+        }
     })
 }
 
@@ -158,6 +188,7 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
 
     Ok(DerivedReflect {
         comment: Some(format!("Tagged with {:?}.", tag)), // Temporary
-        dependencies: vec![]
+        dependencies: vec![],
+        generate_ts_definition: quote!(String::from("any"))
     })
 }

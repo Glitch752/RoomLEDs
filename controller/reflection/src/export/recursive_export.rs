@@ -5,7 +5,9 @@ use super::export;
 
 /// Exports T and its dependencies.
 pub(crate) fn export_recursively<T: Reflect + ?Sized + 'static>() -> Result<(), Error> {
-    export::<T>()?;
+    if !T::INLINE {
+        export::<T>()?;
+    }
 
     let mut visitor = Visitor {
         error: None
