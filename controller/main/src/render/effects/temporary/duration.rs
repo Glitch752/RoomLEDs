@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, Effect, TemporaryEffect}, frame::{self}}, RenderInfo};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct DurationTemporaryEffect {
     // The effect duration in seconds
     duration: f64,

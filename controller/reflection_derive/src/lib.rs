@@ -145,11 +145,11 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
     let field_definitions = fields.iter().map(|(field, attr)| {
         let ts_definition = match &attr.as_type {
             Some(ty) => {
-                quote!(<#ty as reflection::Reflect>::inline_ts_definition())
+                quote!(<#ty as reflection::Reflect>::noninline_ts_definition())
             },
             None => {
                 let ty = &field.ty;
-                quote!(<#ty as reflection::Reflect>::inline_ts_definition())
+                quote!(<#ty as reflection::Reflect>::noninline_ts_definition())
             }
         };
 
@@ -164,13 +164,13 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
         quote! {
             format!("{}: {}", stringify!(#field_name), #ts_definition)
         }
-    }).collect::<TokenStream>();
+    }).collect::<Vec<_>>();
 
     Ok(DerivedReflect {
         comment: doc,
         dependencies,
         generate_ts_definition: quote! {
-            format!("{{ {} }}", #field_definitions)
+            format!("{{ {} }}", <[String]>::join(&[ #(#field_definitions),* ], ", "))
         }
     })
 }
@@ -186,9 +186,41 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
     
     let tag = serde_values.and_then(|values| values.tag);
 
+    if tag.is_none() {
+        return Err(Error::UnsupportedUse("Tagged enums are required for now."));
+    }
+    let tag = tag.unwrap();
+
+    let variants = e.variants.iter().map(|variant| {
+        let variant_name = variant.ident.to_string();
+
+        Ok(match &variant.fields {
+            syn::Fields::Named(_) => {
+                return Err(Error::UnsupportedUse("named fields are not supported"));
+            },
+            syn::Fields::Unnamed(fields) => {
+                fields.unnamed.iter().map(|field| {
+                    let ts_definition = match &field.ty {
+                        Type::Path(path) => {
+                            quote!(<#path as reflection::Reflect>::noninline_ts_definition())
+                        },
+                        _ => quote!("unknown")
+                    };
+
+                    quote!(format!("{{ \"{}\": \"{}\" }} & {}", #tag, #variant_name, #ts_definition))
+                }).collect::<TokenStream>()
+            },
+            syn::Fields::Unit => {
+                quote!(String::from("never"))
+            }
+        })
+    }).collect::<Result<Vec<_>, Error>>()?;
+
     Ok(DerivedReflect {
         comment: Some(format!("Tagged with {:?}.", tag)), // Temporary
         dependencies: vec![],
-        generate_ts_definition: quote!(String::from("any"))
+        generate_ts_definition: quote! (
+            [ #(#variants),* ].join(" | ")
+        )
     })
 }

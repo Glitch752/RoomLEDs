@@ -3,6 +3,8 @@
 
 mod export;
 
+use std::{rc::Rc, sync::Arc};
+
 pub use reflection_derive::Reflect;
 
 #[derive(thiserror::Error, Debug)]
@@ -24,7 +26,7 @@ pub trait Reflect {
 
     fn ts_definition() -> String;
 
-    fn inline_ts_definition() -> String {
+    fn noninline_ts_definition() -> String {
         if Self::INLINE {
             Self::ts_definition()
         } else {
@@ -36,6 +38,8 @@ pub trait Reflect {
         // Remove the module path from the type name
         let type_name = std::any::type_name::<Self>();
         let type_name = type_name.split("::").last().unwrap();
+        // Remove the last ">" from the type name if there is one
+        let type_name = type_name.trim_end_matches('>');
         type_name.to_string()
     }
     
@@ -53,10 +57,11 @@ impl <T: Reflect> Reflect for Option<T> {
     const INLINE: bool = true;
 
     fn ts_definition() -> String {
-        format!("{} | null", T::ts_definition())
+        format!("{} | null", T::noninline_ts_definition())
     }
 
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+        visitor.visit::<T>();
         T::visit_dependencies(visitor);
     }
 }
@@ -65,13 +70,37 @@ impl <T: Reflect> Reflect for Vec<T> {
     const INLINE: bool = true;
 
     fn ts_definition() -> String {
-        format!("Array<{}>", T::ts_definition())
+        format!("Array<{}>", T::noninline_ts_definition())
     }
 
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+        visitor.visit::<T>();
         T::visit_dependencies(visitor);
     }
 }
+
+macro_rules! container_reflect {
+    ($($ty:ident),*) => {
+        $(
+            impl<T: Reflect> Reflect for $ty<T> {
+                const INLINE: bool = true;
+
+                fn ts_definition() -> String {
+                    T::ts_definition()
+                }
+                fn noninline_ts_definition() -> String {
+                    T::noninline_ts_definition()
+                }
+            
+                fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+                    T::visit_dependencies(visitor);
+                }
+            }
+        )*
+    };
+}
+
+container_reflect!(Box, Rc, Arc);
 
 macro_rules! basic_reflect {
     ($($ty:ty, $def:expr);*) => {
@@ -103,3 +132,24 @@ basic_reflect! {
     char, "string";
     String, "string"
 }
+
+macro_rules! tuple_reflect {
+    ($($ty:ident),*) => {
+        impl<$($ty: Reflect),*> Reflect for ($($ty,)*) {
+            const INLINE: bool = true;
+            fn ts_definition() -> String {
+                format!("[{}]", vec![$($ty::noninline_ts_definition()),*].join(", "))
+            }
+
+            fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+                $(<$ty as Reflect>::visit_dependencies(visitor);)*
+            }
+        }
+    };
+}
+
+tuple_reflect!(A);
+tuple_reflect!(A, B);
+tuple_reflect!(A, B, C);
+tuple_reflect!(A, B, C, D);
+tuple_reflect!(A, B, C, D, E);

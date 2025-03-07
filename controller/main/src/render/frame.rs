@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::TOTAL_PIXELS;
 
 /// A pixel is a single unit of color data with an alpha value.
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct Pixel {
     pub r: u8,
     pub g: u8,

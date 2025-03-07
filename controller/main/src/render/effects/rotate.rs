@@ -1,10 +1,11 @@
+use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
 use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct RotateEffect {
     /// The effect to rotate
     effect: Box<AnyEffect>,

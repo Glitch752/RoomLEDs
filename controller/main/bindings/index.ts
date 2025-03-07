@@ -5,18 +5,63 @@
 
 /**
  * Generated binding.
- * Tagged with Some("type").
  */
-export type AnyEffect = any;
-
-/**
- * Generated binding.
- * Tagged with Some("type").
- */
-export type AnyTemporaryEffect = any;
+export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
  */
 export type MusicVisualizerEffect = { port: number };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ */
+export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "MusicVisualizer" } & MusicVisualizerEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect;
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ */
+export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
+
+/**
+ * Generated binding.
+ */
+export type FlashingColorEffect = { time: number, speed: number, color: Pixel };
+
+/**
+ * Generated binding.
+ */
+export type Pixel = { r: number, g: number, b: number, alpha: number };
+
+/**
+ * Generated binding.
+ */
+export type RotateEffect = { effect: AnyEffect, rotation: number };
+
+/**
+ * Generated binding.
+ */
+export type SolidColorEffect = { color: Pixel, start: number, stop: number };
+
+/**
+ * Generated binding.
+ */
+export type StripeEffect = { stripe_width: number, stripe_colors: Array<[number, number, number]>, speed: number };
+
+/**
+ * Generated binding.
+ */
+export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
+
+/**
+ * Generated binding.
+ */
+export type WebsocketInputEffect = {  };
+
+/**
+ * Generated binding.
+ */
+export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
 
