@@ -8,7 +8,7 @@ use std::rc::Rc;
 use darling::{FromDeriveInput, FromMeta};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item, Path, Type};
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item, Meta, Path, Type};
 
 mod fields;
 
@@ -67,6 +67,29 @@ struct ReflectDeriveOptions {
     attrs: Vec<syn::Attribute>
 }
 
+impl ReflectDeriveOptions {
+    fn get_doc(&self) -> String {
+        self.attrs.iter().filter_map(|attr| {
+            if attr.path().is_ident("doc") {
+                match &attr.meta {
+                    Meta::NameValue(meta) => {
+                        if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(lit), .. }) = &meta.value {
+                            let value = lit.value();
+                            Some(value.trim().to_string())
+                        } else {
+                            None
+                        }
+                    },
+                    _ => None
+                }
+                // attr.meta.parse_args::<syn::LitStr>().ok().map(|lit| lit.value())
+            } else {
+                None
+            }
+        }).collect::<Vec<_>>().join("\n")
+    }
+}
+
 // Values from serde's attribute we care about
 #[derive(FromMeta, Debug)]
 struct SerdeValues {
@@ -100,6 +123,7 @@ pub fn derive_reflect(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 
 fn reflect(derive_input: DeriveInput, options: ReflectDeriveOptions) -> Result<TokenStream, Error> {
     let ast = derive_input.into();
+
     let (reflect, identifier) = match &ast {
         Item::Struct(s) => Ok((struct_definition(s, options)?, s.ident.clone())),
         Item::Enum(e) => Ok((enum_definition(e, options)?, e.ident.clone())),
@@ -110,14 +134,6 @@ fn reflect(derive_input: DeriveInput, options: ReflectDeriveOptions) -> Result<T
 }
 
 fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
-    let doc = options.attrs.iter().find_map(|attr| {
-        if attr.path().is_ident("doc") {
-            attr.parse_args::<syn::LitStr>().ok().map(|lit| lit.value())
-        } else {
-            None
-        }
-    });
-
     // Parse the attributes on each struct field
     let fields = s.fields.iter().filter_map(|field| {
         let attr = match fields::StructFieldAttr::from_field(field) {
@@ -167,7 +183,7 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
     }).collect::<Vec<_>>();
 
     Ok(DerivedReflect {
-        comment: doc,
+        comment: Some(options.get_doc()),
         dependencies,
         generate_ts_definition: quote! {
             format!("{{ {} }}", <[String]>::join(&[ #(#field_definitions),* ], ", "))
@@ -217,7 +233,7 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
     }).collect::<Result<Vec<_>, Error>>()?;
 
     Ok(DerivedReflect {
-        comment: Some(format!("Tagged with {:?}.", tag)), // Temporary
+        comment: Some(format!("Tagged with {:?}.\n{}", tag, options.get_doc())), // Temporary
         dependencies: vec![],
         generate_ts_definition: quote! (
             [ #(#variants),* ].join(" | ")

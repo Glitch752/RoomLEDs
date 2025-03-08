@@ -5,23 +5,29 @@
 
 /**
  * Generated binding.
+ * An additive compositor composites other effects together using additive blending.
  */
 export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
+ * An alpha compositor composites other effects together using alpha blending.
  */
-export type MusicVisualizerEffect = { port: number };
+export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
  * Tagged with "type".
+ * A wrapper for any effect that can be rendered.
+ * Used for serialization and deserialization.
  */
 export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "MusicVisualizer" } & MusicVisualizerEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect;
 
 /**
  * Generated binding.
  * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
  */
 export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
 
@@ -32,6 +38,7 @@ export type FlashingColorEffect = { time: number, speed: number, color: Pixel };
 
 /**
  * Generated binding.
+ * A pixel is a single unit of color data with an alpha value.
  */
 export type Pixel = { r: number, g: number, b: number, alpha: number };
 
@@ -47,6 +54,7 @@ export type SolidColorEffect = { color: Pixel, start: number, stop: number };
 
 /**
  * Generated binding.
+ * The stripes effect renders a rotating pattern with stripes of color.
  */
 export type StripeEffect = { stripe_width: number, stripe_colors: Array<[number, number, number]>, speed: number };
 
@@ -62,6 +70,9 @@ export type WebsocketInputEffect = {  };
 
 /**
  * Generated binding.
+ * The music visualizer effect runs a TCP socket server that listens for
+ * audio data from the music visualizer client. Then, it renders the audio
+ * data as a visualizer.
  */
-export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
+export type MusicVisualizerEffect = { port: number };
 
