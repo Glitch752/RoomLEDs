@@ -13,13 +13,14 @@ use syn::{parse_macro_input, spanned::Spanned, DeriveInput, Item, Meta, Path, Ty
 mod fields;
 
 struct DerivedReflect {
-    pub generate_ts_definition: TokenStream,
     pub comment: Option<String>,
-    pub dependencies: Vec<Rc<Path>>
+    pub dependencies: Vec<Rc<Path>>,
+    pub generate_ts_definition: TokenStream,
+    pub generate_schema: TokenStream
 }
 
 impl DerivedReflect {
-    fn implementation(self, ident: syn::Ident) -> TokenStream {
+    fn implementation(self, ident: syn::Ident, export_runtime_schema: bool) -> TokenStream {
         let ty = quote!(#ident);
         let test_name = format_ident!(
             "export_bindings_{}",
@@ -37,6 +38,20 @@ impl DerivedReflect {
         }).collect::<TokenStream>();
 
         let generate_ts_definition = self.generate_ts_definition;
+        let generate_schema = self.generate_schema;
+
+        let schema_test = if export_runtime_schema {
+            let schema_test_name = format_ident!("export_schema_{}", ty.to_string().to_lowercase().replace("r#", ""));
+            Some(quote! {
+                #[cfg(test)]
+                #[test]
+                fn #schema_test_name() {
+                    let schema = <#ty as reflection::Reflect>::schema();
+                    let schema = serde_json::to_string_pretty(&schema).expect("could not serialize schema");
+                    println!("{}", schema);
+                }
+            })
+        } else { None };
 
         quote! {
             impl reflection::Reflect for #ty {
@@ -44,6 +59,10 @@ impl DerivedReflect {
 
                 fn ts_definition() -> String {
                     #generate_ts_definition
+                }
+
+                fn schema() -> reflection::schema::Schema {
+                    #generate_schema
                 }
 
                 fn visit_dependencies(visitor: &mut impl reflection::TypeVisitor) where Self: 'static {
@@ -64,7 +83,9 @@ impl DerivedReflect {
 #[derive(FromDeriveInput, Default, Debug)]
 #[darling(default, attributes(reflect), forward_attrs(doc, serde))]
 struct ReflectDeriveOptions {
-    attrs: Vec<syn::Attribute>
+    attrs: Vec<syn::Attribute>,
+    /// Whether to recursively export the schema to a value so it can be used in runtime.
+    export_runtime_schema: bool
 }
 
 impl ReflectDeriveOptions {
@@ -124,13 +145,15 @@ pub fn derive_reflect(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 fn reflect(derive_input: DeriveInput, options: ReflectDeriveOptions) -> Result<TokenStream, Error> {
     let ast = derive_input.into();
 
+    let export_runtime_schema = options.export_runtime_schema;
+
     let (reflect, identifier) = match &ast {
         Item::Struct(s) => Ok((struct_definition(s, options)?, s.ident.clone())),
         Item::Enum(e) => Ok((enum_definition(e, options)?, e.ident.clone())),
         _ => Err(Error::UnsupportedUse("only structs and enums are supported")),
     }?;
 
-    Ok(reflect.implementation(identifier))
+    Ok(reflect.implementation(identifier, export_runtime_schema))
 }
 
 fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Result<DerivedReflect, Error> {
@@ -169,8 +192,7 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
             }
         };
 
-        let field_name = field.ident.as_ref().unwrap();
-        let field_name = field_name.to_string();
+        let field_name = field.ident.as_ref().unwrap().to_string();
         let field_name = syn::Ident::new(&field_name, field_name.span());
         let field_name = match &attr.rename {
             Some(rename) => format_ident!("{}", rename),
@@ -182,11 +204,42 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
         }
     }).collect::<Vec<_>>();
 
+    let schema_fields = fields.iter().map(|(field, attr)| {
+        let field_name = field.ident.as_ref().unwrap().to_string();
+        let field_name = syn::Ident::new(&field_name, field_name.span());
+        let field_name = match &attr.rename {
+            Some(rename) => format_ident!("{}", rename),
+            None => field_name
+        };
+
+        let reference_name = match &attr.as_type {
+            Some(ty) => {
+                quote!(<#ty as reflection::Reflect>::ts_type_name())
+            },
+            None => {
+                let ty = &field.ty;
+                quote!(<#ty as reflection::Reflect>::ts_type_name())
+            }
+        };
+
+        quote! {
+            reflection::schema::SchemaField {
+                name: stringify!(#field_name).to_string(),
+                ty: reflection::schema::Schema::Reference(#reference_name)
+            }
+        }
+    }).collect::<Vec<_>>();
+    
     Ok(DerivedReflect {
         comment: Some(options.get_doc()),
         dependencies,
         generate_ts_definition: quote! {
             format!("{{ {} }}", <[String]>::join(&[ #(#field_definitions),* ], ", "))
+        },
+        generate_schema: quote! {
+            reflection::schema::Schema::Struct(vec![
+                #(#schema_fields),*
+            ])
         }
     })
 }
@@ -232,11 +285,41 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
         })
     }).collect::<Result<Vec<_>, Error>>()?;
 
+    let schema_variants = e.variants.iter().map(|variant| {
+        let variant_name = variant.ident.to_string();
+        let schema = match &variant.fields {
+            syn::Fields::Named(_) => {
+                return Err(Error::UnsupportedUse("named fields are not supported"));
+            },
+            syn::Fields::Unnamed(fields) => {
+                fields.unnamed.iter().map(|field| {
+                    let ty = &field.ty;
+                    quote!(Some(reflection::schema::Schema::Reference(<#ty as reflection::Reflect>::ts_type_name())))
+                }).collect::<TokenStream>()
+            },
+            syn::Fields::Unit => {
+                quote!(None)
+            }
+        };
+
+        Ok(quote! {
+            reflection::schema::EnumVariant {
+                name: String::from(#variant_name),
+                value: #schema
+            }
+        })
+    }).collect::<Result<Vec<_>, Error>>()?;
+
     Ok(DerivedReflect {
         comment: Some(format!("Tagged with {:?}.\n{}", tag, options.get_doc())), // Temporary
         dependencies: vec![],
         generate_ts_definition: quote! (
             [ #(#variants),* ].join(" | ")
-        )
+        ),
+        generate_schema: quote! {
+            reflection::schema::Schema::Enum(vec![
+               #(#schema_variants),*
+            ])
+        }
     })
 }

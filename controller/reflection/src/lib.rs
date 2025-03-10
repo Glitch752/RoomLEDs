@@ -2,6 +2,7 @@
 /// Heavily based on [ts-rs](https://github.com/Aleph-Alpha/ts-rs/); this is essentially just a stripped-down version of it. 
 
 mod export;
+pub mod schema;
 
 use std::{rc::Rc, sync::Arc};
 
@@ -34,6 +35,11 @@ pub trait Reflect {
         }
     }
 
+    fn schema() -> schema::Schema {
+        // TODO
+        unimplemented!()
+    }
+
     fn ts_type_name() -> String {
         // Remove the module path from the type name
         let type_name = std::any::type_name::<Self>();
@@ -46,7 +52,7 @@ pub trait Reflect {
     /// Visits the dependencies of this type.
     fn visit_dependencies(_: &mut impl TypeVisitor) where Self: 'static;
 
-    // Exports this type and its dependencies to a file.
+    /// Exports this type and its dependencies to a file.
     fn export_all() -> Result<(), Error> where Self: 'static {
         export::export_recursively::<Self>()
     }

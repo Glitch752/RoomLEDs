@@ -54,6 +54,7 @@ pub trait TemporaryEffect {
 /// Used for serialization and deserialization.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
+#[reflect(export_runtime_schema)]
 #[enum_dispatch(Effect)]
 pub enum AnyEffect {
     AdditiveCompositor(AdditiveCompositorEffect),
@@ -70,6 +71,7 @@ pub enum AnyEffect {
 /// Used for serialization and deserialization.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
+#[reflect(export_runtime_schema)]
 #[enum_dispatch(TemporaryEffect, Effect)]
 pub enum AnyTemporaryEffect {
     TemporaryEffectWrapper(DurationTemporaryEffect),
