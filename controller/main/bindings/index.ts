@@ -5,12 +5,6 @@
 
 /**
  * Generated binding.
- * An additive compositor composites other effects together using additive blending.
- */
-export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
-
-/**
- * Generated binding.
  * An alpha compositor composites other effects together using alpha blending.
  */
 export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
@@ -25,11 +19,28 @@ export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEff
 
 /**
  * Generated binding.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
+ * An additive compositor composites other effects together using additive blending.
  */
-export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
+export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
+
+/**
+ * Generated binding.
+ * The stripes effect renders a rotating pattern with stripes of color.
+ */
+export type StripeEffect = { stripe_width: number, stripe_colors: Array<[number, number, number]>, speed: number };
+
+/**
+ * Generated binding.
+ * The music visualizer effect runs a TCP socket server that listens for
+ * audio data from the music visualizer client. Then, it renders the audio
+ * data as a visualizer.
+ */
+export type MusicVisualizerEffect = { port: number };
+
+/**
+ * Generated binding.
+ */
+export type RotateEffect = { effect: AnyEffect, rotation: number };
 
 /**
  * Generated binding.
@@ -45,23 +56,7 @@ export type Pixel = { r: number, g: number, b: number, alpha: number };
 /**
  * Generated binding.
  */
-export type RotateEffect = { effect: AnyEffect, rotation: number };
-
-/**
- * Generated binding.
- */
 export type SolidColorEffect = { color: Pixel, start: number, stop: number };
-
-/**
- * Generated binding.
- * The stripes effect renders a rotating pattern with stripes of color.
- */
-export type StripeEffect = { stripe_width: number, stripe_colors: Array<[number, number, number]>, speed: number };
-
-/**
- * Generated binding.
- */
-export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
 
 /**
  * Generated binding.
@@ -70,9 +65,14 @@ export type WebsocketInputEffect = {  };
 
 /**
  * Generated binding.
- * The music visualizer effect runs a TCP socket server that listens for
- * audio data from the music visualizer client. Then, it renders the audio
- * data as a visualizer.
+ * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
  */
-export type MusicVisualizerEffect = { port: number };
+export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
+
+/**
+ * Generated binding.
+ */
+export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
 

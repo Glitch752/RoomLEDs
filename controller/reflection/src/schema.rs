@@ -1,8 +1,9 @@
 use crate::Reflect;
 use serde::{Deserialize, Serialize};
 
-// Namespace ourself as "reflection"
-pub mod reflection {
+// Namespace ourself as "reflection" so we can use our own proc-macro.
+// This probably isn't the best way to do it? It works for now.
+mod reflection {
     pub use crate::*;
 }
 
@@ -13,6 +14,9 @@ pub mod reflection {
 pub enum Schema {
     Struct(Vec<SchemaField>),
     Enum(Vec<EnumVariant>),
+    Optional(Box<Schema>),
+    ArrayOf(Box<Schema>),
+    TupleOf(Vec<Schema>),
     /** A reference to another schema definition. Used to avoid infinite recursion. */
     Reference(String),
     Number,

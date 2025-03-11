@@ -31,10 +31,7 @@ impl DerivedReflect {
             None => quote!(None)
         };
         let dependencies = self.dependencies.iter().map(|ty| {
-            quote! {
-                visitor.visit::<#ty>();
-                <#ty as reflection::Reflect>::visit_dependencies(visitor);
-            }
+            quote! { visitor.visit_export::<#ty>(); }
         }).collect::<TokenStream>();
 
         let generate_ts_definition = self.generate_ts_definition;
@@ -46,9 +43,7 @@ impl DerivedReflect {
                 #[cfg(test)]
                 #[test]
                 fn #schema_test_name() {
-                    let schema = <#ty as reflection::Reflect>::schema();
-                    let schema = serde_json::to_string_pretty(&schema).expect("could not serialize schema");
-                    println!("{}", schema);
+                    #ty::export_all_schema().expect("could not export schema");
                 }
             })
         } else { None };
@@ -264,6 +259,23 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
     }
     let tag = tag.unwrap();
 
+    let dependencies = e.variants.iter().map(|variant| {
+        match &variant.fields {
+            syn::Fields::Named(_) => {
+                return Err(Error::UnsupportedUse("named fields are not supported"));
+            },
+            syn::Fields::Unnamed(fields) => fields.unnamed.iter().filter_map(|field| {
+                let ty = &field.ty;
+                if let Type::Path(path) = ty {
+                    Some(Ok(Rc::new(path.path.clone())))
+                } else {
+                    None
+                }
+            }).collect::<Result<Vec<_>, Error>>(),
+            syn::Fields::Unit => Ok(vec![])
+        }
+    }).collect::<Result<Vec<_>, Error>>()?.into_iter().flatten().collect::<Vec<_>>();
+
     let variants = e.variants.iter().map(|variant| {
         let variant_name = variant.ident.to_string();
 
@@ -319,8 +331,8 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
     }).collect::<Result<Vec<_>, Error>>()?;
 
     Ok(DerivedReflect {
-        comment: Some(format!("Tagged with {:?}.\n{}", tag, options.get_doc())), // Temporary
-        dependencies: vec![],
+        comment: Some(format!("Tagged with {:?}.\n{}", tag, options.get_doc())), // Temporary?
+        dependencies,
         generate_ts_definition: quote! (
             [ #(#variants),* ].join(" | ")
         ),

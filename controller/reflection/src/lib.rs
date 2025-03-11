@@ -18,7 +18,7 @@ pub enum Error {
 }
 
 pub trait TypeVisitor: Sized {
-    fn visit<T: Reflect + 'static + ?Sized>(&mut self);
+    fn visit_export<T: Reflect + 'static + ?Sized>(&mut self);
 }
 
 pub trait Reflect {
@@ -35,10 +35,7 @@ pub trait Reflect {
         }
     }
 
-    fn schema() -> schema::Schema {
-        // TODO
-        unimplemented!()
-    }
+    fn schema() -> schema::Schema;
 
     fn schema_reference() -> schema::Schema {
         schema::Schema::Reference(Self::ts_type_name())
@@ -60,6 +57,11 @@ pub trait Reflect {
     fn export_all() -> Result<(), Error> where Self: 'static {
         export::export_recursively::<Self>()
     }
+
+    /// Exports the schema for this type and its dependencies to a file.
+    fn export_all_schema() -> Result<(), Error> where Self: 'static {
+        export::export_schema_recursively::<Self>()
+    }
 }
 
 // Implement Reflect for common types
@@ -70,9 +72,12 @@ impl <T: Reflect> Reflect for Option<T> {
         format!("{} | null", T::noninline_ts_definition())
     }
 
+    fn schema() -> schema::Schema {
+        schema::Schema::Optional(Box::new(T::schema()))
+    }
+
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
-        visitor.visit::<T>();
-        T::visit_dependencies(visitor);
+        visitor.visit_export::<T>();
     }
 }
 
@@ -83,9 +88,12 @@ impl <T: Reflect> Reflect for Vec<T> {
         format!("Array<{}>", T::noninline_ts_definition())
     }
 
+    fn schema() -> schema::Schema {
+        schema::Schema::ArrayOf(Box::new(T::schema()))
+    }
+
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
-        visitor.visit::<T>();
-        T::visit_dependencies(visitor);
+        visitor.visit_export::<T>();
     }
 }
 
@@ -101,13 +109,16 @@ macro_rules! container_reflect {
                 fn noninline_ts_definition() -> String {
                     T::noninline_ts_definition()
                 }
-
+                
+                fn schema() -> schema::Schema {
+                    T::schema()
+                }
                 fn schema_reference() -> schema::Schema {
                     T::schema_reference()
                 }
             
                 fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
-                    T::visit_dependencies(visitor);
+                    visitor.visit_export::<T>();
                 }
             }
         )*
@@ -163,8 +174,12 @@ macro_rules! tuple_reflect {
                 format!("[{}]", vec![$($ty::noninline_ts_definition()),*].join(", "))
             }
 
+            fn schema() -> schema::Schema {
+                schema::Schema::TupleOf(vec![$($ty::schema()),*])
+            }
+
             fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
-                $(<$ty as Reflect>::visit_dependencies(visitor);)*
+                $(visitor.visit_export::<$ty>();)*
             }
         }
     };
