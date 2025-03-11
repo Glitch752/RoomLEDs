@@ -25,6 +25,11 @@ pub(crate) fn export<T: Reflect + ?Sized + 'static>() -> Result<(), Error> {
 
     let buffer = export_to_string::<T>()?;
     let path = get_export_file_path();
+
+    // If the file or directory doesn't exist, create it
+    if !path.exists() {
+        std::fs::create_dir_all(path.parent().unwrap())?;
+    }
     
     // If no types have been exported yet, delete the file if it exists
     if exported_types.is_empty() {

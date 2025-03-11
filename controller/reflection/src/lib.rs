@@ -40,6 +40,10 @@ pub trait Reflect {
         unimplemented!()
     }
 
+    fn schema_reference() -> schema::Schema {
+        schema::Schema::Reference(Self::ts_type_name())
+    }
+
     fn ts_type_name() -> String {
         // Remove the module path from the type name
         let type_name = std::any::type_name::<Self>();
@@ -97,6 +101,10 @@ macro_rules! container_reflect {
                 fn noninline_ts_definition() -> String {
                     T::noninline_ts_definition()
                 }
+
+                fn schema_reference() -> schema::Schema {
+                    T::schema_reference()
+                }
             
                 fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
                     T::visit_dependencies(visitor);
@@ -109,12 +117,19 @@ macro_rules! container_reflect {
 container_reflect!(Box, Rc, Arc);
 
 macro_rules! basic_reflect {
-    ($($ty:ty, $def:expr);*) => {
+    ($($ty:ty, $def:expr, $schema:ident);*) => {
         $(
             impl Reflect for $ty {
                 const INLINE: bool = true;
                 fn ts_definition() -> String {
                     $def.to_string()
+                }
+
+                fn schema() -> schema::Schema {
+                    schema::Schema::$schema
+                }
+                fn schema_reference() -> schema::Schema {
+                    schema::Schema::$schema
                 }
 
                 fn visit_dependencies(_: &mut impl TypeVisitor) {}
@@ -124,19 +139,20 @@ macro_rules! basic_reflect {
 }
 
 basic_reflect! {
-    bool, "boolean";
-    i8, "number";
-    i16, "number";
-    i32, "number";
-    i64, "number";
-    u8, "number";
-    u16, "number";
-    u32, "number";
-    u64, "number";
-    f32, "number";
-    f64, "number";
-    char, "string";
-    String, "string"
+    bool, "boolean", Boolean;
+    i8, "number", Number;
+    i16, "number", Number;
+    i32, "number", Number;
+    i64, "number", Number;
+    u8, "number", Number;
+    u16, "number", Number;
+    u32, "number", Number;
+    u64, "number", Number;
+    f32, "number", Number;
+    f64, "number", Number;
+    char, "string", String;
+    String, "string", String;
+    &str, "string", String
 }
 
 macro_rules! tuple_reflect {

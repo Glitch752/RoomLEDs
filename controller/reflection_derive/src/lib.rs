@@ -75,6 +75,8 @@ impl DerivedReflect {
             fn #test_name() {
                 #ty::export_all().expect("could not export type");
             }
+
+            #schema_test
         }
     }
 }
@@ -114,7 +116,8 @@ impl ReflectDeriveOptions {
 // Values from serde's attribute we care about
 #[derive(FromMeta, Debug)]
 struct SerdeValues {
-    tag: Option<String>
+    tag: Option<String>,
+    content: Option<String>
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -253,7 +256,8 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
         }
     });
     
-    let tag = serde_values.and_then(|values| values.tag);
+    let tag = serde_values.as_ref().and_then(|values| values.tag.clone());
+    let content = serde_values.and_then(|values| values.content);
 
     if tag.is_none() {
         return Err(Error::UnsupportedUse("Tagged enums are required for now."));
@@ -276,11 +280,15 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
                         _ => quote!("unknown")
                     };
 
-                    quote!(format!("{{ \"{}\": \"{}\" }} & {}", #tag, #variant_name, #ts_definition))
+                    if let Some(content) = &content {
+                        quote!(format!("{{ \"{}\": \"{}\", \"{}\": {} }}", #tag, #variant_name, #content, #ts_definition))
+                    } else {
+                        quote!(format!("{{ \"{}\": \"{}\" }} & {}", #tag, #variant_name, #ts_definition))
+                    }
                 }).collect::<TokenStream>()
             },
             syn::Fields::Unit => {
-                quote!(String::from("never"))
+                quote!(format!("{{ \"{}\": \"{}\" }}", #tag, #variant_name))
             }
         })
     }).collect::<Result<Vec<_>, Error>>()?;
@@ -294,7 +302,7 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
             syn::Fields::Unnamed(fields) => {
                 fields.unnamed.iter().map(|field| {
                     let ty = &field.ty;
-                    quote!(Some(reflection::schema::Schema::Reference(<#ty as reflection::Reflect>::ts_type_name())))
+                    quote!(Some(<#ty as reflection::Reflect>::schema_reference()))
                 }).collect::<TokenStream>()
             },
             syn::Fields::Unit => {
