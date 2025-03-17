@@ -47,6 +47,22 @@ pub trait Reflect {
         let type_name = type_name.split("::").last().unwrap();
         // Remove the last ">" from the type name if there is one
         let type_name = type_name.trim_end_matches('>');
+
+        // Replace special characters with underscores
+        let special_chars = [
+            ' ', ',', '<', '>', '[',
+            ']', ':', ';', '{', '}',
+            '(', ')', '*', '&', '?',
+            '!', '@', '#', '$', '%',
+            '^', '|', '~', '+', '-',
+            '=', '/', '\\', '"', '\'',
+            '`', '.'
+        ];
+        let mut type_name = type_name.to_string();
+        for c in special_chars.iter() {
+            type_name = type_name.replace(*c, "_");
+        }
+
         type_name.to_string()
     }
     
@@ -75,6 +91,9 @@ impl <T: Reflect> Reflect for Option<T> {
     fn schema() -> schema::Schema {
         schema::Schema::Optional(Box::new(T::schema()))
     }
+    fn schema_reference() -> schema::Schema {
+        schema::Schema::Optional(Box::new(T::schema_reference()))
+    }
 
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
         visitor.visit_export::<T>();
@@ -90,6 +109,9 @@ impl <T: Reflect> Reflect for Vec<T> {
 
     fn schema() -> schema::Schema {
         schema::Schema::ArrayOf(Box::new(T::schema()))
+    }
+    fn schema_reference() -> schema::Schema {
+        schema::Schema::ArrayOf(Box::new(T::schema_reference()))
     }
 
     fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
@@ -176,6 +198,9 @@ macro_rules! tuple_reflect {
 
             fn schema() -> schema::Schema {
                 schema::Schema::TupleOf(vec![$($ty::schema()),*])
+            }
+            fn schema_reference() -> schema::Schema {
+                schema::Schema::TupleOf(vec![$($ty::schema_reference()),*])
             }
 
             fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {

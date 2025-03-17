@@ -15,15 +15,21 @@ export const SchemaSchema: Schema = {
     {
       "name": "Struct",
       "value": {
-        "type": "Reference",
-        "content": "SchemaField"
+        "type": "ArrayOf",
+        "content": {
+          "type": "Reference",
+          "content": "SchemaField"
+        }
       }
     },
     {
       "name": "Enum",
       "value": {
-        "type": "Reference",
-        "content": "EnumVariant"
+        "type": "ArrayOf",
+        "content": {
+          "type": "Reference",
+          "content": "EnumVariant"
+        }
       }
     },
     {
@@ -43,8 +49,11 @@ export const SchemaSchema: Schema = {
     {
       "name": "TupleOf",
       "value": {
-        "type": "Reference",
-        "content": "Schema"
+        "type": "ArrayOf",
+        "content": {
+          "type": "Reference",
+          "content": "Schema"
+        }
       }
     },
     {
@@ -79,8 +88,7 @@ export const SchemaFieldSchema: Schema = {
     {
       "name": "name",
       "ty": {
-        "type": "Reference",
-        "content": "String"
+        "type": "String"
       }
     },
     {
@@ -104,15 +112,17 @@ export const EnumVariantSchema: Schema = {
     {
       "name": "name",
       "ty": {
-        "type": "Reference",
-        "content": "String"
+        "type": "String"
       }
     },
     {
       "name": "value",
       "ty": {
-        "type": "Reference",
-        "content": "Schema"
+        "type": "Optional",
+        "content": {
+          "type": "Reference",
+          "content": "Schema"
+        }
       }
     }
   ]

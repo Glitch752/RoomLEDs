@@ -210,20 +210,20 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
             None => field_name
         };
 
-        let reference_name = match &attr.as_type {
+        let schema_reference = match &attr.as_type {
             Some(ty) => {
-                quote!(<#ty as reflection::Reflect>::ts_type_name())
+                quote!(<#ty as reflection::Reflect>::schema_reference())
             },
             None => {
                 let ty = &field.ty;
-                quote!(<#ty as reflection::Reflect>::ts_type_name())
+                quote!(<#ty as reflection::Reflect>::schema_reference())
             }
         };
 
         quote! {
             reflection::schema::SchemaField {
                 name: stringify!(#field_name).to_string(),
-                ty: reflection::schema::Schema::Reference(#reference_name)
+                ty: #schema_reference
             }
         }
     }).collect::<Vec<_>>();
