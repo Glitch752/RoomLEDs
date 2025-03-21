@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { AnyEffect } from "@bindings/AnyEffect";
+    import type { AnyEffect } from "@bindings/index";
 
     let { onClose }: { onClose: () => void } = $props();
 

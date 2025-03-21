@@ -1,9 +1,4 @@
-import type { LightPosition } from "@shared-bindings/LightPosition";
-import type { ServerToClientMessage } from "@shared-bindings/ServerToClientMessage";
-import type { StatusUpdateMessage } from "@shared-bindings/StatusUpdateMessage";
-import type { SystemStatusUpdateMessage } from "@shared-bindings/SystemStatusUpdateMessage";
-import type { EffectPreset } from "@shared-bindings/EffectPreset";
-import type { ClientToServerMessage } from "@shared-bindings/ClientToServerMessage";
+import type { LightPosition, ServerToClientMessage, StatusUpdateMessage, SystemStatusUpdateMessage, EffectPreset } from "@shared-bindings/index";
 import { writable } from "svelte/store";
 
 const websocket = new WebSocket(`ws://${window.location.host}/websocket`);
