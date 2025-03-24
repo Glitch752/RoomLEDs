@@ -22,12 +22,11 @@ struct LightingState {
 #[tokio::main]
 async fn main() {
     let pixel_locations = SpatialMap::new(TOTAL_PIXELS)
-        // TODO: Find actual pixel locations
-        .add_corner(0,   Location::new(0.0, 0.0))
-        .add_corner(200, Location::new(1.0, 0.0))
-        .add_corner(400, Location::new(1.0, 1.0))
-        .add_corner(600, Location::new(0.0, 1.0))
-        .add_corner(TOTAL_PIXELS, Location::new(0.0, 0.0))
+        .add_span(-14, 187, Location::from_inches(0., 0.), Location::from_inches(0., 132.))
+        .add_span(187, 406, Location::from_inches(0., 132.), Location::from_inches(144., 132.))
+        .add_span(406, 558, Location::from_inches(144., 132.), Location::from_inches(144., 32.))
+        .add_span(558, 623, Location::from_inches(144., 32.), Location::from_inches(114., 0.))
+        .add_span(623, 798, Location::from_inches(114., 0.), Location::from_inches(0., 0.))
         .get_individual_pixel_locations()
         .try_into().unwrap();
 

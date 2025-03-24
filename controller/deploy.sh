@@ -7,7 +7,7 @@ if [ -z "$BASH_VERSION" ]; then
 fi
 
 # Make sure the current working directory is correct
-if [ ! -f "./install.sh" ]; then
+if [ ! -f "./deploy.sh" ]; then
   echo "Please run this script from the controller directory"
   exit 1
 fi
@@ -33,9 +33,9 @@ fi
 
 # Build the client
 echo "Building the client"
-cd client || exit 1
+cd main/client || exit 1
 pnpm run build
-cd .. || exit 1
+cd ../.. || exit 1
 
 # Deploy the controller
 CONTROLLER_DIR="/home/$SERVER_USER/controller"
@@ -51,18 +51,11 @@ if [ -z "$quick_install" ]; then
   echo "Ensured rsync is installed"
 fi
 
-# Copy the controller folder, including static even though it's ignored in .gitignore
+# Copy the required folders, including static even though it's ignored in .gitignore
 rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
-  --exclude='/.git' --exclude='/client' --include='/static' --filter="dir-merge,- .gitignore" \
+  --exclude='/.git' --exclude='/main/client' --include='/main/static' --filter="dir-merge,- .gitignore" \
   --update -ratlz \
   . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
-
-# We also need to copy the shared folder
-rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
-  --update -ratlz \
-  ../shared/ "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/shared"
-
-echo "Copied the controller folder"
 
 PARAMS=""
 if [ -n "$quick_install" ]; then
@@ -70,6 +63,6 @@ if [ -n "$quick_install" ]; then
 fi
 
 # Run the install script on the server
-ssh -i "$SERVER_IDENTITY_FILE" "$SERVER_USER@$SERVER_IP" "cd $CONTROLLER_DIR && PASSWORD=\"$PASSWORD\" bash install.sh $PARAMS"
+ssh -i "$SERVER_IDENTITY_FILE" "$SERVER_USER@$SERVER_IP" "cd $CONTROLLER_DIR/main && PASSWORD=\"$PASSWORD\" bash ./install.sh $PARAMS"
 
 echo "Controller deployed to $SERVER_USER@$SERVER_IP"

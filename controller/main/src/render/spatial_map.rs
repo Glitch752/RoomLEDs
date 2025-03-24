@@ -12,56 +12,100 @@ impl Location {
             y,
         }
     }
+
+    pub fn from_inches(x: f32, y: f32) -> Location {
+        Location {
+            x: x * 0.0254,
+            y: y * 0.0254,
+        }
+    }
+
+    pub fn lerp(&self, other: &Location, ratio: f32) -> Location {
+        Location {
+            x: self.x + (other.x - self.x) * ratio,
+            y: self.y + (other.y - self.y) * ratio,
+        }
+    }
 }
 
-/// A pixel location, with a pixel index and a location.
+/// A span of pixel locations between two corners.
+/// The start index is inclusive, while the end index is exclusive.
 #[derive(Debug, Clone)]
-pub struct PixelLocation {
-    index: u32,
-    location: Location,
+pub struct PixelSpan {
+    start_index: u32,
+    end_index: u32,
+    start_location: Location,
+    end_location: Location
+}
+
+impl PixelSpan {
+    pub fn new(start_index: u32, end_index: u32, start_location: Location, end_location: Location) -> PixelSpan {
+        PixelSpan {
+            start_index,
+            end_index,
+            start_location,
+            end_location,
+        }
+    }
+
+    pub fn contains(&self, index: u32) -> bool {
+        index >= self.start_index && index < self.end_index
+    }
+
+    pub fn get_location(&self, index: u32) -> Location {
+        let distance = self.end_index - self.start_index;
+
+        let ratio = (index - self.start_index) as f32 / distance as f32;
+        self.start_location.lerp(&self.end_location, ratio)
+    }
 }
 
 /// A spatial map allows us to assign locations to individual
 /// pixels without mapping out every single one.
-/// We define the locations of corners and linearly interpolate
+/// We define the locations of spans and linearly interpolate
 /// the locations of the other pixels.
 #[derive(Debug, Clone)]
 pub struct SpatialMap {
     pixels: u32,
-    corners: Vec<PixelLocation>,
+    spans: Vec<PixelSpan>,
 }
 
 impl SpatialMap {
     pub fn new(pixels: u32) -> SpatialMap {
         SpatialMap {
             pixels,
-            corners: vec![],
+            spans: vec![],
         }
     }
 
-    pub fn add_corner(&mut self, index: u32, location: Location) -> &mut Self {
-        self.corners.push(PixelLocation {
-            index,
-            location,
-        });
+    pub fn add_span(&mut self, start_index: i32, end_index: i32, start_location: Location, end_location: Location) -> &mut Self {
+        // If the start index is negative, split the span into two (one at the end and one at the start)
+        if end_index < 0 {
+            panic!("End index cannot be negative");
+        }
 
+        if start_index < 0 {
+            let ratio = (-start_index) as f32 / (end_index - start_index) as f32;
+            let split_location = start_location.lerp(&end_location, ratio);
+            
+            self.spans.push(PixelSpan::new(((self.pixels as i32) + start_index) as u32, self.pixels, start_location, split_location.clone()));
+            self.spans.push(PixelSpan::new(0, end_index as u32, split_location, end_location));
+            return self;
+        }
+        
+        self.spans.push(PixelSpan::new(start_index as u32, end_index as u32, start_location, end_location));
         self
     }
 
     /// Gets the location of a pixel by linearly interpolating
-    /// between the corners.
     pub fn get_pixel_location(&self, index: u32) -> Location {
-        let previous_corner = self.corners.iter().rev().find(|corner| corner.index <= index).unwrap();
-        let next_corner = self.corners.iter().find(|corner| corner.index >= index).unwrap();
-
-        let distance = next_corner.index - previous_corner.index;
-
-        let ratio = (index - previous_corner.index) as f32 / distance as f32;
-
-        Location {
-            x: previous_corner.location.x + (next_corner.location.x - previous_corner.location.x) * ratio,
-            y: previous_corner.location.y + (next_corner.location.y - previous_corner.location.y) * ratio,
+        for span in &self.spans {
+            if span.contains(index) {
+                return span.get_location(index);
+            }
         }
+
+        panic!("Pixel index {} not found in any span", index);
     }
 
     /// Gets the location of every pixel on the strip by linearly
