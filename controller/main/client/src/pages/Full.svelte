@@ -1,11 +1,13 @@
 <script lang="ts">
   import LayoutTab from "./tabs/LayoutTab.svelte";
 import OverviewTab from "./tabs/OverviewTab.svelte";
+  import PresetsTab from "./tabs/PresetsTab.svelte";
 import SettingsTab from "./tabs/SettingsTab.svelte";
 
 const tabs: { name: string; component: any }[] = [
   { name: "Overview", component: OverviewTab },
   { name: "Layout", component: LayoutTab },
+  { name: "Presets", component: PresetsTab },
   { name: "Settings", component: SettingsTab }
 ];
 

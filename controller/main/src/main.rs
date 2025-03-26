@@ -21,6 +21,7 @@ struct LightingState {
 
 #[tokio::main]
 async fn main() {
+    // TODO: Load this from a configuration file
     let pixel_locations = SpatialMap::new(TOTAL_PIXELS)
         .add_span(-14, 187, Location::from_inches(0., 0.), Location::from_inches(0., 132.))
         .add_span(187, 406, Location::from_inches(0., 132.), Location::from_inches(144., 132.))
