@@ -57,6 +57,12 @@ rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
   --update -ratlz \
   . "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR"
 
+# Also copy shared files
+rsync -e "ssh -i '$SERVER_IDENTITY_FILE'" \
+  --exclude='/.git' --filter="dir-merge,- .gitignore" \
+  --update -ratlz \
+  ../shared "$SERVER_USER@$SERVER_IP:$CONTROLLER_DIR/../"
+
 PARAMS=""
 if [ -n "$quick_install" ]; then
   PARAMS="quick"

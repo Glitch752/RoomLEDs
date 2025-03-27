@@ -91,7 +91,7 @@ if [ -z "$quick_install" ]; then
 
   # Build the project in release mode
   echo "Building the project in release mode..."
-  cargo build +nightly --release
+  cargo +nightly build --release
 
   # Add the required capabilities to the binary
   add_executable_permissions target/release/lights-controller
@@ -109,8 +109,8 @@ After=network.target
 [Service]
 Type=simple
 User=$USER
-WorkingDirectory=$HOME/controller
-ExecStart=bash $HOME/controller/run.sh
+WorkingDirectory=$HOME/controller/main
+ExecStart=bash $HOME/controller/main/run.sh
 Restart=always
 
 [Install]
