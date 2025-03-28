@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { runEffectPreset } from "../../api/presets";
+    import EditablePreset from "../../lib/EditablePreset.svelte";
     import EffectCreator from "../../lib/EffectCreator.svelte";
     import { presets } from "../../websocket";
     
@@ -9,19 +9,16 @@
 <div class="content">
     <h1>Presets</h1>
     {#each $presets as preset}
-        <button class="preset" title={preset.name} onclick={() => runEffectPreset(preset.name)} aria-label={preset.name}>
-            <i class={preset.icon}></i>
-            {preset.name}
-        </button>
+        <EditablePreset preset={preset} />
     {/each}
 
-    <button class="preset" title="Create new preset" onclick={() => creatingPreset = true} aria-label="Create new preset">
+    {#if creatingPreset}
+        <EffectCreator onclose={() => creatingPreset = false} />
+    {/if}
+    
+    <button class="addPreset" title="Create new preset" onclick={() => creatingPreset = true} aria-label="Create new preset">
         <i class="fas fa-plus"></i>
     </button>
-    
-    {#if creatingPreset}
-        <EffectCreator onClose={() => creatingPreset = false} />
-    {/if}
 </div>
   
 <style lang="scss">
@@ -32,21 +29,17 @@
     .content {
         padding: 2rem;
         overflow-y: auto;
+        height: 100%;
     }
-    .preset {
+
+    .addPreset {
         width: 100%;
         background-color: #252529;
         border: none;
-        font-size: 2rem;
-        color: #ccc;
+        font-size: 1.75rem;
+        color: white;
         cursor: pointer;
-        margin: 0.5rem 0;
         padding: 0.5rem 1rem;
-        text-align: left;
-
-        i {
-            width: 3.5rem;
-            color: #eee;
-        }
+        text-align: center;
     }
 </style>

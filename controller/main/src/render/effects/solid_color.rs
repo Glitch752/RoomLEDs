@@ -3,13 +3,13 @@ use std::time::Duration;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::{self, Pixel}, RenderInfo};
+use crate::{render::frame::{self, PixelColor}, RenderInfo};
 
 use super::{AnyEffect, Effect};
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct SolidColorEffect {
-    color: Pixel,
+    color: PixelColor,
     start: u32,
     stop: u32,
 }
@@ -17,7 +17,7 @@ pub struct SolidColorEffect {
 impl SolidColorEffect {
     /// Creates a new solid color effect with the specified color, start, and stop.
     #[allow(unused)]
-    pub fn new(color: Pixel, start: u32, stop: u32) -> AnyEffect {
+    pub fn new(color: PixelColor, start: u32, stop: u32) -> AnyEffect {
         Self {
             color, start, stop
         }.into()

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use interface::presets::EffectPresets;
 use parking_lot::Mutex;
-use render::{effects::{self, TemporaryEffectCompositor}, frame::Pixel, spatial_map::{Location, SpatialMap}, RenderInfo, RenderState};
+use render::{effects::{self, TemporaryEffectCompositor}, frame::PixelColor, spatial_map::{Location, SpatialMap}, RenderInfo, RenderState};
 use tokio::sync::RwLock;
 
 mod output;
@@ -35,7 +35,7 @@ async fn main() {
         render_state: Arc::new(Mutex::new(RenderState {
             info: RenderInfo::new(pixel_locations),
             temporary_effect_compositor: TemporaryEffectCompositor::new(vec![]),
-            effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS).into()
+            effect: effects::SolidColorEffect::new(PixelColor::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS).into()
         })),
         presets: RwLock::new(EffectPresets::load())
     });

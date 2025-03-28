@@ -3,7 +3,7 @@
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
 
-    let { onClose }: { onClose: () => void } = $props();
+    let { onclose }: { onclose: () => void } = $props();
 
     const effectTypes: string[] = [];
     let effect: AnyEffect = $state({
@@ -21,7 +21,7 @@
 
 <div>
     <SchemaEditor name="Effect" bind:value={effect} schema={schemas["AnyEffect"]} />
-    <button onclick={onClose}>Cancel</button>
+    <button onclick={onclose}>Cancel</button>
 </div>
 
 <style>

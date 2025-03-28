@@ -5,9 +5,9 @@
 
 /**
  * Generated binding.
- * An alpha compositor composites other effects together using alpha blending.
+ * An additive compositor composites other effects together using additive blending.
  */
-export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
+export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
@@ -19,15 +19,21 @@ export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEff
 
 /**
  * Generated binding.
- * An additive compositor composites other effects together using additive blending.
+ * An alpha compositor composites other effects together using alpha blending.
  */
-export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
+export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
  * The stripes effect renders a rotating pattern with stripes of color.
  */
-export type StripeEffect = { stripe_width: number, stripe_colors: Array<[number, number, number]>, speed: number };
+export type StripeEffect = { stripe_width: number, stripe_colors: Array<PixelColor>, speed: number };
+
+/**
+ * Generated binding.
+ * A pixel is a single unit of color data with an alpha value.
+ */
+export type PixelColor = { r: number, g: number, b: number, alpha: number };
 
 /**
  * Generated binding.
@@ -45,18 +51,12 @@ export type RotateEffect = { effect: AnyEffect, rotation: number };
 /**
  * Generated binding.
  */
-export type FlashingColorEffect = { time: number, speed: number, color: Pixel };
-
-/**
- * Generated binding.
- * A pixel is a single unit of color data with an alpha value.
- */
-export type Pixel = { r: number, g: number, b: number, alpha: number };
+export type FlashingColorEffect = { time: number, speed: number, color: PixelColor };
 
 /**
  * Generated binding.
  */
-export type SolidColorEffect = { color: Pixel, start: number, stop: number };
+export type SolidColorEffect = { color: PixelColor, start: number, stop: number };
 
 /**
  * Generated binding.

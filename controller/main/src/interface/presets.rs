@@ -2,7 +2,7 @@ use std::{io::{Error, ErrorKind}, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::Pixel}, TOTAL_PIXELS};
+use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::PixelColor}, TOTAL_PIXELS};
 
 static EFFECT_PRESET_FILE: &str = "effect_presets.json";
 
@@ -43,13 +43,13 @@ impl EffectPresets {
                         name: "Rainbow stripes".to_string(),
                         icon: "fas fa-rainbow".to_string(),
                         effect: effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
-                            (255, 0, 0),
-                            (255, 100, 0),
-                            (255, 255, 0),
-                            (0, 255, 0),
-                            (0, 0, 255),
-                            (143, 0, 255),
-                            (255, 255, 255),
+                            (255, 0, 0).into(),
+                            (255, 100, 0).into(),
+                            (255, 255, 0).into(),
+                            (0, 255, 0).into(),
+                            (0, 0, 255).into(),
+                            (143, 0, 255).into(),
+                            (255, 255, 255).into(),
                         ], 84.0)
                     },
                     EffectPreset {
@@ -63,17 +63,17 @@ impl EffectPresets {
                     EffectPreset {
                         name: "Flashing red".to_string(),
                         icon: "fas fa-bolt".to_string(),
-                        effect: effects::FlashingColorEffect::new(1., Pixel::new(255, 0, 0, 1.0)).into()
+                        effect: effects::FlashingColorEffect::new(1., PixelColor::new(255, 0, 0, 1.0)).into()
                     },
                     EffectPreset {
                         name: "Solid white".to_string(),
                         icon: "fas fa-sun".to_string(),
-                        effect: effects::SolidColorEffect::new(Pixel::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS)
+                        effect: effects::SolidColorEffect::new(PixelColor::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS)
                     },
                     EffectPreset {
                         name: "Solid black".to_string(),
                         icon: "fas fa-moon".to_string(),
-                        effect: effects::SolidColorEffect::new(Pixel::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
+                        effect: effects::SolidColorEffect::new(PixelColor::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
                     },
                 ],
                 temporary_effects: vec![]

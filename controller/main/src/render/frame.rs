@@ -6,16 +6,16 @@ use crate::TOTAL_PIXELS;
 
 /// A pixel is a single unit of color data with an alpha value.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-pub struct Pixel {
+pub struct PixelColor {
     pub r: u8,
     pub g: u8,
     pub b: u8,
     pub alpha: f64
 }
 
-impl Pixel {
-    pub fn new(r: u8, g: u8, b: u8, alpha: f64) -> Pixel {
-        Pixel {
+impl PixelColor {
+    pub fn new(r: u8, g: u8, b: u8, alpha: f64) -> PixelColor {
+        PixelColor {
             r,
             g,
             b,
@@ -23,8 +23,8 @@ impl Pixel {
         }
     }
 
-    pub fn with_alpha(&self, alpha: f64) -> Pixel {
-        Pixel {
+    pub fn with_alpha(&self, alpha: f64) -> PixelColor {
+        PixelColor {
             r: self.r,
             g: self.g,
             b: self.b,
@@ -33,9 +33,9 @@ impl Pixel {
     }
 }
 
-impl From<Rgb> for Pixel {
+impl From<Rgb> for PixelColor {
     fn from(rgb: Rgb) -> Self {
-        Pixel {
+        PixelColor {
             r: rgb.r as u8,
             g: rgb.g as u8,
             b: rgb.b as u8,
@@ -44,34 +44,45 @@ impl From<Rgb> for Pixel {
     }
 }
 
-impl From<Hsl> for Pixel {
+impl From<Hsl> for PixelColor {
     fn from(hsl: Hsl) -> Self {
         let rgb: Rgb = hsl.into();
         rgb.into()
     }
 }
 
+impl From<(u8, u8, u8)> for PixelColor {
+    fn from((r, g, b): (u8, u8, u8)) -> Self {
+        PixelColor {
+            r,
+            g,
+            b,
+            alpha: 1.0
+        }
+    }
+}
+
 /// A frame is a single set of pixel data.
 pub struct Frame {
-    pixel_data: Vec<Pixel>
+    pixel_data: Vec<PixelColor>
 }
 
 impl Frame {
     pub fn empty() -> Frame {
         Frame {
-            pixel_data: vec![Pixel::new(0, 0, 0, 0.0); 812]
+            pixel_data: vec![PixelColor::new(0, 0, 0, 0.0); 812]
         }
     }
 
-    pub fn set_pixel(&mut self, index: u32, pixel: Pixel) {
+    pub fn set_pixel(&mut self, index: u32, pixel: PixelColor) {
         self.pixel_data[index as usize] = pixel;
     }
 
-    pub fn get_pixel(&self, index: u32) -> Pixel {
+    pub fn get_pixel(&self, index: u32) -> PixelColor {
         self.pixel_data[index as usize].clone()
     }
 
-    pub fn get_pixel_mut(&mut self, index: u32) -> &mut Pixel {
+    pub fn get_pixel_mut(&mut self, index: u32) -> &mut PixelColor {
         &mut self.pixel_data[index as usize]
     }
 }

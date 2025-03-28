@@ -133,18 +133,8 @@ export const StripeEffectSchema: Schema = {
       "ty": {
         "type": "ArrayOf",
         "content": {
-          "type": "TupleOf",
-          "content": [
-            {
-              "type": "Number"
-            },
-            {
-              "type": "Number"
-            },
-            {
-              "type": "Number"
-            }
-          ]
+          "type": "Reference",
+          "content": "PixelColor"
         }
       }
     },
@@ -157,6 +147,41 @@ export const StripeEffectSchema: Schema = {
   ]
 };
 schemas["StripeEffect"] = StripeEffectSchema;
+
+/**
+ * Generated schema.
+ * A pixel is a single unit of color data with an alpha value.
+ */
+export const PixelColorSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "r",
+      "ty": {
+        "type": "Number"
+      }
+    },
+    {
+      "name": "g",
+      "ty": {
+        "type": "Number"
+      }
+    },
+    {
+      "name": "b",
+      "ty": {
+        "type": "Number"
+      }
+    },
+    {
+      "name": "alpha",
+      "ty": {
+        "type": "Number"
+      }
+    }
+  ]
+};
+schemas["PixelColor"] = PixelColorSchema;
 
 /**
  * Generated schema.
@@ -222,47 +247,12 @@ export const FlashingColorEffectSchema: Schema = {
       "name": "color",
       "ty": {
         "type": "Reference",
-        "content": "Pixel"
+        "content": "PixelColor"
       }
     }
   ]
 };
 schemas["FlashingColorEffect"] = FlashingColorEffectSchema;
-
-/**
- * Generated schema.
- * A pixel is a single unit of color data with an alpha value.
- */
-export const PixelSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "r",
-      "ty": {
-        "type": "Number"
-      }
-    },
-    {
-      "name": "g",
-      "ty": {
-        "type": "Number"
-      }
-    },
-    {
-      "name": "b",
-      "ty": {
-        "type": "Number"
-      }
-    },
-    {
-      "name": "alpha",
-      "ty": {
-        "type": "Number"
-      }
-    }
-  ]
-};
-schemas["Pixel"] = PixelSchema;
 
 /**
  * Generated schema.
@@ -274,7 +264,7 @@ export const SolidColorEffectSchema: Schema = {
       "name": "color",
       "ty": {
         "type": "Reference",
-        "content": "Pixel"
+        "content": "PixelColor"
       }
     },
     {
@@ -292,15 +282,6 @@ export const SolidColorEffectSchema: Schema = {
   ]
 };
 schemas["SolidColorEffect"] = SolidColorEffectSchema;
-
-/**
- * Generated schema.
- */
-export const WebsocketInputEffectSchema: Schema = {
-  "type": "Struct",
-  "content": []
-};
-schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
 
 /**
  * Generated schema.
@@ -344,4 +325,13 @@ export const DurationTemporaryEffectSchema: Schema = {
   ]
 };
 schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const WebsocketInputEffectSchema: Schema = {
+  "type": "Struct",
+  "content": []
+};
+schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
 

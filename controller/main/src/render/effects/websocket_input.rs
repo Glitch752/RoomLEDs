@@ -30,7 +30,7 @@ impl Effect for WebsocketInputEffect {
             let r = pixel[0];
             let g = pixel[1];
             let b = pixel[2];
-            frame.set_pixel(i as u32, frame::Pixel { r, g, b, alpha: 1. });
+            frame.set_pixel(i as u32, frame::PixelColor { r, g, b, alpha: 1. });
         }
 
         frame

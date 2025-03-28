@@ -4,7 +4,7 @@ use color_space::Hsl;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::{Frame, Pixel}, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::{Frame, PixelColor}, RenderInfo, TOTAL_PIXELS};
 
 use super::{AnyEffect, Effect};
 
@@ -124,7 +124,7 @@ impl Effect for MusicVisualizerEffect {
         if self.data_last_received.is_none() || self.data_last_received.unwrap().elapsed().as_secs() > 2 {
             // If there are no incoming connections, return pulsing red
             let mut frame = Frame::empty();
-            let color = Pixel::new(
+            let color = PixelColor::new(
                 255, 0, 0,
                 (info.time * 2.).sin() * 0.4 + 0.4
             );

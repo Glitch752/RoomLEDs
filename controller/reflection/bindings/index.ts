@@ -5,6 +5,12 @@
 
 /**
  * Generated binding.
+ * A variant in an enum schema definition.
+ */
+export type EnumVariant = { name: string, value: Schema | null };
+
+/**
+ * Generated binding.
  * Tagged with "type".
  * A schema definition for a type.
  */
@@ -15,10 +21,4 @@ export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "ty
  * A field in a schema definition.
  */
 export type SchemaField = { name: string, ty: Schema };
-
-/**
- * Generated binding.
- * A variant in an enum schema definition.
- */
-export type EnumVariant = { name: string, value: Schema | null };
 
