@@ -330,6 +330,11 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
         })
     }).collect::<Result<Vec<_>, Error>>()?;
 
+    let content_tokens = match &content {
+        Some(content) => quote!(Some(String::from(#content))),
+        None => quote!(None)
+    };
+
     Ok(DerivedReflect {
         comment: Some(format!("Tagged with {:?}.\n{}", tag, options.get_doc())), // Temporary?
         dependencies,
@@ -337,9 +342,13 @@ fn enum_definition(e: &syn::ItemEnum, options: ReflectDeriveOptions) -> Result<D
             [ #(#variants),* ].join(" | ")
         ),
         generate_schema: quote! {
-            reflection::schema::Schema::Enum(vec![
-               #(#schema_variants),*
-            ])
+            reflection::schema::Schema::Enum(reflection::schema::EnumValue {
+                variants: vec![
+                    #(#schema_variants),*
+                ],
+                tag_name: String::from(#tag),
+                content_subfield: #content_tokens
+            })
         }
     })
 }

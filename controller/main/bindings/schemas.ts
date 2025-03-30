@@ -12,64 +12,68 @@ export let schemas: { [key: string]: Schema } = { /* Items set later in this fil
  */
 export const AnyEffectSchema: Schema = {
   "type": "Enum",
-  "content": [
-    {
-      "name": "AdditiveCompositor",
-      "value": {
-        "type": "Reference",
-        "content": "AdditiveCompositorEffect"
+  "content": {
+    "variants": [
+      {
+        "name": "AdditiveCompositor",
+        "value": {
+          "type": "Reference",
+          "content": "AdditiveCompositorEffect"
+        }
+      },
+      {
+        "name": "AlphaCompositor",
+        "value": {
+          "type": "Reference",
+          "content": "AlphaCompositorEffect"
+        }
+      },
+      {
+        "name": "Stripe",
+        "value": {
+          "type": "Reference",
+          "content": "StripeEffect"
+        }
+      },
+      {
+        "name": "MusicVisualizer",
+        "value": {
+          "type": "Reference",
+          "content": "MusicVisualizerEffect"
+        }
+      },
+      {
+        "name": "Rotate",
+        "value": {
+          "type": "Reference",
+          "content": "RotateEffect"
+        }
+      },
+      {
+        "name": "FlashingColor",
+        "value": {
+          "type": "Reference",
+          "content": "FlashingColorEffect"
+        }
+      },
+      {
+        "name": "SolidColor",
+        "value": {
+          "type": "Reference",
+          "content": "SolidColorEffect"
+        }
+      },
+      {
+        "name": "WebsocketInput",
+        "value": {
+          "type": "Reference",
+          "content": "WebsocketInputEffect"
+        }
       }
-    },
-    {
-      "name": "AlphaCompositor",
-      "value": {
-        "type": "Reference",
-        "content": "AlphaCompositorEffect"
-      }
-    },
-    {
-      "name": "Stripe",
-      "value": {
-        "type": "Reference",
-        "content": "StripeEffect"
-      }
-    },
-    {
-      "name": "MusicVisualizer",
-      "value": {
-        "type": "Reference",
-        "content": "MusicVisualizerEffect"
-      }
-    },
-    {
-      "name": "Rotate",
-      "value": {
-        "type": "Reference",
-        "content": "RotateEffect"
-      }
-    },
-    {
-      "name": "FlashingColor",
-      "value": {
-        "type": "Reference",
-        "content": "FlashingColorEffect"
-      }
-    },
-    {
-      "name": "SolidColor",
-      "value": {
-        "type": "Reference",
-        "content": "SolidColorEffect"
-      }
-    },
-    {
-      "name": "WebsocketInput",
-      "value": {
-        "type": "Reference",
-        "content": "WebsocketInputEffect"
-      }
-    }
-  ]
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
 };
 schemas["AnyEffect"] = AnyEffectSchema;
 
@@ -285,21 +289,34 @@ schemas["SolidColorEffect"] = SolidColorEffectSchema;
 
 /**
  * Generated schema.
+ */
+export const WebsocketInputEffectSchema: Schema = {
+  "type": "Struct",
+  "content": []
+};
+schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
+
+/**
+ * Generated schema.
  * Tagged with "type".
  * A wrapper for any temporary effect that can be rendered.
  * Used for serialization and deserialization.
  */
 export const AnyTemporaryEffectSchema: Schema = {
   "type": "Enum",
-  "content": [
-    {
-      "name": "TemporaryEffectWrapper",
-      "value": {
-        "type": "Reference",
-        "content": "DurationTemporaryEffect"
+  "content": {
+    "variants": [
+      {
+        "name": "TemporaryEffectWrapper",
+        "value": {
+          "type": "Reference",
+          "content": "DurationTemporaryEffect"
+        }
       }
-    }
-  ]
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
 };
 schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
 
@@ -325,13 +342,4 @@ export const DurationTemporaryEffectSchema: Schema = {
   ]
 };
 schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const WebsocketInputEffectSchema: Schema = {
-  "type": "Struct",
-  "content": []
-};
-schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
 

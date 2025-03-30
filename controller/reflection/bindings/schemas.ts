@@ -11,70 +11,71 @@ export let schemas: { [key: string]: Schema } = { /* Items set later in this fil
  */
 export const SchemaSchema: Schema = {
   "type": "Enum",
-  "content": [
-    {
-      "name": "Struct",
-      "value": {
-        "type": "ArrayOf",
-        "content": {
-          "type": "Reference",
-          "content": "SchemaField"
+  "content": {
+    "variants": [
+      {
+        "name": "Struct",
+        "value": {
+          "type": "ArrayOf",
+          "content": {
+            "type": "Reference",
+            "content": "SchemaField"
+          }
         }
-      }
-    },
-    {
-      "name": "Enum",
-      "value": {
-        "type": "ArrayOf",
-        "content": {
+      },
+      {
+        "name": "Enum",
+        "value": {
           "type": "Reference",
-          "content": "EnumVariant"
+          "content": "EnumValue"
         }
-      }
-    },
-    {
-      "name": "Optional",
-      "value": {
-        "type": "Reference",
-        "content": "Schema"
-      }
-    },
-    {
-      "name": "ArrayOf",
-      "value": {
-        "type": "Reference",
-        "content": "Schema"
-      }
-    },
-    {
-      "name": "TupleOf",
-      "value": {
-        "type": "ArrayOf",
-        "content": {
+      },
+      {
+        "name": "Optional",
+        "value": {
           "type": "Reference",
           "content": "Schema"
         }
+      },
+      {
+        "name": "ArrayOf",
+        "value": {
+          "type": "Reference",
+          "content": "Schema"
+        }
+      },
+      {
+        "name": "TupleOf",
+        "value": {
+          "type": "ArrayOf",
+          "content": {
+            "type": "Reference",
+            "content": "Schema"
+          }
+        }
+      },
+      {
+        "name": "Reference",
+        "value": {
+          "type": "String"
+        }
+      },
+      {
+        "name": "Number",
+        "value": null
+      },
+      {
+        "name": "String",
+        "value": null
+      },
+      {
+        "name": "Boolean",
+        "value": null
       }
-    },
-    {
-      "name": "Reference",
-      "value": {
-        "type": "String"
-      }
-    },
-    {
-      "name": "Number",
-      "value": null
-    },
-    {
-      "name": "String",
-      "value": null
-    },
-    {
-      "name": "Boolean",
-      "value": null
-    }
-  ]
+    ],
+    "tag_name": "type",
+    "content_subfield": "content"
+  }
 };
 schemas["Schema"] = SchemaSchema;
 
@@ -101,6 +102,42 @@ export const SchemaFieldSchema: Schema = {
   ]
 };
 schemas["SchemaField"] = SchemaFieldSchema;
+
+/**
+ * Generated schema.
+ * An enum schema definition.
+ */
+export const EnumValueSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "variants",
+      "ty": {
+        "type": "ArrayOf",
+        "content": {
+          "type": "Reference",
+          "content": "EnumVariant"
+        }
+      }
+    },
+    {
+      "name": "tag_name",
+      "ty": {
+        "type": "String"
+      }
+    },
+    {
+      "name": "content_subfield",
+      "ty": {
+        "type": "Optional",
+        "content": {
+          "type": "String"
+        }
+      }
+    }
+  ]
+};
+schemas["EnumValue"] = EnumValueSchema;
 
 /**
  * Generated schema.

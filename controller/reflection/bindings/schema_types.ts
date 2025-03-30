@@ -5,20 +5,26 @@
 
 /**
  * Generated binding.
- * Tagged with "type".
- * A schema definition for a type.
+ * An enum schema definition.
  */
-export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "type": "Enum", "content": Array<EnumVariant> } | { "type": "Optional", "content": Schema } | { "type": "ArrayOf", "content": Schema } | { "type": "TupleOf", "content": Array<Schema> } | { "type": "Reference", "content": string } | { "type": "Number" } | { "type": "String" } | { "type": "Boolean" };
-
-/**
- * Generated binding.
- * A field in a schema definition.
- */
-export type SchemaField = { name: string, ty: Schema };
+export type EnumValue = { variants: Array<EnumVariant>, tag_name: string, content_subfield: string | null };
 
 /**
  * Generated binding.
  * A variant in an enum schema definition.
  */
 export type EnumVariant = { name: string, value: Schema | null };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ * A schema definition for a type.
+ */
+export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "type": "Enum", "content": EnumValue } | { "type": "Optional", "content": Schema } | { "type": "ArrayOf", "content": Schema } | { "type": "TupleOf", "content": Array<Schema> } | { "type": "Reference", "content": string } | { "type": "Number" } | { "type": "String" } | { "type": "Boolean" };
+
+/**
+ * Generated binding.
+ * A field in a schema definition.
+ */
+export type SchemaField = { name: string, ty: Schema };
 

@@ -9,17 +9,30 @@ import ColorPicker, { ChromeVariant, type RgbaColor } from 'svelte-awesome-color
 let {
     schema,
     value = $bindable(),
+    /**
+     * Called when a primitive value (not an object or array) is changed.  
+     * Used to fix deep reactivity not working with nested objects in this way.
+    */
+    onPrimitiveChange = (value: T) => {},
     name = "",
     noShell = false
 }: {
     schema: Schema,
     value: T,
+    onPrimitiveChange?: (value: T) => void,
     name?: string,
     noShell?: boolean
 } = $props();
 
-// This eventually needs to be more generic, but it's fine for now
-type EnumValue = { name: string, value?: any };
+// This is probably super inefficient, but... oh well. It works.
+function updateState(newValue: any) {
+    onPrimitiveChange(newValue);
+    value = { ...value };
+}
+
+type EnumValue = {
+    [value: string]: any
+};
 
 function createDefaultValue(schema: Schema): any {
     switch(schema.type) {
@@ -32,14 +45,23 @@ function createDefaultValue(schema: Schema): any {
         case "ArrayOf":
             return [];
         case "Enum":
-            const variant = schema.content[0];
+            const variant = schema.content.variants[0];
             if(variant.value != null) {
-                return {
-                    name: variant.name,
-                    value: createDefaultValue(variant.value)
-                };
+                const contentValue = createDefaultValue(variant.value);
+                if(schema.content.content_subfield != null) {
+                    return {
+                        [schema.content.tag_name]: variant.name,
+                        [schema.content.content_subfield]: contentValue
+                    };
+                } else {
+                    let v = { [schema.content.tag_name]: variant.name };
+                    for(const key in contentValue) {
+                        v[key] = contentValue[key];
+                    }
+                    return v;
+                }
             } else {
-                return { name: variant.name };
+                return { [schema.content.tag_name]: variant.name };
             }
         case "Struct":
             const obj: Record<string, unknown> = {};
@@ -95,23 +117,23 @@ function camelCaseToReadable(str: string): string {
 }
 </script>
 
-<div class:editor={!noShell}>
-    {#if !noShell && name !== ""}
-        <span class="entryName">{snakeCaseToReadable(name)}</span>
-    {/if}
+{#if !noShell && name !== ""}
+<span class="entryName">{snakeCaseToReadable(name)}</span>
+{/if}
+<div class:shell={!noShell}>
     {#if schema.type == "Boolean"}
-        <input type="checkbox" bind:checked={value as boolean} />
+        <input type="checkbox" bind:checked={value as boolean} onchange={() => onPrimitiveChange(value)} />
     {:else if schema.type == "String"}
-        <input type="text" bind:value={value} />
+        <input type="text" bind:value={value} oninput={() => onPrimitiveChange(value)} />
     {:else if schema.type == "Number"}
-        <input type="number" bind:value={value} />
+        <input type="number" bind:value={value} oninput={() => onPrimitiveChange(value)} />
     {:else if schema.type == "ArrayOf"}
         <div>
             {#each (value as T[]) as item, i}
                 <div class="listItem">
-                    <span class="entryName">Entry {i + 1}:</span>
+                    <span class="entryName">Item {i + 1}:</span>
                     <div class="entry">
-                        <SchemaEditor schema={schema.content} bind:value={(value as T[])[i]} noShell />
+                        <SchemaEditor schema={schema.content} bind:value={(value as T[])[i]} onPrimitiveChange={updateState} />
                     </div>
                     <div class="controls">
                         {#if i > 0}
@@ -147,42 +169,80 @@ function camelCaseToReadable(str: string): string {
             <button onclick={() => (value as T[]).push(createDefaultValue(schema.content))}>Add</button>
         </div>
     {:else if schema.type == "Enum"}
-        <select value={(value as EnumValue).name} onchange={(e) => {
+        <select value={(value as EnumValue)[schema.content.tag_name]} onchange={(e) => {
             const name = (e.target as HTMLSelectElement).value;
-            const variant = schema.content.find(v => v.name == name)!;
-            if(variant.value != null) {
-                (value as EnumValue).value = createDefaultValue(variant.value);
-            } else {
-                delete (value as EnumValue).value;
+            const variant = schema.content.variants.find(v => v.name == name)!;
+
+            function setValue(content: any) {
+                if(schema.type != "Enum") throw new Error("Invalid schema type");
+                
+                if(schema.content.content_subfield != null) {
+                    (value as EnumValue) = {
+                        [schema.content.tag_name]: name,
+                        [schema.content.content_subfield]: content
+                    };
+                } else {
+                    (value as EnumValue) = {
+                        [schema.content.tag_name]: name
+                    };
+                    if(typeof content == "object") {
+                        // Copy all fields from the value object to the enum value
+                        for(const key in content) {
+                            (value as EnumValue)[key] = content[key];
+                        }
+                    } else {
+                        // Weird unsupported case
+                        throw new Error("Unsupported case");
+                    }
+                }
             }
-            (value as EnumValue).name = name;
+
+            if(variant.value != null) {
+                setValue(createDefaultValue(variant.value));
+            } else {
+                (value as EnumValue) = {
+                    [schema.content.tag_name]: variant.name
+                };
+            }
+
+            onPrimitiveChange(value);
         }}>
-            {#each schema.content as variant}
+            {#each schema.content.variants as variant}
                 <option value={variant.name}>{camelCaseToReadable(variant.name)}</option>
             {/each}
         </select>
-        {#if (value as EnumValue).value != null}
-            <SchemaEditor
-                schema={schema.content.find(v => v.name == (value as EnumValue).name)!.value!}
-                bind:value={(value as EnumValue).value}
-                noShell
-            />
+        {#if schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value != null}
+            {#if schema.content.content_subfield != null}
+                <SchemaEditor
+                    schema={schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value!}
+                    bind:value={(value as EnumValue)[schema.content.content_subfield!]}
+                    noShell
+                    onPrimitiveChange={updateState}
+                />
+            {:else}
+                <SchemaEditor
+                    schema={schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value!}
+                    bind:value={value}
+                    noShell
+                    onPrimitiveChange={updateState}
+                />
+            {/if}
         {/if}
     {:else if schema.type == "Struct"}
         <div>
             {#each schema.content as field}
-                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} />
+                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} onPrimitiveChange={updateState} />
             {/each}
         </div>
     {:else if schema.type == "Optional"}
         <button onclick={() => value = value == null ? createDefaultValue(schema.content) : null}>{value == null ? "Add" : "Remove"}</button>
         {#if value != null}
-            <SchemaEditor schema={schema.content} bind:value={value} name={name} />
+            <SchemaEditor schema={schema.content} bind:value={value} name={name} onPrimitiveChange={updateState} />
         {/if}
     {:else if schema.type == "TupleOf"}
         <div>
             {#each schema.content as field, i}
-                <SchemaEditor schema={field} bind:value={(value as T[])[i]} name={String(i)} />
+                <SchemaEditor schema={field} bind:value={(value as T[])[i]} name={String(i)} onPrimitiveChange={updateState} />
             {/each}
         </div>
     {:else if schema.type == "Reference"}
@@ -192,10 +252,11 @@ function camelCaseToReadable(str: string): string {
              <div class="colorPicker">
                 <ColorPicker rgb={structColorToRgba(value as PixelColor)} onInput={(color) => {
                     (value as PixelColor) = rgbaToStructColor(color.rgb);
+                    onPrimitiveChange(value);
                 }} components={ChromeVariant as any} sliderDirection="horizontal" --slider-width="15px" />
             </div>
         {:else}
-            <SchemaEditor schema={schemas[schema.content]} bind:value={value} noShell />
+            <SchemaEditor schema={schemas[schema.content]} bind:value={value} noShell onPrimitiveChange={updateState} />
         {/if}
     {:else}
         <span>Unknown schema type: {(schema as any).type}</span>
@@ -203,12 +264,15 @@ function camelCaseToReadable(str: string): string {
 </div>
 
 <style>
-    .editor {
+    .shell {
         background-color: #252529;
-        padding: 0.5rem 1rem;
+        padding: 0 0.5rem;
         font-size: 1.25rem;
         color: white;
+        margin: 0.5rem 0 0.5rem 0.75rem;
+        border-left: 0.25rem solid #44444c;
     }
+
     .entryName {
         display: inline;
     }
@@ -219,7 +283,6 @@ function camelCaseToReadable(str: string): string {
         border: 1px solid #2a2a2e;
         padding: 0.25rem 0.5rem;
         font-size: 1.25rem;
-        margin-top: 0.5rem;
         padding: 0.5rem 1rem;
     }
     button {
@@ -242,11 +305,9 @@ function camelCaseToReadable(str: string): string {
     .listItem {
         display: flex;
         align-items: center;
-        margin-bottom: 0.5rem;
 
         .entryName {
-            margin-left: 1rem;
-            margin-right: 1rem;
+            margin: 0 0.5rem;
             flex-shrink: 0;
         }
         .entry {

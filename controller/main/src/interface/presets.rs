@@ -82,31 +82,36 @@ impl EffectPresets {
     }
 
     pub fn add_preset(&mut self, name: String, icon: String, effect: AnyEffect) -> Result<(), Error> {
+        // If the preset already exists, update it
+        if let Some(existing_preset) = self.presets.iter_mut().find(|existing_preset| existing_preset.name == name) {
+            existing_preset.icon = icon;
+            existing_preset.effect = effect;
+            self.save()?;
+            return Ok(());
+        }
+
         let preset = EffectPreset {
             name,
             icon,
             effect
         };
-        // Ensure that the preset doesn't already exist
-        if self.presets.iter().any(|existing_preset| existing_preset.name == preset.name) {
-            return Err(Error::new(ErrorKind::AlreadyExists, "Preset already exists"));
-        }
-
         self.presets.push(preset);
         self.save()?;
         Ok(())
     }
 
     pub fn add_temporary_effect(&mut self, name: String, effect: AnyTemporaryEffect) -> Result<(), Error> {
+        // If the effect already exists, update it
+        if let Some(existing_preset) = self.temporary_effects.iter_mut().find(|existing_preset| existing_preset.name == name) {
+            existing_preset.effect = effect;
+            self.save()?;
+            return Ok(());
+        }
+
         let preset = TemporaryEffectPreset {
             name,
             effect
         };
-        // Ensure that the preset doesn't already exist
-        if self.temporary_effects.iter().any(|existing_preset| existing_preset.name == preset.name) {
-            return Err(Error::new(ErrorKind::AlreadyExists, "Effect already exists"));
-        }
-
         self.temporary_effects.push(preset);
         self.save()?;
         Ok(())

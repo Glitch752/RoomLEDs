@@ -1,31 +1,33 @@
+import type { AnyEffect, AnyTemporaryEffect } from "@bindings/index";
 import { del, get, post } from ".";
-import type { TemporaryEffectList } from "@shared-bindings/TemporaryEffectList";
-import type { AnyTemporaryEffect } from "@bindings/AnyTemporaryEffect";
-import type { EffectPresetList } from "@shared-bindings/EffectPresetList";
-import type { AnyEffect } from "@bindings/AnyEffect";
+import type { TemporaryEffectList, EffectPresetList } from "@shared-bindings/index";
 
 export async function getTemporaryEffects(): Promise<TemporaryEffectList> {
-    return await get<TemporaryEffectList>('/temporary-effects');
+    return await get<TemporaryEffectList>('/temporary_effects');
 }
 
 export async function deleteTemporaryEffect(id: string): Promise<void> {
-    await del(`/temporary-effects/${id}`);
+    await del(`/temporary_effects/${id}`);
 }
 
 export async function createTemporaryEffect(id: string, effect: AnyTemporaryEffect): Promise<void> {
-    return await post<void>(`/temporary-effects/${id}`, effect);
+    return await post<void>(`/temporary_effects/${id}`, effect);
 }
 
 export async function getEffectPresets(): Promise<EffectPresetList> {
-    return await get<EffectPresetList>('/effect-presets');
+    return await get<EffectPresetList>('/effect_presets');
+}
+
+export async function getPresetData(id: string): Promise<AnyEffect> {
+    return await get<AnyEffect>(`/effect_presets/${id}`);
 }
 
 export async function deleteEffectPreset(id: string): Promise<void> {
-    await del(`/effect-presets/${id}`);
+    await del(`/effect_presets/${id}`);
 }
 
 export async function createEffectPreset(id: string, fontAwesomeIcon: string, effect: AnyEffect): Promise<void> {
-    return await post<void>(`/effect-presets/${id}?icon=${fontAwesomeIcon}`, effect);
+    return await post<void>(`/effect_presets/${id}?icon=${fontAwesomeIcon}`, effect);
 }
 
 export async function runArbitraryEffect(effect: AnyEffect): Promise<void> {

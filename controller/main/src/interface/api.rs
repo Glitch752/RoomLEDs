@@ -12,6 +12,7 @@ pub fn router() -> Router<Arc<LightingState>> {
         .route("/temporary_effects/:effect_name", delete(delete_temporary_effect_handler))
         .route("/temporary_effects/:effect_name", post(create_temporary_effect_handler))
         .route("/effect_presets", get(get_effect_presets_handler))
+        .route("/effect_presets/:effect_name", get(get_effect_preset_handler))
         .route("/effect_presets/:effect_name", post(create_effect_preset_handler))
         .route("/effect_presets/:effect_name", delete(delete_effect_preset_handler))
         .route("/run_temporary_effect/:effect_name", post(run_temporary_effect_handler))
@@ -74,7 +75,7 @@ async fn create_temporary_effect_handler(
     let mut effect_presets = state.presets.write().await;
     match effect_presets.add_temporary_effect(effect_name, effect) {
         Ok(_) => "OK",
-        Err(_) => "Effect already exists"
+        Err(_) => "Error"
     }
 }
 
@@ -95,6 +96,19 @@ async fn get_effect_presets_handler(
     Json(shared::EffectPresetList { effects: presets })
 }
 
+async fn get_effect_preset_handler(
+    State(state): State<Arc<LightingState>>,
+    Path(preset_name): Path<String>
+) -> impl IntoResponse {
+    let effect_presets = state.presets.read().await;
+    let preset = effect_presets.get_preset(&preset_name);
+    if let Some(preset) = preset {
+        Ok(Json(preset))
+    } else {
+        Err("Not found")
+    }
+}
+
 async fn create_effect_preset_handler(
     State(state): State<Arc<LightingState>>,
     Path(preset_name): Path<String>,
@@ -104,7 +118,7 @@ async fn create_effect_preset_handler(
     let mut effect_presets = state.presets.write().await;
     match effect_presets.add_preset(preset_name, icon, preset) {
         Ok(_) => "OK",
-        Err(_) => "Preset already exists"
+        Err(_) => "Error"
     }
 }
 

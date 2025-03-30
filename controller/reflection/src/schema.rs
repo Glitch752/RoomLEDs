@@ -13,7 +13,7 @@ mod reflection {
 #[reflect(export_runtime_schema)]
 pub enum Schema {
     Struct(Vec<SchemaField>),
-    Enum(Vec<EnumVariant>),
+    Enum(EnumValue),
     Optional(Box<Schema>),
     ArrayOf(Box<Schema>),
     TupleOf(Vec<Schema>),
@@ -29,6 +29,14 @@ pub enum Schema {
 pub struct SchemaField {
     pub name: String,
     pub ty: Schema
+}
+
+/// An enum schema definition.
+#[derive(Reflect, Serialize, Deserialize)]
+pub struct EnumValue {
+    pub variants: Vec<EnumVariant>,
+    pub tag_name: String,
+    pub content_subfield: Option<String>
 }
 
 /// A variant in an enum schema definition.
