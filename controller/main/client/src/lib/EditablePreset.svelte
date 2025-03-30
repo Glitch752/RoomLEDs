@@ -1,14 +1,15 @@
 <script lang="ts">
     // import { runEffectPreset } from "../api/presets";
     import type { EffectPreset } from "@shared-bindings/index";
+  import { slide } from "svelte/transition";
 
     let { preset }: { preset: EffectPreset } = $props();
 
     let editing = $state(false);
 </script>
 
-<div class={`preset ${editing ? "editing" : ""}`}>
-    <button class="top" onclick={() => editing = !editing} aria-expanded={editing} aria-label="Toggle preset editing">
+<div class="preset">
+    <button class={`top ${editing ? "editing" : ""}`} onclick={() => editing = !editing} aria-expanded={editing} aria-label="Toggle preset editing">
         <span>
             <i class={preset.icon}></i>
             {preset.name}
@@ -21,13 +22,15 @@
         {/if}
     </button>
 
-    <div class="edit">
-        <p>Preset details:</p>
-        <ul>
-            <li><strong>Name:</strong> {preset.name}</li>
-            <li><strong>Icon:</strong> {preset.icon}</li>
-        </ul>
-    </div>
+    {#if editing}
+        <div class="edit" transition:slide={{ duration: 300 }}>
+            <p>Preset details:</p>
+            <ul>
+                <li><strong>Name:</strong> {preset.name}</li>
+                <li><strong>Icon:</strong> {preset.icon}</li>
+            </ul>
+        </div>
+    {/if}
 </div>
 
 <style lang="scss">
@@ -36,14 +39,6 @@
         background-color: #252529;
         margin: 0.5rem 0;
         text-align: left;
-
-        display: grid;
-        grid-template-rows: 3rem 0fr;
-        transition: grid-template-rows 0.2s ease;
-
-        &.editing {
-            grid-template-rows: 3rem 1fr;
-        }
     }
 
     .top {
@@ -56,16 +51,17 @@
         color: #ccc;
         font-size: 1.75rem;
         transition: background-color 0.2s, color 0.2s;
+        height: 3rem;
 
         i {
             width: 3.5rem;
             color: #eee;
         }
-    }
 
-    .editing .top {
-        background-color: #2a2a2e;
-        color: white;
+        &.editing {
+            background-color: #2a2a2e;
+            color: white;
+        }
     }
 
     .edit {

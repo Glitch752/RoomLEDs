@@ -1,11 +1,10 @@
-<script lang="ts">
-import type { Schema, SchemaField } from "@bindings/schema_types";
+<script lang="ts" generics="T">
+import type { Schema } from "@bindings/schema_types";
 import type { PixelColor } from "@bindings/index";
 import { schemas } from "@bindings/schemas";
 import SchemaEditor from "./SchemaEditor.svelte";
 import ColorPicker, { ChromeVariant, type RgbaColor } from 'svelte-awesome-color-picker';
 
-type T = $$Generic;
 // Yuck... what is this runes syntax (I'm just biased)
 let {
     schema,
@@ -89,9 +88,14 @@ function snakeCaseToReadable(str: string): string {
         .replace(/_/g, ' ') // Replace underscores with spaces
         .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
 }
+function camelCaseToReadable(str: string): string {
+    return str
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space before uppercase letters
+        .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
+}
 </script>
 
-<div class={noShell ? "" : "editor"}>
+<div class:editor={!noShell}>
     {#if !noShell && name !== ""}
         <span class="entryName">{snakeCaseToReadable(name)}</span>
     {/if}
@@ -127,6 +131,12 @@ function snakeCaseToReadable(str: string): string {
                             </button>
                         {/if}
                         <button onclick={() => {
+                            const entry = structuredClone($state.snapshot((value as T[])[i]));
+                            (value as T[]).splice(i + 1, 0, entry as T);
+                        }} aria-label="Duplicate entry">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button onclick={() => {
                             (value as T[]).splice(i, 1);
                         }} aria-label="Remove entry">
                             <i class="fas fa-trash"></i>
@@ -148,7 +158,7 @@ function snakeCaseToReadable(str: string): string {
             (value as EnumValue).name = name;
         }}>
             {#each schema.content as variant}
-                <option value={variant.name}>{variant.name}</option>
+                <option value={variant.name}>{camelCaseToReadable(variant.name)}</option>
             {/each}
         </select>
         {#if (value as EnumValue).value != null}
