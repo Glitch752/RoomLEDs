@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::{extract::{Path, Query, State}, response::IntoResponse, routing::{delete, get, post}, Json, Router};
+use serde::{Deserialize, Serialize};
 
 use crate::{render::effects::{AnyEffect, AnyTemporaryEffect}, LightingState};
 
@@ -109,16 +110,26 @@ async fn get_effect_preset_handler(
     }
 }
 
+#[derive(Serialize, Deserialize)]
+struct CreateEffectParams {
+    icon: String
+}
+
 async fn create_effect_preset_handler(
     State(state): State<Arc<LightingState>>,
     Path(preset_name): Path<String>,
-    Query(icon): Query<String>,
+    Query(params): Query<CreateEffectParams>,
     Json(preset): Json<AnyEffect>
 ) -> impl IntoResponse {
     let mut effect_presets = state.presets.write().await;
-    match effect_presets.add_preset(preset_name, icon, preset) {
-        Ok(_) => "OK",
-        Err(_) => "Error"
+    match effect_presets.add_preset(preset_name, params.icon, preset) {
+        Ok(_) => Json(serde_json::json!({})),
+        Err(e) => {
+            let err = e.to_string();
+            Json(serde_json::json!({
+                "error": err
+            }))
+        }
     }
 }
 

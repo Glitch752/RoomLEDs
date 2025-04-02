@@ -6,31 +6,21 @@ import SchemaEditor from "./SchemaEditor.svelte";
 import ColorPicker, { ChromeVariant, type RgbaColor } from 'svelte-awesome-color-picker';
 import EnumSchemaEditor from "./EnumSchemaEditor.svelte";
 import { createDefaultValue, snakeCaseToReadable } from "./schemaEditor.svelte";
+import ArraySchemaEditor from "./ArraySchemaEditor.svelte";
 
-// Yuck... what is this runes syntax (I'm just biased)
 let {
     schema,
     value = $bindable(),
-    /**
-     * Called when a primitive value (not an object or array) is changed.  
-     * Used to fix deep reactivity not working with nested objects in this way.
-    */
-    onPrimitiveChange = (value: T) => {},
     name = "",
+    onchange,
     noShell = false
 }: {
     schema: Schema,
     value: T,
-    onPrimitiveChange?: (value: T) => void,
     name?: string,
+    onchange?: () => void,
     noShell?: boolean
 } = $props();
-
-// This is probably super inefficient, but... oh well. It works.
-function updateState(newValue: any) {
-    onPrimitiveChange(newValue);
-    value = { ...value };
-}
 
 // Helper function to convert a struct color to hex
 function structColorToRgba(value: PixelColor): RgbaColor {
@@ -59,69 +49,30 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 {/if}
 <div class:shell={!noShell}>
     {#if schema.type == "Boolean"}
-        <input type="checkbox" bind:checked={value as boolean} onchange={() => onPrimitiveChange(value)} />
+        <input type="checkbox" bind:checked={value as boolean} {onchange} />
     {:else if schema.type == "String"}
-        <input type="text" bind:value={value} oninput={() => onPrimitiveChange(value)} />
+        <input type="text" bind:value={value} {onchange} />
     {:else if schema.type == "Number"}
-        <input type="number" bind:value={value} oninput={() => onPrimitiveChange(value)} />
+        <input type="number" bind:value={value} {onchange} />
     {:else if schema.type == "ArrayOf"}
-        <div>
-            {#each (value as T[]) as item, i}
-                <div class="listItem">
-                    <span class="entryName">Item {i + 1}:</span>
-                    <div class="entry">
-                        <SchemaEditor schema={schema.content} bind:value={(value as T[])[i]} onPrimitiveChange={updateState} />
-                    </div>
-                    <div class="controls">
-                        {#if i > 0}
-                            <button onclick={() => {
-                                const entry = (value as T[]).splice(i, 1)[0];
-                                (value as T[]).splice(i - 1, 0, entry);
-                            }} aria-label="Move up">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                        {/if}
-                        {#if i < (value as T[]).length - 1}
-                            <button onclick={() => {
-                                const entry = (value as T[]).splice(i, 1)[0];
-                                (value as T[]).splice(i + 1, 0, entry);
-                            }} aria-label="Move down">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                        {/if}
-                        <button onclick={() => {
-                            const entry = structuredClone($state.snapshot((value as T[])[i]));
-                            (value as T[]).splice(i + 1, 0, entry as T);
-                        }} aria-label="Duplicate entry">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        <button onclick={() => {
-                            (value as T[]).splice(i, 1);
-                        }} aria-label="Remove entry">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            {/each}
-            <button onclick={() => (value as T[]).push(createDefaultValue(schema.content))}>Add</button>
-        </div>
+        <ArraySchemaEditor schema={schema.content} bind:value={value as T[]} {onchange} />
     {:else if schema.type == "Enum"}
-        <EnumSchemaEditor schema={schema.content} bind:value={value as any} onPrimitiveChange={updateState} />
+        <EnumSchemaEditor schema={schema.content} bind:value={value as any} {onchange} />
     {:else if schema.type == "Struct"}
         <div>
             {#each schema.content as field}
-                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} onPrimitiveChange={updateState} />
+                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} {onchange} />
             {/each}
         </div>
     {:else if schema.type == "Optional"}
         <button onclick={() => value = value == null ? createDefaultValue(schema.content) : null}>{value == null ? "Add" : "Remove"}</button>
         {#if value != null}
-            <SchemaEditor schema={schema.content} bind:value={value} name={name} onPrimitiveChange={updateState} />
+            <SchemaEditor schema={schema.content} bind:value={value} name={name} {onchange} />
         {/if}
     {:else if schema.type == "TupleOf"}
         <div>
             {#each schema.content as field, i}
-                <SchemaEditor schema={field} bind:value={(value as T[])[i]} name={String(i)} onPrimitiveChange={updateState} />
+                <SchemaEditor schema={field} bind:value={(value as T[])[i]} name={String(i)} {onchange} />
             {/each}
         </div>
     {:else if schema.type == "Reference"}
@@ -130,12 +81,18 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
             <!-- The value is a struct with r, g, b, and alpha values -->
              <div class="colorPicker">
                 <ColorPicker rgb={structColorToRgba(value as PixelColor)} onInput={(color) => {
+                    if(
+                        color.rgb?.r === (value as PixelColor).r &&
+                        color.rgb?.g === (value as PixelColor).g &&
+                        color.rgb?.b === (value as PixelColor).b &&
+                        color.rgb?.a === (value as PixelColor).alpha
+                    ) return;
                     (value as PixelColor) = rgbaToStructColor(color.rgb);
-                    onPrimitiveChange(value);
-                }} components={ChromeVariant as any} sliderDirection="horizontal" --slider-width="15px" />
+                    onchange?.();
+                }} components={ChromeVariant as any} sliderDirection="horizontal" --slider-width="15px"/>
             </div>
         {:else}
-            <SchemaEditor schema={schemas[schema.content]} bind:value={value} noShell onPrimitiveChange={updateState} />
+            <SchemaEditor schema={schemas[schema.content]} bind:value={value} noShell {onchange} />
         {/if}
     {:else}
         <span>Unknown schema type: {(schema as any).type}</span>
@@ -179,18 +136,5 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 		--cp-text-color: white;
 		--cp-input-color: #252529;
 		--cp-button-hover-color: #2a2a2e;
-    }
-
-    .listItem {
-        display: flex;
-        align-items: center;
-
-        .entryName {
-            margin: 0 0.5rem;
-            flex-shrink: 0;
-        }
-        .entry {
-            flex: 1;
-        }
     }
 </style>

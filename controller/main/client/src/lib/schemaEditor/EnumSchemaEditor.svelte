@@ -10,25 +10,14 @@ type EnumValue = {
 let {
     schema,
     value = $bindable(),
-    /**
-     * Called when a primitive value (not an object or array) is changed.  
-     * Used to fix deep reactivity not working with nested objects in this way.
-    */
-    onPrimitiveChange = (value: EnumValue) => {}
+    onchange
 }: {
     schema: EnumSchema,
     value: EnumValue,
-    onPrimitiveChange?: (value: EnumValue) => void
+    onchange?: () => void
 } = $props();
 
-// This is probably super inefficient, but... oh well. It works.
-function updateState(newValue: any) {
-    onPrimitiveChange(newValue);
-    value = { ...value };
-}
-
-
-function setValue(content: any) {
+function setValue(content: any, name: string) {
     if(schema.content_subfield != null) {
         value = {
             [schema.tag_name]: name,
@@ -53,17 +42,18 @@ function setValue(content: any) {
 
 <select value={value[schema.tag_name]} onchange={(e) => {
     const name = (e.target as HTMLSelectElement).value;
-    const variant = schema.variants.find(v => v.name == name)!;
+    const variant = schema.variants.find(v => v.name == name);
+    if(!variant) return;
 
     if(variant.value != null) {
-        setValue(createDefaultValue(variant.value));
+        setValue(createDefaultValue(variant.value), name);
     } else {
         value = {
             [schema.tag_name]: variant.name
         };
     }
 
-    onPrimitiveChange(value);
+    onchange?.();
 }}>
     {#each schema.variants as variant}
         <option value={variant.name}>{camelCaseToReadable(variant.name)}</option>
@@ -75,14 +65,14 @@ function setValue(content: any) {
             schema={schema.variants.find(v => v.name == value[schema.tag_name])!.value!}
             bind:value={value[schema.content_subfield!]}
             noShell
-            onPrimitiveChange={updateState}
+            {onchange}
         />
     {:else}
         <SchemaEditor
             schema={schema.variants.find(v => v.name == value[schema.tag_name])!.value!}
             bind:value={value}
             noShell
-            onPrimitiveChange={updateState}
+            {onchange}
         />
     {/if}
 {/if}

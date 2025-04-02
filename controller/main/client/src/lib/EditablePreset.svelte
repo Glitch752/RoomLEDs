@@ -29,10 +29,13 @@
         }
     });
 
-    $effect(() => {
-        console.log("Checking for unsaved changes");
+    function onchange() {
         if(previousPresetData && presetData) unsavedChanges = true;
         previousPresetData = presetData != null;
+    }
+
+    $effect(() => {
+        if(presetData) onchange();
     });
 
     function save() {
@@ -66,7 +69,8 @@
             </ul>
 
             {#if presetData != null}
-                <SchemaEditor name="Effect" bind:value={presetData} schema={schemas["AnyEffect"]} />
+                <SchemaEditor name="Effect" bind:value={presetData} schema={schemas["AnyEffect"]} 
+                {onchange} />
             {:else}
                 <p>Loading...</p>
             {/if}
