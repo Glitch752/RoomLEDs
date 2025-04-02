@@ -4,6 +4,8 @@ import type { PixelColor } from "@bindings/index";
 import { schemas } from "@bindings/schemas";
 import SchemaEditor from "./SchemaEditor.svelte";
 import ColorPicker, { ChromeVariant, type RgbaColor } from 'svelte-awesome-color-picker';
+import EnumSchemaEditor from "./EnumSchemaEditor.svelte";
+import { createDefaultValue, snakeCaseToReadable } from "./schemaEditor.svelte";
 
 // Yuck... what is this runes syntax (I'm just biased)
 let {
@@ -30,60 +32,6 @@ function updateState(newValue: any) {
     value = { ...value };
 }
 
-type EnumValue = {
-    [value: string]: any
-};
-
-function createDefaultValue(schema: Schema): any {
-    switch(schema.type) {
-        case "Boolean":
-            return false;
-        case "String":
-            return "";
-        case "Number":
-            return 0;
-        case "ArrayOf":
-            return [];
-        case "Enum":
-            const variant = schema.content.variants[0];
-            if(variant.value != null) {
-                const contentValue = createDefaultValue(variant.value);
-                if(schema.content.content_subfield != null) {
-                    return {
-                        [schema.content.tag_name]: variant.name,
-                        [schema.content.content_subfield]: contentValue
-                    };
-                } else {
-                    let v = { [schema.content.tag_name]: variant.name };
-                    for(const key in contentValue) {
-                        v[key] = contentValue[key];
-                    }
-                    return v;
-                }
-            } else {
-                return { [schema.content.tag_name]: variant.name };
-            }
-        case "Struct":
-            const obj: Record<string, unknown> = {};
-            for(const field of schema.content) {
-                obj[field.name] = createDefaultValue(field.ty);
-            }
-            return obj;
-        case "Optional":
-            return null;
-        case "TupleOf":
-            return schema.content.map(createDefaultValue);
-        case "Reference":
-            // Special cases for certain reference types we want editors for
-            if (schema.content === "PixelColor") {
-                // Default to white color
-                return { r: 255, g: 255, b: 255, alpha: 1 };
-            }
-
-            return createDefaultValue(schemas[schema.content]);
-    }
-}
-
 // Helper function to convert a struct color to hex
 function structColorToRgba(value: PixelColor): RgbaColor {
     return {
@@ -103,17 +51,6 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
         b: Math.round(rgba.b),
         alpha: rgba.a
     };
-}
-
-function snakeCaseToReadable(str: string): string {
-    return str
-        .replace(/_/g, ' ') // Replace underscores with spaces
-        .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
-}
-function camelCaseToReadable(str: string): string {
-    return str
-        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space before uppercase letters
-        .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
 }
 </script>
 
@@ -169,65 +106,7 @@ function camelCaseToReadable(str: string): string {
             <button onclick={() => (value as T[]).push(createDefaultValue(schema.content))}>Add</button>
         </div>
     {:else if schema.type == "Enum"}
-        <select value={(value as EnumValue)[schema.content.tag_name]} onchange={(e) => {
-            const name = (e.target as HTMLSelectElement).value;
-            const variant = schema.content.variants.find(v => v.name == name)!;
-
-            function setValue(content: any) {
-                if(schema.type != "Enum") throw new Error("Invalid schema type");
-                
-                if(schema.content.content_subfield != null) {
-                    (value as EnumValue) = {
-                        [schema.content.tag_name]: name,
-                        [schema.content.content_subfield]: content
-                    };
-                } else {
-                    (value as EnumValue) = {
-                        [schema.content.tag_name]: name
-                    };
-                    if(typeof content == "object") {
-                        // Copy all fields from the value object to the enum value
-                        for(const key in content) {
-                            (value as EnumValue)[key] = content[key];
-                        }
-                    } else {
-                        // Weird unsupported case
-                        throw new Error("Unsupported case");
-                    }
-                }
-            }
-
-            if(variant.value != null) {
-                setValue(createDefaultValue(variant.value));
-            } else {
-                (value as EnumValue) = {
-                    [schema.content.tag_name]: variant.name
-                };
-            }
-
-            onPrimitiveChange(value);
-        }}>
-            {#each schema.content.variants as variant}
-                <option value={variant.name}>{camelCaseToReadable(variant.name)}</option>
-            {/each}
-        </select>
-        {#if schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value != null}
-            {#if schema.content.content_subfield != null}
-                <SchemaEditor
-                    schema={schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value!}
-                    bind:value={(value as EnumValue)[schema.content.content_subfield!]}
-                    noShell
-                    onPrimitiveChange={updateState}
-                />
-            {:else}
-                <SchemaEditor
-                    schema={schema.content.variants.find(v => v.name == (value as EnumValue)[schema.content.tag_name])!.value!}
-                    bind:value={value}
-                    noShell
-                    onPrimitiveChange={updateState}
-                />
-            {/if}
-        {/if}
+        <EnumSchemaEditor schema={schema.content} bind:value={value as any} onPrimitiveChange={updateState} />
     {:else if schema.type == "Struct"}
         <div>
             {#each schema.content as field}
@@ -277,7 +156,7 @@ function camelCaseToReadable(str: string): string {
         display: inline;
     }
 
-    input, select, button {
+    input, button {
         background-color: #171719;
         color: white;
         border: 1px solid #2a2a2e;
