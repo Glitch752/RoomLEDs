@@ -30,7 +30,7 @@ export async function createEffectPreset(id: string, fontAwesomeIcon: string, ef
     return await post<void>(`/effect_presets/${id}?icon=${fontAwesomeIcon}`, effect);
 }
 
-export async function runArbitraryEffect(effect: AnyEffect): Promise<void> {
+export async function runArbitraryEffect(effect: AnyEffect | null): Promise<void> {
     return await post<void>('/run_effect', effect);
 }
 

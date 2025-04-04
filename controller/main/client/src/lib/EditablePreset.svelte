@@ -1,37 +1,60 @@
+<script module>
+    // Pretty hacky solution, but it works
+    let previewedComponent = $state<string | null>(null);
+</script>
+
 <script lang="ts">
-    // import { runEffectPreset } from "../api/presets";
     import type { EffectPreset } from "@shared-bindings/index";
     import { slide } from "svelte/transition";
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
     import type { AnyEffect } from "@bindings/index";
-    import { createEffectPreset, getPresetData } from "../api/presets";
+    import { createEffectPreset, getPresetData, runArbitraryEffect } from "../api/presets";
+    import { debounce } from "../util/debouncer";
 
     let { preset }: { preset: EffectPreset } = $props();
+
+    const id = $props.id();
+    let debounceEffectUpdate = debounce(0.25);
 
     let presetData: AnyEffect | null = $state(null);
 
     let editing = $state(false);
     // TODO: Preview
-    let previewing = $state(false);
+    let previewing = $derived(id === previewedComponent);
     let unsavedChanges = $state(false);
 
-    let previousPresetData = false;
-    $effect(() => {
-        if(editing) {
-            (async () => {
-                previousPresetData = false;
-                unsavedChanges = false;
-                presetData = await getPresetData(preset.name);
-            })();
-        } else {
+    function togglePreview() {
+        if(!presetData) return;
+
+        if(previewing) {
+            previewedComponent = null;
             previewing = false;
+            runArbitraryEffect(null);
+        } else {
+            previewedComponent = id;
+            previewing = true;
+            runArbitraryEffect(presetData);
         }
-    });
+    }
+
+    let previousPresetData = false;
+    async function swapEditing() {
+        if(!editing) {
+            previousPresetData = false;
+            unsavedChanges = false;
+            presetData = await getPresetData(preset.name);
+        }
+        editing = !editing;
+    }
 
     function onchange() {
         if(previousPresetData && presetData) unsavedChanges = true;
         previousPresetData = presetData != null;
+
+        if(previewing) {
+            debounceEffectUpdate(() => runArbitraryEffect(presetData));
+        }
     }
 
     $effect(() => {
@@ -47,12 +70,15 @@
 </script>
 
 <div class="preset">
-    <button class={`top ${editing ? "editing" : ""}`} onclick={() => editing = !editing} aria-expanded={editing} aria-label="Toggle preset editing">
-        <span>
+    <button class={`top ${editing ? "editing" : ""}`} onclick={swapEditing} aria-expanded={editing} aria-label="Toggle preset editing">
+        <span class="name">
             <i class={preset.icon}></i>
             {preset.name}
         </span>
 
+        {#if previewing}
+            <span class="tag previewing">Previewing</span>
+        {/if}
         {#if editing}
             <i class="fas fa-chevron-down"></i>
         {:else}
@@ -62,11 +88,6 @@
 
     {#if editing}
         <div class="edit" transition:slide={{ duration: 300 }}>
-            <p>Preset details:</p>
-            <ul>
-                <li><strong>Name:</strong> {preset.name}</li>
-                <li><strong>Icon:</strong> {preset.icon}</li>
-            </ul>
 
             {#if presetData != null}
                 <SchemaEditor name="Effect" bind:value={presetData} schema={schemas["AnyEffect"]} 
@@ -76,7 +97,7 @@
             {/if}
 
             <div class="actions">
-                <button class="preview" class:enabled={previewing} onclick={() => previewing = !previewing}>
+                <button class="preview" class:enabled={previewing} onclick={togglePreview}>
                     {#if previewing}
                         Disable preview
                     {:else}
@@ -111,7 +132,25 @@
 
         i {
             width: 3.5rem;
+            text-align: center;
             color: #eee;
+        }
+        .name {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .tag {
+            font-size: 1.25rem;
+            padding: 0.25rem 1rem;
+            margin-left: 1rem;
+            background-color: #2a2a2e;
+            color: white;
+
+            &.previewing {
+                background-color: #2a406a;
+                color: white;
+            }
         }
 
         &.editing {

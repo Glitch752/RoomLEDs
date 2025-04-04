@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{extract::{Path, Query, State}, response::IntoResponse, routing::{delete, get, post}, Json, Router};
 use serde::{Deserialize, Serialize};
 
-use crate::{render::effects::{AnyEffect, AnyTemporaryEffect}, LightingState};
+use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, SolidColorEffect}, frame::PixelColor}, LightingState, TOTAL_PIXELS};
 
 // TODO: Authentication
 
@@ -25,9 +25,18 @@ pub fn router() -> Router<Arc<LightingState>> {
 
 async fn run_arbitrary_effect_handler(
     State(state): State<Arc<LightingState>>,
-    Json(effect): Json<AnyEffect>
+    Json(effect): Json<Option<AnyEffect>>
 ) -> impl IntoResponse {
-    state.render_state.lock().effect = Box::new(effect);
+    match effect {
+        Some(e) => {
+            state.render_state.lock().effect = Box::new(e);
+        }
+        None => {
+            state.render_state.lock().effect = Box::new(SolidColorEffect::new(
+                PixelColor::BLACK, 0, TOTAL_PIXELS
+            ));
+        }
+    };
 
     "OK"
 }

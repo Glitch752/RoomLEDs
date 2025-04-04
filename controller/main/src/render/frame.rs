@@ -14,6 +14,13 @@ pub struct PixelColor {
 }
 
 impl PixelColor {
+    pub const BLACK: PixelColor = PixelColor {
+        r: 0,
+        g: 0,
+        b: 0,
+        alpha: 1.0
+    };
+
     pub fn new(r: u8, g: u8, b: u8, alpha: f64) -> PixelColor {
         PixelColor {
             r,
