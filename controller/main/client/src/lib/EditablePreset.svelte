@@ -9,7 +9,7 @@
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
     import type { AnyEffect } from "@bindings/index";
-    import { createEffectPreset, getPresetData, runArbitraryEffect } from "../api/presets";
+    import { createEffectPreset, deleteEffectPreset, getPresetData, runArbitraryEffect } from "../api/presets";
     import { debounce } from "../util/debouncer";
 
     let { preset }: { preset: EffectPreset } = $props();
@@ -40,7 +40,7 @@
 
     let previousPresetData = false;
     async function swapEditing() {
-        if(!editing) {
+        if(!editing && !unsavedChanges) {
             previousPresetData = false;
             unsavedChanges = false;
             presetData = await getPresetData(preset.name);
@@ -67,12 +67,24 @@
         createEffectPreset(preset.name, preset.icon, presetData);
         unsavedChanges = false;
     }
+
+    function deleteEffect() {
+        if(!confirm("Are you sure you want to delete this effect?")) return;
+
+        if(presetData) {
+            runArbitraryEffect(null);
+            deleteEffectPreset(preset.name);
+        }
+    }
 </script>
 
 <div class="preset">
     <button class={`top ${editing ? "editing" : ""}`} onclick={swapEditing} aria-expanded={editing} aria-label="Toggle preset editing">
         <span class="name">
             <i class={preset.icon}></i>
+            {#if unsavedChanges}
+                <span>*</span>
+            {/if}
             {preset.name}
         </span>
 
@@ -105,6 +117,8 @@
                     {/if}
                 </button>
                 <button class="save" class:unsavedChanges onclick={save}>Save</button>
+                <button class="close" onclick={swapEditing}>Close</button>
+                <button class="delete" onclick={deleteEffect}>Delete</button>
             </div>
         </div>
     {/if}
@@ -179,7 +193,7 @@
         button {
             color: white;
             border: none;
-            width: 15rem;
+            padding: 0.5rem 1rem;
             margin: 0 0.5rem;
             cursor: pointer;
             font-size: 1.25rem;
@@ -224,5 +238,25 @@
     }
     button.preview.enabled:active {
         background-color: #5a2a3c;
+    }
+
+    button.close {
+        background-color: #3e403f;
+    }
+    button.close:hover {
+        background-color: #4e504f;
+    }
+    button.close:active {
+        background-color: #2e3030;
+    }
+
+    button.delete {
+        background-color: #6a2a2a;
+    }
+    button.delete:hover {
+        background-color: #7a2a2a;
+    }
+    button.delete:active {
+        background-color: #5a2a2a;
     }
 </style>
