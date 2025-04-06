@@ -3,7 +3,7 @@
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
     import { createEffectPreset, getEffectPresets } from "../api/presets";
-  import IconSelector from "./IconSelector.svelte";
+  import IconSelector from "./iconSelector/IconSelector.svelte";
 
     let { onclose }: { onclose: () => void } = $props();
 
