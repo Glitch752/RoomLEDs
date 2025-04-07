@@ -27,12 +27,14 @@
 <div class="editor">
     <h2>New effect</h2>
     
-    <span class="entryName">Name</span>
+    <h3>Name</h3>
     <input bind:value={name} placeholder="Name" aria-label="Name" />
 
+    <h3>Icon</h3>
     <IconSelector bind:value={icon} placeholder="Icon" ariaLabel="Icon" />
 
-    <SchemaEditor name="Effect" bind:value={effect} schema={schemas["AnyEffect"]} />
+    <h3>Effect</h3>
+    <SchemaEditor bind:value={effect} schema={schemas["AnyEffect"]} />
     <div class="actions">
         <button class="cancel" onclick={onclose}>Cancel</button>
         <button class="create" onclick={() => {
@@ -55,6 +57,11 @@
 h2 {
     font-size: 2rem;
     margin: 0 0 1rem 0;
+}
+h3 {
+    font-size: 1.5rem;
+    margin: 1.5rem 0 0 0;
+    font-weight: 500;
 }
 
 .actions {
