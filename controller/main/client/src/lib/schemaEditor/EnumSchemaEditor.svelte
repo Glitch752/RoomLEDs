@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { EnumValue as EnumSchema } from "@bindings/schema_types";
 import SchemaEditor from "./SchemaEditor.svelte";
-import { camelCaseToReadable, createDefaultValue } from "./schemaEditor.svelte";
+import { camelCaseToReadable, createDefaultValue } from "./schemaUtils.svelte";
 
 type EnumValue = {
     [value: string]: any

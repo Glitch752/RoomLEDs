@@ -1,7 +1,7 @@
 <script lang="ts" generics="T">
 import type { Schema } from '@bindings/schema_types';
 import SchemaEditor from './SchemaEditor.svelte';
-import { createDefaultValue } from './schemaEditor.svelte';
+import { createDefaultValue } from './schemaUtils.svelte';
 
 let {
     schema,

@@ -5,7 +5,7 @@ import { schemas } from "@bindings/schemas";
 import SchemaEditor from "./SchemaEditor.svelte";
 import ColorPicker, { ChromeVariant, type RgbaColor } from 'svelte-awesome-color-picker';
 import EnumSchemaEditor from "./EnumSchemaEditor.svelte";
-import { createDefaultValue, snakeCaseToReadable } from "./schemaEditor.svelte";
+import { createDefaultValue, snakeCaseToReadable } from "./schemaUtils.svelte";
 import ArraySchemaEditor from "./ArraySchemaEditor.svelte";
 
 let {
