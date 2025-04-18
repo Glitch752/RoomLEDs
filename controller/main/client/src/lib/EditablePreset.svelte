@@ -117,8 +117,8 @@
                     {/if}
                 </button>
                 <button class="save" class:unsavedChanges onclick={save}>Save</button>
-                <button class="close" onclick={swapEditing}>Close</button>
-                <button class="delete" onclick={deleteEffect}>Delete</button>
+                <button class="gray" onclick={swapEditing}>Close</button>
+                <button class="red" onclick={deleteEffect}>Delete</button>
             </div>
         </div>
     {/if}
@@ -127,7 +127,7 @@
 <style lang="scss">
     .preset {
         width: 100%;
-        background-color: #252529;
+        background-color: var(--surface0);
         margin: 0.5rem 0;
         text-align: left;
     }
@@ -191,72 +191,7 @@
         margin-top: 2rem;
 
         button {
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
             margin: 0 0.5rem;
-            cursor: pointer;
-            font-size: 1.25rem;
         }
-    }
-
-    button.save {
-        background-color: #3e403f;
-    }
-    button.save:hover {
-        background-color: #4e504f;
-    }
-    button.save:active {
-        background-color: #2e3030;
-    }
-
-    button.save.unsavedChanges {
-        background-color: #406a2a;
-    }
-    button.save.unsavedChanges:hover {
-        background-color: #4c7a2a;
-    }
-    button.save.unsavedChanges:active {
-        background-color: #3c5a2a;
-    }
-
-    button.preview {
-        background-color: #2a406a;
-    }
-    button.preview:hover {
-        background-color: #2a4c7a;
-    }
-    button.preview:active {
-        background-color: #2a3c5a;
-    }
-
-    button.preview.enabled {
-        background-color: #6a2a40;
-    }
-    button.preview.enabled:hover {
-        background-color: #7a2a4c;
-    }
-    button.preview.enabled:active {
-        background-color: #5a2a3c;
-    }
-
-    button.close {
-        background-color: #3e403f;
-    }
-    button.close:hover {
-        background-color: #4e504f;
-    }
-    button.close:active {
-        background-color: #2e3030;
-    }
-
-    button.delete {
-        background-color: #6a2a2a;
-    }
-    button.delete:hover {
-        background-color: #7a2a2a;
-    }
-    button.delete:active {
-        background-color: #5a2a2a;
     }
 </style>
