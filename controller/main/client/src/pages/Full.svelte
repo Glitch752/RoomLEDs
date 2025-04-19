@@ -41,7 +41,7 @@ let activeTab = tabs[0];
   height: 100vh;
 
   grid-template-rows: 3rem minmax(0, 1fr);
-  grid-template-columns: 25rem minmax(0, 1fr);
+  grid-template-columns: 15rem minmax(0, 1fr);
 }
 
 header {
@@ -51,7 +51,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #111;
+  background-color: var(--dark);
   color: white;
   border-bottom: 2px solid black;
   
@@ -76,9 +76,8 @@ nav {
   
   display: flex;
   flex-direction: column;
-  background-color: #111;
-  color: white;
-
+  background-color: var(--dark);
+  color: var(--text);
   border-right: 2px solid black;
   
   button {
@@ -87,24 +86,23 @@ nav {
     font-size: 1.25rem;
     padding: 0.5rem 1rem;
     text-decoration: none;
-    color: #ddd;
-    background-color: #111;
+    color: var(--subtext0);
+    background-color: var(--dark);
     transition: background-color 0.2s, color 0.2s, padding-right 0.2s;
+    text-align: left;
 
     &.active {
-      background-color: #151515;
-      color: #fff;
+      background-color: var(--surface0);
+      color: var(--text);
     }
     
     &:hover {
-      background-color: #181818;
-      color: #fff;
+      color: var(--text);
     }
   }
 
   &:has(button:hover) button:not(:hover) {
     color: #aaa;
-    padding-right: 1.5rem;
   }
 }
 
