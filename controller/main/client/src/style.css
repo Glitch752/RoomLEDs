@@ -109,15 +109,16 @@ button.lavender {
   --color: var(--lavender);
 }
 button.gray {
-  --color: #aaa;
+  --color: var(--subtext0);
 }
 
 button {
-  color: var(--background);
+  color: var(--surface0);
+  font-weight: 600;
   border: none;
   padding: 0.5rem 1rem;
   cursor: pointer;
-  font-size: 1.25rem;
+  font-size: 1rem;
   background-color: var(--color);
   transition: background-color 0.2s ease-in-out
 }

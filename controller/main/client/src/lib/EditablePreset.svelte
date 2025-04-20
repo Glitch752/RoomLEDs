@@ -109,14 +109,14 @@
             {/if}
 
             <div class="actions">
-                <button class="preview" class:enabled={previewing} onclick={togglePreview}>
+                <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>
                     {#if previewing}
                         Disable preview
                     {:else}
                         Enable preview
                     {/if}
                 </button>
-                <button class="save" class:unsavedChanges onclick={save}>Save</button>
+                <button class:gray={!unsavedChanges} class:green={unsavedChanges} onclick={save}>Save</button>
                 <button class="gray" onclick={swapEditing}>Close</button>
                 <button class="red" onclick={deleteEffect}>Delete</button>
             </div>
@@ -189,9 +189,6 @@
         display: flex;
         justify-content: flex-start;
         margin-top: 2rem;
-
-        button {
-            margin: 0 0.5rem;
-        }
+        gap: 0.5rem;
     }
 </style>
