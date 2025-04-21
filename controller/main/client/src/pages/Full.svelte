@@ -51,9 +51,9 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--dark);
+  background-color: var(--nav-color);
   color: white;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid var(--contrast-border);
   
   h1 {
     margin: 0;
@@ -76,9 +76,9 @@ nav {
   
   display: flex;
   flex-direction: column;
-  background-color: var(--dark);
+  background-color: var(--nav-color);
   color: var(--text);
-  border-right: 2px solid black;
+  border-right: 2px solid var(--contrast-border);
   
   button {
     border: none;
@@ -87,7 +87,7 @@ nav {
     padding: 0.5rem 1rem;
     text-decoration: none;
     color: var(--subtext0);
-    background-color: var(--dark);
+    background-color: var(--nav-color);
     transition: background-color 0.2s, color 0.2s, padding-right 0.2s;
     text-align: left;
 
