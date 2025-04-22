@@ -5,7 +5,7 @@
 
 <script lang="ts">
     import type { EffectPreset } from "@shared-bindings/index";
-    import { slide } from "svelte/transition";
+    import { fade, slide } from "svelte/transition";
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
     import type { AnyEffect } from "@bindings/index";
@@ -89,7 +89,7 @@
         </span>
 
         {#if previewing}
-            <span class="tag previewing">Previewing</span>
+            <span class="tag previewing" transition:fade={{ duration: 100 }}>Previewing</span>
         {/if}
         {#if editing}
             <i class="fas fa-chevron-down"></i>
@@ -100,14 +100,6 @@
 
     {#if editing}
         <div class="edit" transition:slide={{ duration: 300 }}>
-
-            {#if presetData != null}
-                <SchemaEditor name="Effect" bind:value={presetData} schema={schemas["AnyEffect"]} 
-                {onchange} />
-            {:else}
-                <p>Loading...</p>
-            {/if}
-
             <div class="actions">
                 <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>
                     {#if previewing}
@@ -120,6 +112,13 @@
                 <button class="gray" onclick={swapEditing}>Close</button>
                 <button class="red" onclick={deleteEffect}>Delete</button>
             </div>
+
+            {#if presetData != null}
+                <SchemaEditor bind:value={presetData} schema={schemas["AnyEffect"]} 
+                {onchange} />
+            {:else}
+                <p>Loading...</p>
+            {/if}
         </div>
     {/if}
 </div>
@@ -139,15 +138,16 @@
         justify-content: space-between;
         width: 100%;
         background: none;
-        color: #ccc;
-        font-size: 1.75rem;
+        color: var(--subtext0);
+        font-size: 1.5rem;
         transition: background-color 0.2s, color 0.2s;
         height: 3rem;
+        padding: 0.5rem;
 
         i {
-            width: 3.5rem;
+            width: 2.5rem;
             text-align: center;
-            color: #eee;
+            color: var(--subtext0);
         }
         .name {
             flex-grow: 1;
@@ -158,18 +158,16 @@
             font-size: 1.25rem;
             padding: 0.25rem 1rem;
             margin-left: 1rem;
-            background-color: #2a2a2e;
-            color: white;
 
             &.previewing {
-                background-color: #2a406a;
-                color: white;
+                background-color: var(--sapphire);
+                color: var(--surface0);
             }
         }
 
         &.editing {
-            background-color: #2a2a2e;
-            color: white;
+            background-color: var(--surface1);
+            color: var(--text);
         }
     }
 
@@ -180,15 +178,16 @@
     
     .edit {
         font-size: 1.25rem;
-        padding: 2rem;
-        color: #ccc;
+        padding: 1rem;
+        color: var(--text);
         overflow: hidden;
     }
 
     .actions {
         display: flex;
         justify-content: flex-start;
-        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
         gap: 0.5rem;
     }
 </style>

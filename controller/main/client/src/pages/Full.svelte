@@ -51,7 +51,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--nav-color);
+  background-color: var(--dark-bg);
   color: white;
   border-bottom: 2px solid var(--contrast-border);
   
@@ -59,13 +59,12 @@ header {
     margin: 0;
     padding: 0;
     margin-left: 1rem;
-    font-weight: 400;
     font-size: 1.75rem;
   }
 
   a {
     margin-right: 1rem;
-    color: #ccc;
+    color: var(--subtext1);
     text-decoration: none;
   }
 }
@@ -76,7 +75,7 @@ nav {
   
   display: flex;
   flex-direction: column;
-  background-color: var(--nav-color);
+  background-color: var(--dark-bg);
   color: var(--text);
   border-right: 2px solid var(--contrast-border);
   
@@ -86,13 +85,17 @@ nav {
     font-size: 1.25rem;
     padding: 0.5rem 1rem;
     text-decoration: none;
+    font-weight: 400;
     color: var(--subtext0);
-    background-color: var(--nav-color);
-    transition: background-color 0.2s, color 0.2s, padding-right 0.2s;
+    background-color: var(--dark-bg);
+    transition: background-color 0.2s, color 0.2s, padding-right 0.2s, border-color 0.2s;
     text-align: left;
+    border-left: 4px solid;
+    border-color: transparent;
 
     &.active {
-      background-color: var(--surface0);
+      background-color: var(--background);
+      border-color: var(--sapphire);
       color: var(--text);
     }
     
@@ -102,7 +105,7 @@ nav {
   }
 
   &:has(button:hover) button:not(:hover) {
-    color: #aaa;
+    color: var(--subtext1);
   }
 }
 

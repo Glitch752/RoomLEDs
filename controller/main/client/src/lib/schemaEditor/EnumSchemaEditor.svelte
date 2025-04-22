@@ -79,11 +79,10 @@ function setValue(content: any, name: string) {
 
 <style>
     select {
-        background-color: #171719;
-        color: white;
-        border: 1px solid #2a2a2e;
-        padding: 0.25rem 0.5rem;
+        background-color: var(--background);
+        color: var(--text);
+        border: none;
+        padding: 0.25rem 1rem;
         font-size: 1.25rem;
-        padding: 0.5rem 1rem;
     }
 </style>

@@ -101,12 +101,12 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 
 <style>
     .shell {
-        background-color: #252529;
+        background-color: var(--surface0);
         padding: 0 0.5rem;
         font-size: 1.25rem;
-        color: white;
+        color: var(--text);
         margin: 0.5rem 0 0.5rem 0.75rem;
-        border-left: 0.25rem solid #44444c;
+        border-left: 4px solid var(--background);
     }
 
     .entryName {
@@ -114,27 +114,22 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
     }
 
     input, button {
-        background-color: #171719;
-        color: white;
-        border: 1px solid #2a2a2e;
-        padding: 0.25rem 0.5rem;
+        background-color: var(--background);
+        color: var(--text);
+        border: none;
+        padding: 0.25rem 1rem;
         font-size: 1.25rem;
-        padding: 0.5rem 1rem;
-    }
-    button {
-        transition: background-color 0.2s, color 0.2s;
     }
     button:hover {
-        background-color: #2a2a2e;
-        cursor: pointer;
+        background-color: var(--dark-bg);
     }
 
     .colorPicker {
         display: inline;
-		--cp-bg-color: #171719;
-		--cp-border-color: black;
-		--cp-text-color: white;
-		--cp-input-color: #252529;
-		--cp-button-hover-color: #2a2a2e;
+		--cp-bg-color: var(--surface0);
+		--cp-border-color: var(--contrast-border);
+		--cp-text-color: var(--text);
+		--cp-input-color: var(--surface1);
+		--cp-button-hover-color: var(--surface2);
     }
 </style>

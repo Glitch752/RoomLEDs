@@ -36,8 +36,8 @@
     <h3>Effect</h3>
     <SchemaEditor bind:value={effect} schema={schemas["AnyEffect"]} />
     <div class="actions">
-        <button class="cancel" onclick={onclose}>Cancel</button>
-        <button class="create" onclick={() => {
+        <button class="gray" onclick={onclose}>Cancel</button>
+        <button class="green" onclick={() => {
             createEffectPreset(name, icon, effect);
             onclose();
         }}>Create</button>
@@ -47,9 +47,9 @@
 <style>
 .editor {
     width: 100%;
-    background-color: #252529;
+    background-color: var(--surface0);
     margin: 0.5rem 0;
-    color: white;
+    color: var(--text);
     padding: 1rem;
     text-align: left;
 }
@@ -67,15 +67,8 @@ h3 {
 .actions {
     display: flex;
     justify-content: flex-start;
-    margin-top: 2rem;
-
-    button {
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        margin: 0 0.5rem;
-        cursor: pointer;
-        font-size: 1.25rem;
-    }
+    margin-top: 1rem;
+    gap: 1rem;
+    font-size: 1rem;
 }
 </style>

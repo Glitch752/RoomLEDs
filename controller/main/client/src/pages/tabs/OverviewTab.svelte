@@ -38,13 +38,14 @@
         background: none;
         border: none;
         font-size: 2rem;
-        color: #ccc;
+        color: var(--text);
         cursor: pointer;
         padding: 0.5rem;
         margin: 0.5rem;
-        transition: color 0.2s;
+        transition: color 0.2s, transform 0.2s ease;
     }
     button:hover {
-        color: white;
+        color: var(--subtext1);
+        transform: translateY(-2px);
     }
 </style>

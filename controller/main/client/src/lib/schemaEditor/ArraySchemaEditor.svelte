@@ -78,19 +78,14 @@ let {
 }
 
 button {
-    background-color: #171719;
-    color: white;
-    border: 1px solid #2a2a2e;
-    padding: 0.25rem 0.5rem;
+    background-color: var(--background);
+    color: var(--text);
+    border: none;
     font-size: 1.25rem;
     padding: 0.5rem 1rem;
 }
-button {
-    transition: background-color 0.2s, color 0.2s;
-}
 button:hover {
-    background-color: #2a2a2e;
-    cursor: pointer;
+    background-color: var(--dark-bg);
 }
 
 .controls button {
