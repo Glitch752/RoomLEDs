@@ -29,55 +29,65 @@ pub(crate) struct EffectPresets {
 impl EffectPresets {
     pub fn load() -> Self {
         if let Ok(file) = std::fs::File::open(EffectPresets::get_file_path()) {
-            serde_json::from_reader(file).expect("Failed to load effect presets")
+            // TODO: More robust handling of schema changes
+            match serde_json::from_reader(file) {
+                Ok(presets) => {
+                    println!("Loaded effect presets from file");
+                    return presets;
+                }
+                Err(e) => {
+                    println!("Failed to load effect presets from file: {}; reverting to default list", e);
+                }
+            }
         } else {
             println!("No effect presets found; starting with a default list");
-            EffectPresets {
-                presets: vec![
-                    EffectPreset {
-                        name: "Websocket Input".to_string(),
-                        icon: "fas fa-plug".to_string(),
-                        effect: effects::WebsocketInputEffect::new()
-                    },
-                    EffectPreset {
-                        name: "Rainbow stripes".to_string(),
-                        icon: "fas fa-rainbow".to_string(),
-                        effect: effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
-                            (255, 0, 0).into(),
-                            (255, 100, 0).into(),
-                            (255, 255, 0).into(),
-                            (0, 255, 0).into(),
-                            (0, 0, 255).into(),
-                            (143, 0, 255).into(),
-                            (255, 255, 255).into(),
-                        ], 84.0)
-                    },
-                    EffectPreset {
-                        name: "Music visualizer".to_string(),
-                        icon: "fas fa-music".to_string(),
-                        effect: effects::RotateEffect::new(
-                            effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT).into(),
-                            -219
-                        )
-                    },
-                    EffectPreset {
-                        name: "Flashing red".to_string(),
-                        icon: "fas fa-bolt".to_string(),
-                        effect: effects::FlashingColorEffect::new(1., PixelColor::new(255, 0, 0, 1.0)).into()
-                    },
-                    EffectPreset {
-                        name: "Solid white".to_string(),
-                        icon: "fas fa-sun".to_string(),
-                        effect: effects::SolidColorEffect::new(PixelColor::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS)
-                    },
-                    EffectPreset {
-                        name: "Solid black".to_string(),
-                        icon: "fas fa-moon".to_string(),
-                        effect: effects::SolidColorEffect::new(PixelColor::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
-                    },
-                ],
-                temporary_effects: vec![]
-            }
+        }
+
+        EffectPresets {
+            presets: vec![
+                EffectPreset {
+                    name: "Websocket Input".to_string(),
+                    icon: "fas fa-plug".to_string(),
+                    effect: effects::WebsocketInputEffect::new()
+                },
+                EffectPreset {
+                    name: "Rainbow stripes".to_string(),
+                    icon: "fas fa-rainbow".to_string(),
+                    effect: effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
+                        (255, 0, 0).into(),
+                        (255, 100, 0).into(),
+                        (255, 255, 0).into(),
+                        (0, 255, 0).into(),
+                        (0, 0, 255).into(),
+                        (143, 0, 255).into(),
+                        (255, 255, 255).into(),
+                    ], 84.0)
+                },
+                EffectPreset {
+                    name: "Music visualizer".to_string(),
+                    icon: "fas fa-music".to_string(),
+                    effect: effects::RotateEffect::new(
+                        effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT).into(),
+                        -219
+                    )
+                },
+                EffectPreset {
+                    name: "Flashing red".to_string(),
+                    icon: "fas fa-bolt".to_string(),
+                    effect: effects::FlashingColorEffect::new(1., 0., PixelColor::new(255, 0, 0, 1.0), PixelColor::new(255, 0, 0, 0.0)).into()
+                },
+                EffectPreset {
+                    name: "Solid white".to_string(),
+                    icon: "fas fa-sun".to_string(),
+                    effect: effects::SolidColorEffect::new(PixelColor::new(255, 255, 255, 1.0), 0, TOTAL_PIXELS)
+                },
+                EffectPreset {
+                    name: "Solid black".to_string(),
+                    icon: "fas fa-moon".to_string(),
+                    effect: effects::SolidColorEffect::new(PixelColor::new(0, 0, 0, 1.0), 0, TOTAL_PIXELS)
+                },
+            ],
+            temporary_effects: vec![]
         }
     }
 

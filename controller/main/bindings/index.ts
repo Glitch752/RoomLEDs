@@ -51,7 +51,7 @@ export type RotateEffect = { effect: AnyEffect, rotation: number };
 /**
  * Generated binding.
  */
-export type FlashingColorEffect = { time: number, speed: number, color: PixelColor };
+export type FlashingColorEffect = { offset: number, speed: number, color_a: PixelColor, color_b: PixelColor };
 
 /**
  * Generated binding.

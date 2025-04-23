@@ -236,7 +236,7 @@ export const FlashingColorEffectSchema: Schema = {
   "type": "Struct",
   "content": [
     {
-      "name": "time",
+      "name": "offset",
       "ty": {
         "type": "Number"
       }
@@ -248,7 +248,14 @@ export const FlashingColorEffectSchema: Schema = {
       }
     },
     {
-      "name": "color",
+      "name": "color_a",
+      "ty": {
+        "type": "Reference",
+        "content": "PixelColor"
+      }
+    },
+    {
+      "name": "color_b",
       "ty": {
         "type": "Reference",
         "content": "PixelColor"

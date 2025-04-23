@@ -102,15 +102,19 @@
         <div class="edit" transition:slide={{ duration: 300 }}>
             <div class="actions">
                 <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>
-                    {#if previewing}
+                    {#if previewing}    
+                        <i class="fas fa-eye-slash"></i>
                         Disable preview
                     {:else}
+                        <i class="fas fa-eye"></i>
                         Enable preview
                     {/if}
                 </button>
-                <button class:gray={!unsavedChanges} class:green={unsavedChanges} onclick={save}>Save</button>
-                <button class="gray" onclick={swapEditing}>Close</button>
-                <button class="red" onclick={deleteEffect}>Delete</button>
+                <button class:gray={!unsavedChanges} class:green={unsavedChanges} onclick={save}>
+                    <i class="fas fa-floppy-disk"></i>
+                    Save
+                </button>
+                <button class="red" onclick={deleteEffect}><i class="fas fa-trash-can"></i>Delete</button>
             </div>
 
             {#if presetData != null}
@@ -119,6 +123,10 @@
             {:else}
                 <p>Loading...</p>
             {/if}
+
+            <div class="actions">
+                <button class="gray" onclick={swapEditing}>Close</button>
+            </div>
         </div>
     {/if}
 </div>
@@ -171,6 +179,10 @@
         }
     }
 
+    button > i {
+        margin-right: 0.5rem;
+    }
+
     p {
         margin: 0;
         padding: 0;
@@ -180,13 +192,14 @@
         font-size: 1.25rem;
         padding: 1rem;
         color: var(--text);
-        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
     }
 
     .actions {
         display: flex;
         justify-content: flex-start;
-        margin-bottom: 1rem;
         font-size: 1rem;
         gap: 0.5rem;
     }

@@ -3,8 +3,6 @@
 A component that allows the user to select a Font Awesome icon from a dropdown list, including search functionality.
 -->
 
-<!-- TODO -->
-
 <script module>
   import { slide } from "svelte/transition";
     // Parse the Font Awesome icon metadata into a simple list

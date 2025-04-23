@@ -38,6 +38,15 @@ impl PixelColor {
             alpha
         }
     }
+
+    pub fn lerp(&self, other: &PixelColor, t: f64) -> PixelColor {
+        PixelColor {
+            r: (self.r as f64 * (1.0 - t) + other.r as f64 * t) as u8,
+            g: (self.g as f64 * (1.0 - t) + other.g as f64 * t) as u8,
+            b: (self.b as f64 * (1.0 - t) + other.b as f64 * t) as u8,
+            alpha: self.alpha * (1.0 - t) + other.alpha * t
+        }
+    }
 }
 
 impl From<Rgb> for PixelColor {
