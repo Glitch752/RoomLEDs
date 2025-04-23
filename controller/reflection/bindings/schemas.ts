@@ -90,14 +90,26 @@ export const SchemaFieldSchema: Schema = {
       "name": "name",
       "ty": {
         "type": "String"
-      }
+      },
+      "docs": null
     },
     {
       "name": "ty",
       "ty": {
         "type": "Reference",
         "content": "Schema"
-      }
+      },
+      "docs": null
+    },
+    {
+      "name": "docs",
+      "ty": {
+        "type": "Optional",
+        "content": {
+          "type": "String"
+        }
+      },
+      "docs": null
     }
   ]
 };
@@ -118,13 +130,15 @@ export const EnumValueSchema: Schema = {
           "type": "Reference",
           "content": "EnumVariant"
         }
-      }
+      },
+      "docs": null
     },
     {
       "name": "tag_name",
       "ty": {
         "type": "String"
-      }
+      },
+      "docs": null
     },
     {
       "name": "content_subfield",
@@ -133,7 +147,8 @@ export const EnumValueSchema: Schema = {
         "content": {
           "type": "String"
         }
-      }
+      },
+      "docs": null
     }
   ]
 };
@@ -150,7 +165,8 @@ export const EnumVariantSchema: Schema = {
       "name": "name",
       "ty": {
         "type": "String"
-      }
+      },
+      "docs": null
     },
     {
       "name": "value",
@@ -160,7 +176,8 @@ export const EnumVariantSchema: Schema = {
           "type": "Reference",
           "content": "Schema"
         }
-      }
+      },
+      "docs": null
     }
   ]
 };

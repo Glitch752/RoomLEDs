@@ -5,6 +5,12 @@
 
 /**
  * Generated binding.
+ * An enum schema definition.
+ */
+export type EnumValue = { variants: Array<EnumVariant>, tag_name: string, content_subfield: string | null };
+
+/**
+ * Generated binding.
  * A variant in an enum schema definition.
  */
 export type EnumVariant = { name: string, value: Schema | null };
@@ -20,11 +26,5 @@ export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "ty
  * Generated binding.
  * A field in a schema definition.
  */
-export type SchemaField = { name: string, ty: Schema };
-
-/**
- * Generated binding.
- * An enum schema definition.
- */
-export type EnumValue = { variants: Array<EnumVariant>, tag_name: string, content_subfield: string | null };
+export type SchemaField = { name: string, ty: Schema, docs: string | null };
 

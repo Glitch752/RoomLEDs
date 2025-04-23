@@ -12,12 +12,14 @@ let {
     schema,
     value = $bindable(),
     name = "",
+    description = null,
     onchange,
     noShell = false
 }: {
     schema: Schema,
     value: T,
     name?: string,
+    description?: string | null,
     onchange?: () => void,
     noShell?: boolean
 } = $props();
@@ -45,8 +47,12 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 </script>
 
 {#if !noShell && name !== ""}
-<span class="entryName">{snakeCaseToReadable(name)}</span>
+    <span class="entryName">{snakeCaseToReadable(name)}</span>
 {/if}
+{#if description}
+    <span class="description">{description}</span>
+{/if}
+
 <div class:shell={!noShell}>
     {#if schema.type == "Boolean"}
         <input type="checkbox" bind:checked={value as boolean} {onchange} />
@@ -61,7 +67,7 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
     {:else if schema.type == "Struct"}
         <div>
             {#each schema.content as field}
-                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} {onchange} />
+                <SchemaEditor schema={field.ty} bind:value={(value as Record<string, unknown>)[field.name]} name={field.name} description={field.docs} {onchange} />
             {/each}
         </div>
     {:else if schema.type == "Optional"}
@@ -111,6 +117,12 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 
     .entryName {
         display: inline;
+    }
+    .description {
+        display: inline;
+        font-size: 0.9rem;
+        margin-left: 1rem;
+        color: var(--subtext1);
     }
 
     input, button {

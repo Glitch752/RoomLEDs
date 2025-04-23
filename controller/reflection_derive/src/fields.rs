@@ -1,5 +1,5 @@
 use darling::FromMeta;
-use syn::{Field, LitStr, Path, Token};
+use syn::{Attribute, Expr, Field, Lit, LitStr, Meta, Path, Token};
 
 use crate::Error;
 
@@ -9,7 +9,7 @@ pub struct StructFieldAttr {
     pub as_type: Option<Path>,
     pub rename: Option<String>,
     pub skip: bool,
-    pub docs: String
+    pub docs: Option<String>
 }
 
 #[derive(Default, Debug, FromMeta)]
@@ -22,8 +22,15 @@ impl StructFieldAttr {
     pub fn from_field(field: &Field) -> Result<Self, Error> {
         let mut attr = Self::default();
         for a in field.attrs.iter() {
-            if a.path().is_ident("docs") {
-                attr.docs = a.parse_args::<syn::LitStr>().map_err(Error::from)?.value();
+            if a.path().is_ident("doc") {
+                let Meta::NameValue(meta) = &a.meta else { continue; };
+                let Expr::Lit(value) = &meta.value else { continue; };
+                let Lit::Str(doc) = &value.lit else { continue; };
+            
+                if attr.docs.is_none() {
+                    attr.docs = Some(String::new());
+                }
+                attr.docs.as_mut().unwrap().push_str(&doc.value().trim());
             } else if a.path().is_ident("reflect") {
                 let reflect_attr = ReflectAttr::from_meta(&a.meta)?;
                 attr.as_type = reflect_attr.as_type;

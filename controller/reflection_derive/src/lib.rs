@@ -197,8 +197,16 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
             None => field_name
         };
 
+        let jsdoc_comment = match &attr.docs {
+            Some(comment) => format!("\n/**\n{}\n */\n", comment.lines()
+                .map(|line| format!(" * {}", line))
+                .collect::<Vec<_>>().join("\n")
+            ),
+            None => String::new()
+        };
+
         quote! {
-            format!("{}: {}", stringify!(#field_name), #ts_definition)
+            format!("{}{}: {}", #jsdoc_comment, stringify!(#field_name), #ts_definition)
         }
     }).collect::<Vec<_>>();
 
@@ -220,10 +228,20 @@ fn struct_definition(s: &syn::ItemStruct, options: ReflectDeriveOptions) -> Resu
             }
         };
 
+        let docs = match &attr.docs {
+            Some(v) => {
+                quote!(Some(#v.to_string()))
+            },
+            None => {
+                quote!(None)
+            }
+        };
+
         quote! {
             reflection::schema::SchemaField {
                 name: stringify!(#field_name).to_string(),
-                ty: #schema_reference
+                ty: #schema_reference,
+                docs: #docs
             }
         }
     }).collect::<Vec<_>>();

@@ -8,6 +8,7 @@ use super::{AnyEffect, Effect};
 /// An alpha compositor composites other effects together using alpha blending.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct AlphaCompositorEffect {
+    /// The effects to be composited together. The output of every effect will be composited based on their order and transparency.
     effects: Vec<Box<AnyEffect>>
 }
 

@@ -16,7 +16,7 @@ static PACKET_FROP_FRAMES: usize = 500;
 #[derive(Reflect, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MusicVisualizerEffect {
-    /// The UDP listener that listens for audio data from the music visualizer client
+    /// The UDP listener that listens for audio data from the music visualizer client.
     #[serde(rename = "port", deserialize_with = "deserialize_udp_socket", serialize_with = "serialize_udp_socket")]
     #[reflect(as_type = "u16")]
     listener: UdpSocket,

@@ -9,8 +9,11 @@ use super::{AnyEffect, Effect};
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct SolidColorEffect {
+    /// The color of the effect.
     color: PixelColor,
+    /// The start pixel index of the effect.
     start: u32,
+    /// The stop pixel index of the effect.
     stop: u32,
 }
 

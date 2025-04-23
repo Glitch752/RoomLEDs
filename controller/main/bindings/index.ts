@@ -7,7 +7,11 @@
  * Generated binding.
  * An additive compositor composites other effects together using additive blending.
  */
-export type AdditiveCompositorEffect = { effects: Array<AnyEffect> };
+export type AdditiveCompositorEffect = { 
+/**
+ * The effects to be composited together. The output of every effect will be added together.
+ */
+effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
@@ -21,13 +25,29 @@ export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEff
  * Generated binding.
  * An alpha compositor composites other effects together using alpha blending.
  */
-export type AlphaCompositorEffect = { effects: Array<AnyEffect> };
+export type AlphaCompositorEffect = { 
+/**
+ * The effects to be composited together. The output of every effect will be composited based on their order and transparency.
+ */
+effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
  * The stripes effect renders a rotating pattern with stripes of color.
  */
-export type StripeEffect = { stripe_width: number, stripe_colors: Array<PixelColor>, speed: number };
+export type StripeEffect = { 
+/**
+ * The width of each stripe in pixels.
+ */
+stripe_width: number, 
+/**
+ * The colors of the stripes.
+ */
+stripe_colors: Array<PixelColor>, 
+/**
+ * The speed of the rotation in pixels per second.
+ */
+speed: number };
 
 /**
  * Generated binding.
@@ -41,22 +61,62 @@ export type PixelColor = { r: number, g: number, b: number, alpha: number };
  * audio data from the music visualizer client. Then, it renders the audio
  * data as a visualizer.
  */
-export type MusicVisualizerEffect = { port: number };
+export type MusicVisualizerEffect = { 
+/**
+ * The UDP listener that listens for audio data from the music visualizer client.
+ */
+port: number };
 
 /**
  * Generated binding.
  */
-export type RotateEffect = { effect: AnyEffect, rotation: number };
+export type RotateEffect = { 
+/**
+ * The effect to rotate
+ */
+effect: AnyEffect, 
+/**
+ * The number of pixels to rotate the frame by
+ */
+rotation: number };
 
 /**
  * Generated binding.
  */
-export type FlashingColorEffect = { offset: number, speed: number, color_a: PixelColor, color_b: PixelColor };
+export type FlashingColorEffect = { 
+/**
+ * The offset of the flashing effect, in seconds.
+ */
+offset: number, 
+/**
+ * The speed of the flashing effect, in Hz.
+ */
+speed: number, 
+/**
+ * The color of the first flashing color.
+ */
+color_a: PixelColor, 
+/**
+ * The color of the second flashing color.
+ */
+color_b: PixelColor };
 
 /**
  * Generated binding.
  */
-export type SolidColorEffect = { color: PixelColor, start: number, stop: number };
+export type SolidColorEffect = { 
+/**
+ * The color of the effect.
+ */
+color: PixelColor, 
+/**
+ * The start pixel index of the effect.
+ */
+start: number, 
+/**
+ * The stop pixel index of the effect.
+ */
+stop: number };
 
 /**
  * Generated binding.

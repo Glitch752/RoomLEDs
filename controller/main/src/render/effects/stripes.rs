@@ -10,8 +10,11 @@ use super::{AnyEffect, Effect};
 /// The stripes effect renders a rotating pattern with stripes of color.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct StripeEffect {
+    /// The width of each stripe in pixels.
     stripe_width: f64,
+    /// The colors of the stripes.
     stripe_colors: Vec<PixelColor>,
+    /// The speed of the rotation in pixels per second.
     speed: f64,
 }
 

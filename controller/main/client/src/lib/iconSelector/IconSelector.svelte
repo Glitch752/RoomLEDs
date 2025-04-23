@@ -4,7 +4,6 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
 -->
 
 <script module>
-  import { slide } from "svelte/transition";
     // Parse the Font Awesome icon metadata into a simple list
     import metadata from "./icons.json";
     
@@ -23,6 +22,8 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
 </script>
 
 <script lang="ts">
+    import { slide } from "svelte/transition";
+    
     let {
         value = $bindable(),
         placeholder = "Select an icon",

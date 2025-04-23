@@ -10,6 +10,7 @@ use super::{Effect, AnyEffect};
 /// An additive compositor composites other effects together using additive blending.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct AdditiveCompositorEffect {
+    /// The effects to be composited together. The output of every effect will be added together.
     effects: Vec<Box<AnyEffect>>
 }
 

@@ -28,7 +28,8 @@ pub enum Schema {
 #[derive(Reflect, Serialize, Deserialize)]
 pub struct SchemaField {
     pub name: String,
-    pub ty: Schema
+    pub ty: Schema,
+    pub docs: Option<String>
 }
 
 /// An enum schema definition.
