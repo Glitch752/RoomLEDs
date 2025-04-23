@@ -26,8 +26,7 @@ function draw() {
     if(!ctx) return;
     if(!lightPositions) return;
     
-    ctx.fillStyle = "#1f1f1f";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     const { positions, xMax, xMin, yMax, yMin } = lightPositions;
 
@@ -215,6 +214,6 @@ canvas {
     width: 100%;
     height: 100%;
 
-    background-color: #f0f0f0;
+    background-color: var(--surface0);
 }
 </style>

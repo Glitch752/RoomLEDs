@@ -15,6 +15,12 @@
 	],
 	"settings": {
 		"editor.indentSize": 4,
-		"rust-analyzer.cargo.targetDir": true
+		"rust-analyzer.cargo.targetDir": true,
+		"github.copilot.enable": {
+			"*": true,
+			"plaintext": true,
+			"markdown": true,
+			"scminput": false
+		}
 	}
 }

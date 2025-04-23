@@ -30,9 +30,6 @@
         padding: 1rem 3rem 3rem 3rem;
         overflow-y: auto;
     }
-    .status {
-        text-align: left;
-    }
     
     button {
         background: none;

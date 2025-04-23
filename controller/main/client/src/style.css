@@ -9,11 +9,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-body.dark {
+[data-theme="dark"] body {
   --pink: #d989b5;
   --mauve: #a885d8;
   --red: #e64553;
@@ -38,7 +44,7 @@ body.dark {
   --surface1: #3c3c41;
   --surface2: #4b4b51;
 }
-body.light {
+[data-theme="light"] body {
   --pink: #f5c2e7;
   --mauve: #cba6f7;
   --red: #f38ba8;
@@ -85,13 +91,11 @@ h1 {
   color: var(--text);
   margin: 0;
   padding: 1em;
-  text-align: center;
 }
 p {
   color: var(--text);
   margin: 0;
   padding: 1em;
-  text-align: center;
 }
 
 ::-webkit-scrollbar {
