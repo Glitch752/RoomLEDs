@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use crate::render::frame::PresentedFrame;
 
-mod power_device;
+pub mod power_device;
 pub mod esphome_plug;
 
 /**
@@ -58,6 +58,10 @@ impl IdleTracker {
 
     fn get_idle(&self, lights: &PresentedFrame) -> bool {
         return lights.pixel_data.iter().all(|v| *v == 0);
+    }
+
+    pub fn is_idle(&self) -> bool {
+        self.idle.unwrap_or(false)
     }
 
     pub fn update(&mut self, lights: &PresentedFrame) {

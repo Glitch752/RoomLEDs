@@ -7,6 +7,55 @@ export let schemas: { [key: string]: Schema } = { /* Items set later in this fil
 /**
  * Generated schema.
  * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export const AnyTemporaryEffectSchema: Schema = {
+  "type": "Enum",
+  "content": {
+    "variants": [
+      {
+        "name": "TemporaryEffectWrapper",
+        "value": {
+          "type": "Reference",
+          "content": "DurationTemporaryEffect"
+        }
+      }
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
+};
+schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const DurationTemporaryEffectSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "duration",
+      "ty": {
+        "type": "Number"
+      },
+      "docs": null
+    },
+    {
+      "name": "effect",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyEffect"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ * Tagged with "type".
  * A wrapper for any effect that can be rendered.
  * Used for serialization and deserialization.
  */
@@ -98,55 +147,6 @@ export const AdditiveCompositorEffectSchema: Schema = {
   ]
 };
 schemas["AdditiveCompositorEffect"] = AdditiveCompositorEffectSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export const AnyTemporaryEffectSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "TemporaryEffectWrapper",
-        "value": {
-          "type": "Reference",
-          "content": "DurationTemporaryEffect"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const DurationTemporaryEffectSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "duration",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": null
-    },
-    {
-      "name": "effect",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyEffect"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
 
 /**
  * Generated schema.
@@ -284,7 +284,7 @@ export const RotateEffectSchema: Schema = {
       "ty": {
         "type": "Number"
       },
-      "docs": "The number of pixels to rotate the frame by"
+      "docs": "The number of pixels to rotate the frame by. If negative, it rotates to the left."
     }
   ]
 };
@@ -342,21 +342,21 @@ export const SolidColorEffectSchema: Schema = {
         "type": "Reference",
         "content": "PixelColor"
       },
-      "docs": "The color of the effect."
+      "docs": "The color to make every pixel."
     },
     {
       "name": "start",
       "ty": {
         "type": "Number"
       },
-      "docs": "The start pixel index of the effect."
+      "docs": "The start pixel index."
     },
     {
       "name": "stop",
       "ty": {
         "type": "Number"
       },
-      "docs": "The stop pixel index of the effect."
+      "docs": "The stop pixel index."
     }
   ]
 };

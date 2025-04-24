@@ -23,6 +23,7 @@ let currentData: StatusUpdateMessage = {
     average_frame_time: 0,
     max_frame_time: 0,
     min_frame_time: 0,
+    idle: false,
     debug_text: ""
 };
 let currentSystemData: SystemStatusUpdateMessage = {
@@ -96,11 +97,13 @@ Average frame time: ${Math.round(data.average_frame_time * 1000 * 10) / 10}ms ($
 Max frame time: ${Math.round(data.max_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.max_frame_time)}fps)<br>
 Min frame time: ${Math.round(data.min_frame_time * 1000 * 10) / 10}ms (${Math.round(1 / data.min_frame_time)}fps)<br>
 <br>
-Debug text: ${data.debug_text}<br>
+<b>Power:</b><br>
+Idle: ${data.idle ? "Yes" : "No"}<br>
 <br>
 <b>System:</b><br>
 Global CPU: ${Math.round(currentSystemData.global_cpu * 10) / 10}%<br>
 Free memory: ${Math.round(currentSystemData.available_memory / 1024 / 1024)}MB / ${Math.round(currentSystemData.total_memory / 1024 / 1024)}MB (${Math.round(currentSystemData.available_memory / currentSystemData.total_memory * 100)}%)<br>
-Used swap: ${Math.round(currentSystemData.used_swap / 1024 / 1024 * 10) / 10}MB
+Used swap: ${Math.round(currentSystemData.used_swap / 1024 / 1024 * 10) / 10}MB<br>
+${data.debug_text.length > 0 ? `<br>Debug text: ${data.debug_text}<br>` : ""}
 `);
 }

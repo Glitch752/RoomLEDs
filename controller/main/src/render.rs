@@ -41,6 +41,7 @@ pub struct RenderInfo {
     
     pub current_presented_frame: Option<PresentedFrame>,
     pub debug_text: String,
+    pub idle: bool,
     pub pixel_locations: [Location; TOTAL_PIXELS as usize],
     pub websocket_input: Option<Vec<u8>>
 }
@@ -53,6 +54,7 @@ impl RenderInfo {
             frames: 0,
             current_presented_frame: None,
             debug_text: "".to_string(),
+            idle: false,
             pixel_locations,
             websocket_input: None
         }
@@ -115,13 +117,17 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
     ];
 
     let mut idle_tracker = idle_tracker::IdleTracker::new(
-        Duration::from_secs(5 * 60),
+        Duration::from_secs(30),
         Duration::from_secs(0),
-        Box::new(idle_tracker::esphome_plug::ESPHomePlug::new(
-            "192.168.68.131".to_string(),
-            "kauf_plug".to_string(),
-            "kauf_plug_power".to_string(),
-        ))
+        if cfg!(feature="localtest") {
+            Box::new(idle_tracker::power_device::LoggingPowerDevice::new())
+        } else {
+            Box::new(idle_tracker::esphome_plug::ESPHomePlug::new(
+                "192.168.68.107".to_string(),
+                "kauf_plug".to_string(),
+                "kauf_plug_power".to_string(),
+            ))
+        }
     );
 
     loop {
@@ -131,10 +137,10 @@ fn run_render_thread(render_state: Arc<Mutex<RenderState>>, mut producer: Render
             last_frame_time = start_time;
     
             if let Some(frame) = render_frame(delta, &render_state, &filters) {
-                // TEMPORARY/HACK: If the hostname isn't "lighting", don't update the idle tracker
-                if std::env::var("HOSTNAME").unwrap_or("".to_string()) == "lighting" {
-                    idle_tracker.update(&frame);
-                }
+                idle_tracker.update(&frame);
+                render_state.try_lock_for(Duration::from_millis(1)).map(|mut state| {
+                    state.info.idle = idle_tracker.is_idle();
+                });
 
                 // It's possible that we continue looping but the ring buffer is full in
                 // some edge cases. In that case, we just drop the frame.

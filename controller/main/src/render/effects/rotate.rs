@@ -9,7 +9,7 @@ use super::{AnyEffect, Effect};
 pub struct RotateEffect {
     /// The effect to rotate
     effect: Box<AnyEffect>,
-    /// The number of pixels to rotate the frame by
+    /// The number of pixels to rotate the frame by. If negative, it rotates to the left.
     rotation: i32
 }
 

@@ -81,7 +81,6 @@ nav {
   
   button {
     border: none;
-    outline: none;
     font-size: 1.25rem;
     padding: 0.5rem 1rem;
     text-decoration: none;

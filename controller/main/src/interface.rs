@@ -148,7 +148,8 @@ async fn send_frequent_state_update(sender: &mut WebsocketSender, state: Arc<Lig
             average_frame_time: frame_times.clone().sum::<f64>() / frames_to_average as f64,
             max_frame_time: frame_times.clone().fold(0.0, f64::max),
             min_frame_time: frame_times.clone().fold(f64::INFINITY, f64::min),
-            debug_text: render_info.debug_text.clone()
+            debug_text: render_info.debug_text.clone(),
+            idle: render_info.idle
         });
 
         (message, render_info.current_presented_frame.as_ref().unwrap().pixel_data)

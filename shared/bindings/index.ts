@@ -14,7 +14,35 @@ export type MusicVisualizerMessage = { "type": "UpdateSpectrum" } & Array<number
 
 export type ServerToClientMessage = { "type": "StatusUpdate" } & StatusUpdateMessage | { "type": "SystemStatusUpdate" } & SystemStatusUpdateMessage | { "type": "Initialize" } & InitializeMessage;
 
-export type StatusUpdateMessage = { frames: number, average_window: number, average_frame_time: number, max_frame_time: number, min_frame_time: number, debug_text: string, };
+export type StatusUpdateMessage = { 
+/**
+ * The total number of frames rendered
+ */
+frames: number, 
+/**
+ * The number of frames currently used for frmae time statistics
+ */
+average_window: number, 
+/**
+ * The average time it took to render a frame in milliseconds
+ */
+average_frame_time: number, 
+/**
+ * The maximum time it took to render a frame in milliseconds
+ */
+max_frame_time: number, 
+/**
+ * The minimum time it took to render a frame in milliseconds
+ */
+min_frame_time: number, 
+/**
+ * Misellaneous debug text that can be used for anything
+ */
+debug_text: string, 
+/**
+ * If the lights are currently idle
+ */
+idle: boolean, };
 
 export type SystemStatusUpdateMessage = { global_cpu: number, available_memory: number, total_memory: number, used_swap: number, };
 

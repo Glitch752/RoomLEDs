@@ -76,7 +76,7 @@ export type RotateEffect = {
  */
 effect: AnyEffect, 
 /**
- * The number of pixels to rotate the frame by
+ * The number of pixels to rotate the frame by. If negative, it rotates to the left.
  */
 rotation: number };
 
@@ -106,15 +106,15 @@ color_b: PixelColor };
  */
 export type SolidColorEffect = { 
 /**
- * The color of the effect.
+ * The color to make every pixel.
  */
 color: PixelColor, 
 /**
- * The start pixel index of the effect.
+ * The start pixel index.
  */
 start: number, 
 /**
- * The stop pixel index of the effect.
+ * The stop pixel index.
  */
 stop: number };
 

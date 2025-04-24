@@ -143,6 +143,9 @@ EOF
     sudo_pass systemctl restart lights-controller
   fi
 else
+  # If the service is running, stop it
+  sudo_pass systemctl stop lights-controller
+
   # Source the Cargo environment
   source $HOME/.cargo/env
 

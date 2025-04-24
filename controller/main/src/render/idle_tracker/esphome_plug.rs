@@ -31,7 +31,7 @@ impl PowerDevice for ESPHomePlug {
         })
     }
 
-    fn set_power(&self, power: bool) {
+    fn set_power(&mut self, power: bool) {
         // TODO: Use async here
 
         println!("Setting power to: {}", power);

@@ -37,6 +37,8 @@ fn run_output_thread(render_thread: Thread, mut render_consumer: RenderRingBufCo
             None => {
                 // If we don't have a frame, we don't update the output
                 eprintln!("Output: no frame available from render thread. This caused a dropped frame.");
+                // Sleep to avoid infinite looping
+                std::thread::sleep(Duration::from_secs(1) / 20);
             }
         }
 

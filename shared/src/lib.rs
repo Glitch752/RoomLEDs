@@ -58,12 +58,21 @@ pub struct InitializeMessage {
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export, export_to = "index.ts")]
 pub struct StatusUpdateMessage {
+    /// The total number of frames rendered
     pub frames: u32,
+    /// The number of frames currently used for frmae time statistics
     pub average_window: u32,
+    /// The average time it took to render a frame in milliseconds
     pub average_frame_time: f64,
+    /// The maximum time it took to render a frame in milliseconds
     pub max_frame_time: f64,
+    /// The minimum time it took to render a frame in milliseconds
     pub min_frame_time: f64,
+    /// Misellaneous debug text that can be used for anything
     pub debug_text: String,
+    
+    /// If the lights are currently idle
+    pub idle: bool
 }
 
 #[derive(TS, Serialize, Deserialize)]
