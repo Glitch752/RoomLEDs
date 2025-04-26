@@ -3,27 +3,10 @@
 A component that allows the user to select a Font Awesome icon from a dropdown list, including search functionality.
 -->
 
-<script module>
-    // Parse the Font Awesome icon metadata into a simple list
-    import metadata from "./icons.json";
-    
-    // TODO: Cache this or compute it on the server? This is a lot of JSON to parse.
-    const icons = Object.entries(metadata)
-        .filter(([_, value]) => value.styles[0] === "solid")
-        .map(([key, value]) => {
-            const unicodeString = String.fromCodePoint(parseInt(value.unicode, 16));
-            return {
-                name: key,
-                prefix: value.styles[0],
-                unicode: unicodeString,
-                class: `fas fa-${key}`
-            };
-        });
-</script>
-
 <script lang="ts">
     import { slide } from "svelte/transition";
-    
+    import { icons } from "./iconData.compile";
+
     let {
         value = $bindable(),
         placeholder = "Select an icon",
@@ -45,7 +28,15 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
     const filteredIcons = $derived.by(() => {
         if (!search) return icons;
         const searchLower = search.toLowerCase();
-        return icons.filter(icon => icon.class.toLowerCase().includes(searchLower));
+        
+        // If the icon name or any of its search terms contain the name
+        return icons.filter(icon => {
+            const iconName = icon.name.toLowerCase();
+            return (
+                iconName.includes(searchLower) ||
+                icon.searchTerms.some(term => term.includes(searchLower))
+            );
+        });
     });
     
     function selectIcon(icon: string) {
@@ -58,16 +49,9 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
         if(!dropdownOpen || target.closest(".iconSelector")) return;
         dropdownOpen = false;
     }
-
-    // Add event listener for clicks outside the dropdown
-    $effect(() => {
-        document.addEventListener("click", handleClickOutside);
-        return () => {
-            document.removeEventListener("click", handleClickOutside);
-        };
-    });
 </script>
 
+<svelte:window onclick={handleClickOutside} />
 <div class="iconSelector">
     <button class="selector" onclick={() => dropdownOpen = !dropdownOpen} aria-label={ariaLabel}>
         <i class={`icon ${value}`}></i>
@@ -163,9 +147,9 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
     .icons {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 0rem;
         line-height: 1;
-        padding: 0 1rem 1rem 1rem;
+        padding: 0 0.5rem 1rem 0.5rem;
         overflow-y: auto;
     }
 

@@ -1,5 +1,6 @@
 import type { UserConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import compileTime from "vite-plugin-compile-time";
 
 // TODO: Fix types?
 // @ts-expect-error I'm not sure how to set up these types properly
@@ -33,5 +34,5 @@ export default {
       "@bindings": path.resolve(__dirname, "../bindings/")
     }
   },
-  plugins: [svelte()],
+  plugins: [svelte(), compileTime()],
 } satisfies UserConfig;

@@ -17,7 +17,8 @@
     "svelte": "^5.28.2",
     "svelte-check": "^4.1.6",
     "typescript": "~5.6.3",
-    "vite": "^6.3.3"
+    "vite": "^6.3.3",
+    "vite-plugin-compile-time": "^0.4.6"
   },
   "dependencies": {
     "svelte-awesome-color-picker": "^4.0.1"
