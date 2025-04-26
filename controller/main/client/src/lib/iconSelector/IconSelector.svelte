@@ -4,8 +4,10 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
 -->
 
 <script lang="ts">
+  import { onMount } from "svelte";
     import { slide } from "svelte/transition";
-    import { icons } from "./iconData.compile";
+    // We use a dynamic import to avoid including the icon data in the initial bundle
+    const iconsPromise = import("./iconData.compile").then(data => data.icons);
 
     let {
         value = $bindable(),
@@ -19,6 +21,8 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
 
     let search = $state("");
     let dropdownOpen = $state(false);
+    let icons: Awaited<typeof iconsPromise> = $state([]);
+    
     let iconData = $derived.by(() => {
         const parts = value.split(" ");
         const name = parts[parts.length - 1].replace("fa-", "");
@@ -26,7 +30,7 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
     });
 
     const filteredIcons = $derived.by(() => {
-        if (!search) return icons;
+        if(!search) return icons;
         const searchLower = search.toLowerCase();
         
         // If the icon name or any of its search terms contain the name
@@ -49,6 +53,15 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
         if(!dropdownOpen || target.closest(".iconSelector")) return;
         dropdownOpen = false;
     }
+
+    // Load the icons data when the component is mounted
+    onMount(async () => {
+        try {
+            icons = await iconsPromise;
+        } catch (error) {
+            console.error("Failed to load icons data:", error);
+        }
+    });
 </script>
 
 <svelte:window onclick={handleClickOutside} />
