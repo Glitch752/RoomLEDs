@@ -1,6 +1,5 @@
 // Parse the Font Awesome icon metadata into a simple list
-    
-// TODO: Use the search terms to filter the icons
+
 import metadata from "./icons.json";
 
 // For some reason, 
