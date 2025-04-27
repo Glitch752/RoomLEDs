@@ -2,15 +2,30 @@
     import type { AnyEffect } from "@bindings/index";
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
-    import { createEffectPreset, getEffectPresets } from "../api/presets";
-  import IconSelector from "./iconSelector/IconSelector.svelte";
+    import { createEffectPreset, getEffectPresets, runArbitraryEffect } from "../api/presets";
+    import IconSelector from "./iconSelector/IconSelector.svelte";
+    import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
+    
+    const id = $props.id();
+    
+    let previewing = $derived(id === previewedComponent);
+    function togglePreview() {
+        if(previewing) {
+            setPreviewedComponent(null);
+            previewing = false;
+            runArbitraryEffect(null);
+        } else {
+            setPreviewedComponent(id);
+            previewing = true;
+            runArbitraryEffect(effect);
+        }
+    }
 
     let { onclose }: { onclose: () => void } = $props();
 
     let name = $state("New effect");
     let icon = $state("fas fa-circle");
 
-    const effectTypes: string[] = [];
     let effect: AnyEffect = $state({
         type: "SolidColor",
         color: {
@@ -35,7 +50,17 @@
 
     <h3>Effect</h3>
     <SchemaEditor bind:value={effect} schema={schemas["AnyEffect"]} />
+
     <div class="actions">
+        <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>
+            {#if previewing}    
+                <i class="fas fa-eye-slash"></i>
+                Disable preview
+            {:else}
+                <i class="fas fa-eye"></i>
+                Enable preview
+            {/if}
+        </button>
         <button class="gray" onclick={onclose}>Cancel</button>
         <button class="green" onclick={() => {
             createEffectPreset(name, icon, effect);

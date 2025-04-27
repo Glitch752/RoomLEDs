@@ -125,7 +125,7 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
         color: var(--subtext1);
     }
 
-    input, button {
+    button {
         background-color: var(--background);
         color: var(--text);
         border: none;

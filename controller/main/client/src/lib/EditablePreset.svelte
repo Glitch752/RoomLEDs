@@ -1,8 +1,3 @@
-<script module>
-    // Pretty hacky solution, but it works
-    let previewedComponent = $state<string | null>(null);
-</script>
-
 <script lang="ts">
     import type { EffectPreset } from "@shared-bindings/index";
     import { fade, slide } from "svelte/transition";
@@ -11,6 +6,8 @@
     import type { AnyEffect } from "@bindings/index";
     import { createEffectPreset, deleteEffectPreset, getPresetData, runArbitraryEffect } from "../api/presets";
     import { debounce } from "../util/debouncer";
+    import IconSelector from "./iconSelector/IconSelector.svelte";
+    import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
 
     let { preset }: { preset: EffectPreset } = $props();
 
@@ -20,7 +17,6 @@
     let presetData: AnyEffect | null = $state(null);
 
     let editing = $state(false);
-    // TODO: Preview
     let previewing = $derived(id === previewedComponent);
     let unsavedChanges = $state(false);
 
@@ -28,11 +24,11 @@
         if(!presetData) return;
 
         if(previewing) {
-            previewedComponent = null;
+            setPreviewedComponent(null);
             previewing = false;
             runArbitraryEffect(null);
         } else {
-            previewedComponent = id;
+            setPreviewedComponent(id);
             previewing = true;
             runArbitraryEffect(presetData);
         }
@@ -116,6 +112,8 @@
                 </button>
                 <button class="red" onclick={deleteEffect}><i class="fas fa-trash-can"></i>Delete</button>
             </div>
+            
+            <IconSelector bind:value={preset.icon} placeholder="Icon" ariaLabel="Icon" />
 
             {#if presetData != null}
                 <SchemaEditor bind:value={presetData} schema={schemas["AnyEffect"]} 
