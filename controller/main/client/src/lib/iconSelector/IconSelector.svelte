@@ -4,7 +4,7 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
 -->
 
 <script lang="ts">
-  import { onMount } from "svelte";
+    import { onMount } from "svelte";
     import { slide } from "svelte/transition";
     // We use a dynamic import to avoid including the icon data in the initial bundle
     const iconsPromise = import("./iconData.compile").then(data => data.icons);

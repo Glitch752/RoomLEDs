@@ -1,6 +1,8 @@
-import { writable } from "svelte/store";
-
-export let previewedComponent = $state<string | null>(null);
+export let previewedComponent = $state<{
+    id: string | null
+}>({
+    id: null
+});
 export function setPreviewedComponent(component: string | null) {
-    previewedComponent = component;
+    previewedComponent.id = component;
 }

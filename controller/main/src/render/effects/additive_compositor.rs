@@ -33,7 +33,10 @@ impl Effect for AdditiveCompositorEffect {
 
             for i in 0..TOTAL_PIXELS {
                 let pixel = rendered_frame.get_pixel(i);
-                let final_pixel = final_frame.get_pixel_mut(i);
+                let final_pixel = match final_frame.get_pixel_mut(i) {
+                    Some(pixel) => pixel,
+                    None => { continue; }
+                };
 
                 final_pixel.r = final_pixel.r.saturating_add(pixel.r);
                 final_pixel.g = final_pixel.g.saturating_add(pixel.g);

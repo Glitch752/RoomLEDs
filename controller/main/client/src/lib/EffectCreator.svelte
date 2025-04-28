@@ -2,13 +2,15 @@
     import type { AnyEffect } from "@bindings/index";
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
-    import { createEffectPreset, getEffectPresets, runArbitraryEffect } from "../api/presets";
+    import { createEffectPreset, runArbitraryEffect } from "../api/presets";
     import IconSelector from "./iconSelector/IconSelector.svelte";
     import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
+    import { debounce } from "../util/debouncer";
     
     const id = $props.id();
+    let debounceEffectUpdate = debounce(0.25);
     
-    let previewing = $derived(id === previewedComponent);
+    let previewing = $derived(id === previewedComponent.id);
     function togglePreview() {
         if(previewing) {
             setPreviewedComponent(null);
@@ -18,6 +20,12 @@
             setPreviewedComponent(id);
             previewing = true;
             runArbitraryEffect(effect);
+        }
+    }
+
+    function onchange() {
+        if(previewing) {
+            debounceEffectUpdate(() => runArbitraryEffect(effect));
         }
     }
 
@@ -49,7 +57,7 @@
     <IconSelector bind:value={icon} placeholder="Icon" ariaLabel="Icon" />
 
     <h3>Effect</h3>
-    <SchemaEditor bind:value={effect} schema={schemas["AnyEffect"]} />
+    <SchemaEditor {onchange} bind:value={effect} schema={schemas["AnyEffect"]} />
 
     <div class="actions">
         <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>

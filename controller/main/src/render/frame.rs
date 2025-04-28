@@ -95,11 +95,11 @@ impl Frame {
     }
 
     pub fn get_pixel(&self, index: u32) -> PixelColor {
-        self.pixel_data[index as usize].clone()
+        self.pixel_data.get(index as usize).cloned().unwrap_or(PixelColor::BLACK)
     }
 
-    pub fn get_pixel_mut(&mut self, index: u32) -> &mut PixelColor {
-        &mut self.pixel_data[index as usize]
+    pub fn get_pixel_mut(&mut self, index: u32) -> Option<&mut PixelColor> {
+        self.pixel_data.get_mut(index as usize)
     }
 }
 

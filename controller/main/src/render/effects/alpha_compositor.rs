@@ -29,7 +29,10 @@ impl AlphaCompositorEffect {
 
             for i in 0..TOTAL_PIXELS {
                 let pixel = rendered_frame.get_pixel(i);
-                let final_pixel = final_frame.get_pixel_mut(i);
+                let final_pixel = match final_frame.get_pixel_mut(i) {
+                    Some(pixel) => pixel,
+                    None => { continue; }
+                };
 
                 let alpha = pixel.alpha;
                 let inv_alpha = 1.0 - alpha;

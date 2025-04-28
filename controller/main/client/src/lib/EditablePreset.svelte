@@ -9,15 +9,31 @@
     import IconSelector from "./iconSelector/IconSelector.svelte";
     import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
 
-    let { preset }: { preset: EffectPreset } = $props();
+    let { name: defaultName, icon: defaultIcon }: { name: string, icon: string } = $props();
 
     const id = $props.id();
     let debounceEffectUpdate = debounce(0.25);
 
     let presetData: AnyEffect | null = $state(null);
+    let name: string = $state(defaultName);
+    let icon: string = $state(defaultIcon);
+
+    // On the name or icon changing, we need to delete and recreate the effect preset
+    // TODO: We should store effects by ID instead of name, but this is a quick fix
+    let currentServerName = defaultName;
+    let currentServerIcon = defaultIcon;
+    $effect(() => {
+        if(!presetData) return;
+        if(name !== currentServerName || icon !== currentServerIcon) {
+            createEffectPreset(name, icon, presetData);
+            deleteEffectPreset(currentServerName);
+            currentServerName = name;
+            currentServerIcon = icon;
+        }
+    });
 
     let editing = $state(false);
-    let previewing = $derived(id === previewedComponent);
+    let previewing = $derived(id === previewedComponent.id);
     let unsavedChanges = $state(false);
 
     function togglePreview() {
@@ -39,7 +55,7 @@
         if(!editing && !unsavedChanges) {
             previousPresetData = false;
             unsavedChanges = false;
-            presetData = await getPresetData(preset.name);
+            presetData = await getPresetData(name);
         }
         editing = !editing;
     }
@@ -60,7 +76,7 @@
     function save() {
         if(presetData == null) return;
         
-        createEffectPreset(preset.name, preset.icon, presetData);
+        createEffectPreset(name, icon, presetData);
         unsavedChanges = false;
     }
 
@@ -69,7 +85,7 @@
 
         if(presetData) {
             runArbitraryEffect(null);
-            deleteEffectPreset(preset.name);
+            deleteEffectPreset(name);
         }
     }
 </script>
@@ -77,11 +93,11 @@
 <div class="preset">
     <button class={`top ${editing ? "editing" : ""}`} onclick={swapEditing} aria-expanded={editing} aria-label="Toggle preset editing">
         <span class="name">
-            <i class={preset.icon}></i>
+            <i class={icon}></i>
             {#if unsavedChanges}
                 <span>*</span>
             {/if}
-            {preset.name}
+            {name}
         </span>
 
         {#if previewing}
@@ -113,7 +129,7 @@
                 <button class="red" onclick={deleteEffect}><i class="fas fa-trash-can"></i>Delete</button>
             </div>
             
-            <IconSelector bind:value={preset.icon} placeholder="Icon" ariaLabel="Icon" />
+            <IconSelector bind:value={icon} placeholder="Icon" ariaLabel="Icon" />
 
             {#if presetData != null}
                 <SchemaEditor bind:value={presetData} schema={schemas["AnyEffect"]} 
