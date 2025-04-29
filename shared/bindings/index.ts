@@ -2,7 +2,7 @@
 
 export type ClientToServerMessage = never;
 
-export type EffectPreset = { name: string, icon: string, };
+export type EffectPreset = { id: string, name: string, icon: string, };
 
 export type EffectPresetList = { effects: Array<EffectPreset>, };
 
@@ -46,4 +46,6 @@ idle: boolean, };
 
 export type SystemStatusUpdateMessage = { global_cpu: number, available_memory: number, total_memory: number, used_swap: number, };
 
-export type TemporaryEffectList = { effects: Array<string>, };
+export type TemporaryEffect = { id: string, name: string, };
+
+export type TemporaryEffectList = { effects: Array<TemporaryEffect>, };

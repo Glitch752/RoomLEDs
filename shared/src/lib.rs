@@ -38,6 +38,7 @@ pub struct EffectPresetList {
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export, export_to = "index.ts")]
 pub struct EffectPreset {
+    pub id: String,
     pub name: String,
     pub icon: String
 }
@@ -45,7 +46,14 @@ pub struct EffectPreset {
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export, export_to = "index.ts")]
 pub struct TemporaryEffectList {
-    pub effects: Vec<String>
+    pub effects: Vec<TemporaryEffect>
+}
+
+#[derive(TS, Serialize, Deserialize)]
+#[ts(export, export_to = "index.ts")]
+pub struct TemporaryEffect {
+    pub id: String,
+    pub name: String
 }
 
 #[derive(TS, Serialize, Deserialize)]

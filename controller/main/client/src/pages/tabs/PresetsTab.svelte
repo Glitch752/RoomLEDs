@@ -8,7 +8,7 @@
   
 <div class="content">
     {#each $presets as preset}
-        <EditablePreset name={preset.name} icon={preset.icon} />
+        <EditablePreset id={preset.id} name={preset.name} icon={preset.icon} />
     {/each}
 
     {#if creatingPreset}

@@ -1,36 +1,20 @@
 <script lang="ts">
-    import type { EffectPreset } from "@shared-bindings/index";
     import { fade, slide } from "svelte/transition";
     import SchemaEditor from "./schemaEditor/SchemaEditor.svelte";
     import { schemas } from "@bindings/schemas";
     import type { AnyEffect } from "@bindings/index";
-    import { createEffectPreset, deleteEffectPreset, getPresetData, runArbitraryEffect } from "../api/presets";
+    import { deleteEffectPreset, getPresetData, runArbitraryEffect, updateEffectPreset } from "../api/presets";
     import { debounce } from "../util/debouncer";
     import IconSelector from "./iconSelector/IconSelector.svelte";
     import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
 
-    let { name: defaultName, icon: defaultIcon }: { name: string, icon: string } = $props();
+    let { id, name: defaultName, icon: defaultIcon }: { id: string, name: string, icon: string } = $props();
 
-    const id = $props.id();
     let debounceEffectUpdate = debounce(0.25);
 
     let presetData: AnyEffect | null = $state(null);
     let name: string = $state(defaultName);
     let icon: string = $state(defaultIcon);
-
-    // On the name or icon changing, we need to delete and recreate the effect preset
-    // TODO: We should store effects by ID instead of name, but this is a quick fix
-    let currentServerName = defaultName;
-    let currentServerIcon = defaultIcon;
-    $effect(() => {
-        if(!presetData) return;
-        if(name !== currentServerName || icon !== currentServerIcon) {
-            createEffectPreset(name, icon, presetData);
-            deleteEffectPreset(currentServerName);
-            currentServerName = name;
-            currentServerIcon = icon;
-        }
-    });
 
     let editing = $state(false);
     let previewing = $derived(id === previewedComponent.id);
@@ -55,7 +39,7 @@
         if(!editing && !unsavedChanges) {
             previousPresetData = false;
             unsavedChanges = false;
-            presetData = await getPresetData(name);
+            presetData = await getPresetData(id);
         }
         editing = !editing;
     }
@@ -69,14 +53,15 @@
         }
     }
 
+    // If the name or icon changes, we have unsaved changes
     $effect(() => {
-        if(presetData) onchange();
+        if(presetData && icon && name) onchange();
     });
 
     function save() {
         if(presetData == null) return;
         
-        createEffectPreset(name, icon, presetData);
+        updateEffectPreset(id, name, icon, presetData);
         unsavedChanges = false;
     }
 

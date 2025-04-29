@@ -7,55 +7,6 @@ export let schemas: { [key: string]: Schema } = { /* Items set later in this fil
 /**
  * Generated schema.
  * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export const AnyTemporaryEffectSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "TemporaryEffectWrapper",
-        "value": {
-          "type": "Reference",
-          "content": "DurationTemporaryEffect"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const DurationTemporaryEffectSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "duration",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": null
-    },
-    {
-      "name": "effect",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyEffect"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
  * A wrapper for any effect that can be rendered.
  * Used for serialization and deserialization.
  */
@@ -370,4 +321,53 @@ export const WebsocketInputEffectSchema: Schema = {
   "content": []
 };
 schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
+
+/**
+ * Generated schema.
+ * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export const AnyTemporaryEffectSchema: Schema = {
+  "type": "Enum",
+  "content": {
+    "variants": [
+      {
+        "name": "TemporaryEffectWrapper",
+        "value": {
+          "type": "Reference",
+          "content": "DurationTemporaryEffect"
+        }
+      }
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
+};
+schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const DurationTemporaryEffectSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "duration",
+      "ty": {
+        "type": "Number"
+      },
+      "docs": null
+    },
+    {
+      "name": "effect",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyEffect"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
 

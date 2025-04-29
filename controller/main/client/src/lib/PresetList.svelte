@@ -6,7 +6,7 @@
 <ul>
     {#each $presets as preset}
         <li>
-            <button class="gray" title={preset.name} onclick={() => runEffectPreset(preset.name)} aria-label={preset.name}>
+            <button class="gray" title={preset.name} onclick={() => runEffectPreset(preset.id)} aria-label={preset.name}>
                 <i class={preset.icon}></i>
                 <span>{preset.name}</span>
             </button>
