@@ -1,9 +1,9 @@
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderInfo};
 
-use super::{AnyEffect, Effect};
+use super::{AnyEffect, Effect, RenderContext};
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct RotateEffect {
@@ -25,12 +25,12 @@ impl RotateEffect {
 }
 
 impl Effect for RotateEffect {
-    fn render(&mut self, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
-        let rendered_frame = self.effect.render(delta, render_info);
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
+        let rendered_frame = self.effect.render(context, render_info);
         
-        let mut rotated_frame = Frame::empty();
-        for i in 0..TOTAL_PIXELS {
-            let new_i = (i as i32 + self.rotation).rem_euclid(TOTAL_PIXELS as i32) as usize;
+        let mut rotated_frame = Frame::empty(context.pixels);
+        for i in 0..context.pixels {
+            let new_i = (i as i32 + self.rotation).rem_euclid(context.pixels as i32) as usize;
             rotated_frame.set_pixel(new_i as u32, rendered_frame.get_pixel(i));
         }
 

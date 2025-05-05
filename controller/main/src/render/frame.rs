@@ -84,9 +84,9 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn empty() -> Frame {
+    pub fn empty(pixels: u32) -> Frame {
         Frame {
-            pixel_data: vec![PixelColor::new(0, 0, 0, 0.0); 812]
+            pixel_data: vec![PixelColor::new(0, 0, 0, 0.0); pixels as usize]
         }
     }
 

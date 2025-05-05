@@ -1,9 +1,9 @@
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderInfo};
 
-use super::{AnyEffect, Effect};
+use super::{AnyEffect, Effect, RenderContext};
 
 /// An alpha compositor composites other effects together using alpha blending.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
@@ -21,13 +21,13 @@ impl AlphaCompositorEffect {
         }.into()
     }
 
-    pub fn composite(effects: Vec<&mut dyn Effect>, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
-       let mut final_frame = Frame::empty();
+    pub fn composite(effects: Vec<&mut dyn Effect>, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
+       let mut final_frame = Frame::empty(context.pixels);
 
         for effect in effects {
-            let rendered_frame = effect.render(delta, render_info);
+            let rendered_frame = effect.render(context, render_info);
 
-            for i in 0..TOTAL_PIXELS {
+            for i in 0..context.pixels {
                 let pixel = rendered_frame.get_pixel(i);
                 let final_pixel = match final_frame.get_pixel_mut(i) {
                     Some(pixel) => pixel,
@@ -49,11 +49,11 @@ impl AlphaCompositorEffect {
 }
 
 impl Effect for AlphaCompositorEffect {
-    fn render(&mut self, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
         let effects = self.effects
             .iter_mut()
             .map(|effect| effect.as_mut() as &mut dyn Effect)
             .collect::<Vec<_>>();
-        AlphaCompositorEffect::composite(effects, delta, render_info)
+        AlphaCompositorEffect::composite(effects, context, render_info)
     }
 }

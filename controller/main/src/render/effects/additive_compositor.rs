@@ -1,9 +1,9 @@
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::Frame, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::Frame, RenderInfo};
 
-use super::{Effect, AnyEffect};
+use super::{AnyEffect, Effect, RenderContext};
 
 // TODO: Deduplicate the compositor code with a macro
 
@@ -25,13 +25,13 @@ impl AdditiveCompositorEffect {
 }
 
 impl Effect for AdditiveCompositorEffect {
-    fn render(&mut self, delta: std::time::Duration, render_info: &mut RenderInfo) -> Frame {
-        let mut final_frame = Frame::empty();
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
+        let mut final_frame = Frame::empty(context.pixels);
 
         for effect in &mut self.effects {
-            let rendered_frame = effect.render(delta, render_info);
+            let rendered_frame = effect.render(context, render_info);
 
-            for i in 0..TOTAL_PIXELS {
+            for i in 0..context.pixels {
                 let pixel = rendered_frame.get_pixel(i);
                 let final_pixel = match final_frame.get_pixel_mut(i) {
                     Some(pixel) => pixel,

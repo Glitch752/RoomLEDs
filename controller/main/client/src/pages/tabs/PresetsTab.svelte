@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from "svelte/transition";
     import EditablePreset from "../../lib/EditablePreset.svelte";
     import EffectCreator from "../../lib/EffectCreator.svelte";
     import { presets } from "../../websocket";
@@ -12,7 +13,9 @@
     {/each}
 
     {#if creatingPreset}
-        <EffectCreator onclose={() => creatingPreset = false} />
+        <div transition:slide={{ duration: 300 }}>
+            <EffectCreator onclose={() => creatingPreset = false}/>
+        </div>
     {/if}
     
     <button class="addPreset gray" title="Create new preset" onclick={() => creatingPreset = true} aria-label="Create new preset">

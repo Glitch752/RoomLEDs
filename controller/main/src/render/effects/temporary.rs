@@ -1,8 +1,6 @@
-use std::time::Duration;
-
 use crate::render::{frame::Frame, RenderInfo};
 
-use super::{AnyTemporaryEffect, Effect, TemporaryEffect};
+use super::{AnyTemporaryEffect, Effect, RenderContext, TemporaryEffect};
 
 pub mod duration;
 
@@ -33,14 +31,14 @@ impl TemporaryEffectCompositor {
 
 impl Effect for TemporaryEffectCompositor {
     /// Renders the current effect in the sequence.
-    fn render(&mut self, delta: Duration, render_info: &mut RenderInfo) -> Frame {
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
         if let Some(effect) = self.effects.first_mut() {
             if !self.running {
                 effect.start(render_info);
                 self.running = true;
             }
 
-            let frame = effect.render(delta, render_info);
+            let frame = effect.render(context, render_info);
 
             if effect.is_finished(&render_info) {
                 effect.stop(render_info);
@@ -52,7 +50,7 @@ impl Effect for TemporaryEffectCompositor {
         } else {
             self.running = false;
 
-            Frame::empty()
+            Frame::empty(context.pixels)
         }
     }
 }

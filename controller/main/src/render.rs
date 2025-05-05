@@ -1,6 +1,6 @@
 use std::{sync::Arc, thread::JoinHandle, time::Duration};
 
-use effects::{AnyEffect, TemporaryEffectCompositor};
+use effects::{AnyEffect, RenderContext, TemporaryEffectCompositor};
 use filters::Filter;
 use frame::PresentedFrame;
 use parking_lot::Mutex;
@@ -83,10 +83,14 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, fil
             info.frame_times[frames % FRAME_TIMES_STORED] = delta.as_secs_f64();
 
             // Render the effect
+            let context = RenderContext {
+                delta,
+                pixels: TOTAL_PIXELS
+            };
             let effect_frame = effects::AlphaCompositorEffect::composite(vec![
                 effect,
                 temporary_effect_compositor
-            ], delta, info);
+            ], context, info);
 
             let mut presented_frame: PresentedFrame = effect_frame.into();
 

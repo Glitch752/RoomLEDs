@@ -1,4 +1,3 @@
-use std::time::Duration;
 use crate::RenderInfo;
 use super::frame::Frame;
 
@@ -32,11 +31,19 @@ pub use websocket_input::WebsocketInputEffect;
 pub use temporary::duration::DurationTemporaryEffect;
 pub use temporary::TemporaryEffectCompositor;
 
+/// Context used while rendering that can be changed as state
+/// gets passed down to effects.
+#[derive(Debug, Clone, Copy)]
+pub struct RenderContext {
+    pub delta: std::time::Duration,
+    pub pixels: u32
+}
+
 /// An effect is a render construct that returns a frame of pixel data with opacity.
 /// Effects can take other effects as an input.
 #[enum_dispatch]
 pub trait Effect {
-    fn render(&mut self, delta: Duration, render_info: &mut RenderInfo) -> Frame;
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame;
 }
 
 /// A temporary effect is a type of effect that determines when it should be removed.

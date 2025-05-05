@@ -50,15 +50,6 @@
 <div class="editor">
     <h2>New effect</h2>
     
-    <h3>Name</h3>
-    <input bind:value={name} placeholder="Name" aria-label="Name" />
-
-    <h3>Icon</h3>
-    <IconSelector bind:value={icon} placeholder="Icon" ariaLabel="Icon" />
-
-    <h3>Effect</h3>
-    <SchemaEditor {onchange} bind:value={effect} schema={schemas["AnyEffect"]} />
-
     <div class="actions">
         <button class:green={!previewing} class:peach={previewing} onclick={togglePreview}>
             {#if previewing}    
@@ -75,6 +66,15 @@
             onclose();
         }}>Create</button>
     </div>
+    
+    <h3>Name</h3>
+    <input bind:value={name} placeholder="Name" aria-label="Name" />
+
+    <h3>Icon</h3>
+    <IconSelector bind:value={icon} placeholder="Icon" ariaLabel="Icon" />
+
+    <h3>Effect</h3>
+    <SchemaEditor {onchange} bind:value={effect} schema={schemas["AnyEffect"]} />
 </div>
 
 <style>

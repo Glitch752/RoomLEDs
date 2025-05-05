@@ -1,9 +1,7 @@
-use std::time::Duration;
-
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, Effect, TemporaryEffect}, frame::{self}}, RenderInfo};
+use crate::{render::{effects::{AnyEffect, AnyTemporaryEffect, Effect, RenderContext, TemporaryEffect}, frame::{self}}, RenderInfo};
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct DurationTemporaryEffect {
@@ -30,8 +28,8 @@ impl DurationTemporaryEffect {
 }
 
 impl Effect for DurationTemporaryEffect {
-    fn render(&mut self, delta: Duration, render_info: &mut RenderInfo) -> frame::Frame {
-        self.effect.render(delta, render_info)
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> frame::Frame {
+        self.effect.render(context, render_info)
     }
 }
 

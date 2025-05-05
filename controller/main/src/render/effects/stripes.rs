@@ -1,11 +1,9 @@
-use std::time::Duration;
-
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::{Frame, PixelColor}, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::{Frame, PixelColor}, RenderInfo};
 
-use super::{AnyEffect, Effect};
+use super::{AnyEffect, Effect, RenderContext};
 
 /// The stripes effect renders a rotating pattern with stripes of color.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
@@ -31,10 +29,10 @@ impl StripeEffect {
 }
 
 impl Effect for StripeEffect {
-    fn render(&mut self, _delta: Duration, render_info: &mut RenderInfo) -> Frame {
-        let mut frame = Frame::empty();
+    fn render(&mut self, context: RenderContext, render_info: &mut RenderInfo) -> Frame {
+        let mut frame = Frame::empty(context.pixels);
 
-        for i in 0..TOTAL_PIXELS {
+        for i in 0..context.pixels {
             let stripe_pos = (i as f64 + render_info.time * self.speed).round();
 
             let stripe_index = (stripe_pos / self.stripe_width).floor() as usize % self.stripe_colors.len();

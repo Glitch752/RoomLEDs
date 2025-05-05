@@ -1,12 +1,12 @@
-use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}, time::Duration};
+use std::{cmp::min, net::{Ipv4Addr, SocketAddr, UdpSocket}};
 
 use color_space::Hsl;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::{Frame, PixelColor}, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::{Frame, PixelColor}, RenderInfo};
 
-use super::{AnyEffect, Effect};
+use super::{AnyEffect, Effect, RenderContext};
 
 static PACKET_FROP_FRAMES: usize = 500;
 
@@ -92,12 +92,13 @@ impl MusicVisualizerEffect {
 }
 
 impl Effect for MusicVisualizerEffect {
-    fn render(&mut self, delta: Duration, info: &mut RenderInfo) -> Frame {
+    fn render(&mut self, context: RenderContext, info: &mut RenderInfo) -> Frame {
         static BLOCK_SIZE: usize = 4;
+        let pixels = context.pixels;
 
         // Read audio data from the client
         let mut looped = false;
-        let mut audio_data = vec![0; TOTAL_PIXELS as usize / BLOCK_SIZE];
+        let mut audio_data = vec![0; pixels as usize / BLOCK_SIZE];
         while self.listener.peek_from(&mut [0; 1]).is_ok() {
             looped = true;
             self.listener.recv(&mut audio_data).unwrap();
@@ -113,7 +114,7 @@ impl Effect for MusicVisualizerEffect {
         } else {
             // No audio data is available, so slowly fade out the audio data to make it feel slightly more responsive
             for i in 0..self.audio_buffer.len() {
-                self.audio_buffer[i] *= 0.5_f32.powf(delta.as_secs_f32());
+                self.audio_buffer[i] *= 0.5_f32.powf(context.delta.as_secs_f32());
             }
 
             #[cfg(debug_assertions)] {
@@ -123,7 +124,7 @@ impl Effect for MusicVisualizerEffect {
 
         if self.data_last_received.is_none() || self.data_last_received.unwrap().elapsed().as_secs() > 2 {
             // If there are no incoming connections, return pulsing red
-            let mut frame = Frame::empty();
+            let mut frame = Frame::empty(pixels);
             let color = PixelColor::new(
                 255, 0, 0,
                 (info.time * 2.).sin() * 0.4 + 0.4
@@ -131,9 +132,9 @@ impl Effect for MusicVisualizerEffect {
 
             static PULSE_SECTION_WIDTH: i32 = 3;
             for i in -PULSE_SECTION_WIDTH..PULSE_SECTION_WIDTH {
-                frame.set_pixel(i.rem_euclid(TOTAL_PIXELS as i32) as u32, color.clone());
+                frame.set_pixel(i.rem_euclid(pixels as i32) as u32, color.clone());
             }
-            for i in (TOTAL_PIXELS / 2 - PULSE_SECTION_WIDTH as u32)..(TOTAL_PIXELS / 2 + PULSE_SECTION_WIDTH as u32) {
+            for i in (pixels / 2 - PULSE_SECTION_WIDTH as u32)..(pixels / 2 + PULSE_SECTION_WIDTH as u32) {
                 frame.set_pixel(i, color.clone());
             }
             return frame;
@@ -143,11 +144,11 @@ impl Effect for MusicVisualizerEffect {
         // Linearly interpolate the audio data
         let audio_data = &self.audio_buffer;
 
-        let mut audio_data_interpolated = vec![0; TOTAL_PIXELS as usize];
+        let mut audio_data_interpolated = vec![0; pixels as usize];
         
         for i in 0..audio_data.len() {
             let start = i * BLOCK_SIZE;
-            let end = min((i + 1) * BLOCK_SIZE, TOTAL_PIXELS as usize);
+            let end = min((i + 1) * BLOCK_SIZE, pixels as usize);
 
             for j in start..end {
                 let t = (j - start) as f64 / BLOCK_SIZE as f64;
@@ -156,9 +157,9 @@ impl Effect for MusicVisualizerEffect {
         }
 
         // Render the visualizer
-        let mut frame = Frame::empty();
-        for i in 0..TOTAL_PIXELS as usize {
-            let hue = i as f64 / TOTAL_PIXELS as f64 * 360.;
+        let mut frame = Frame::empty(pixels);
+        for i in 0..pixels as usize {
+            let hue = i as f64 / pixels as f64 * 360.;
             let lightness = audio_data_interpolated[i] as f64 / 255.;
             let color = Hsl::new(hue, 0.5, lightness as f64).into();
             

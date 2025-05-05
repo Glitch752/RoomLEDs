@@ -1,11 +1,11 @@
-use std::{f64::consts::PI, time::Duration};
+use std::f64::consts::PI;
 
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use crate::{render::frame::{self, PixelColor}, RenderInfo, TOTAL_PIXELS};
+use crate::{render::frame::{self, PixelColor}, RenderInfo};
 
-use super::{AnyEffect, Effect};
+use super::{AnyEffect, Effect, RenderContext};
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct FlashingColorEffect {
@@ -33,14 +33,14 @@ impl FlashingColorEffect {
 }
 
 impl Effect for FlashingColorEffect {
-    fn render(&mut self, delta: Duration, _render_info: &mut RenderInfo) -> frame::Frame {
-        self.time += delta.as_secs_f64();
+    fn render(&mut self, context: RenderContext, _render_info: &mut RenderInfo) -> frame::Frame {
+        self.time += context.delta.as_secs_f64();
 
-        let mut frame: frame::Frame = frame::Frame::empty();
+        let mut frame: frame::Frame = frame::Frame::empty(context.pixels);
 
         let color = self.color_a.lerp(&self.color_b, (self.time * self.speed * 2. * PI).sin() * 0.5 + 0.5);
 
-        for pixel in 0..TOTAL_PIXELS {
+        for pixel in 0..context.pixels {
             frame.set_pixel(pixel, color.clone());
         }
 
