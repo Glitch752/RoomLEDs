@@ -11,10 +11,12 @@ use thread_priority::{ThreadBuilderExt, ThreadPriority, ThreadPriorityValue};
 use crate::{FRAME_TIMES_STORED, TOTAL_PIXELS};
 
 pub mod effects;
+pub mod expressions;
 mod filters;
 pub mod spatial_map;
 pub mod frame;
 mod idle_tracker;
+
 // State for rendering the lights that needs to be shared between the web server and the output thread
 #[derive(Debug)]
 pub struct RenderState {
@@ -31,7 +33,8 @@ impl RenderState {
 
 #[derive(Debug)]
 pub struct RenderInfo {
-    // The time in seconds since rendering started
+    // The time in seconds since rendering started.
+    // This shouldn't be used in effects; instead, RenderContext.time should be used.
     pub time: f64,
 
     // Statistics we collect to display on the web interface
@@ -85,6 +88,7 @@ pub fn render_frame(delta: Duration, render_state: &Arc<Mutex<RenderState>>, fil
             // Render the effect
             let context = RenderContext {
                 delta,
+                time: info.time,
                 pixels: TOTAL_PIXELS
             };
             let effect_frame = effects::AlphaCompositorEffect::composite(vec![

@@ -127,7 +127,7 @@ impl Effect for MusicVisualizerEffect {
             let mut frame = Frame::empty(pixels);
             let color = PixelColor::new(
                 255, 0, 0,
-                (info.time * 2.).sin() * 0.4 + 0.4
+                (context.time * 2.).sin() * 0.4 + 0.4
             );
 
             static PULSE_SECTION_WIDTH: i32 = 3;

@@ -3,7 +3,7 @@ use std::{io::{Error, ErrorKind}, path::PathBuf};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, frame::PixelColor}, TOTAL_PIXELS};
+use crate::{render::{effects::{self, AnyEffect, AnyTemporaryEffect}, expressions, frame::PixelColor}, TOTAL_PIXELS};
 
 static EFFECT_PRESET_FILE: &str = "effect_presets.json";
 
@@ -92,7 +92,7 @@ impl EffectPresets {
                     "fas fa-music".to_string(),
                     effects::RotateEffect::new(
                         effects::MusicVisualizerEffect::new(shared::constants::MUSIC_VISUALIZER_PORT).into(),
-                        -219
+                        expressions::LiteralExpression::new(-219.0).into()
                     )
                 ),
                 EffectPreset::new(

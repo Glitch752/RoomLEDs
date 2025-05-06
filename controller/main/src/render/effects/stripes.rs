@@ -33,7 +33,7 @@ impl Effect for StripeEffect {
         let mut frame = Frame::empty(context.pixels);
 
         for i in 0..context.pixels {
-            let stripe_pos = (i as f64 + render_info.time * self.speed).round();
+            let stripe_pos = (i as f64 + context.time * self.speed).round();
 
             let stripe_index = (stripe_pos / self.stripe_width).floor() as usize % self.stripe_colors.len();
             let stripe_color = &self.stripe_colors[stripe_index];

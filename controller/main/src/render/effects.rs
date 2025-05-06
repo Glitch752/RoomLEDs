@@ -1,4 +1,5 @@
 use crate::RenderInfo;
+use super::expressions::ExpressionContext;
 use super::frame::Frame;
 
 mod additive_compositor;
@@ -36,7 +37,15 @@ pub use temporary::TemporaryEffectCompositor;
 #[derive(Debug, Clone, Copy)]
 pub struct RenderContext {
     pub delta: std::time::Duration,
+    /// The time in seconds since the start of the effect.
+    pub time: f64,
     pub pixels: u32
+}
+
+impl RenderContext {
+    pub fn expression_context(&self) -> ExpressionContext {
+        return ExpressionContext { current_time: self.time }
+    }
 }
 
 /// An effect is a render construct that returns a frame of pixel data with opacity.

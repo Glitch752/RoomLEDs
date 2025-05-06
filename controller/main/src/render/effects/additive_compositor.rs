@@ -11,13 +11,13 @@ use super::{AnyEffect, Effect, RenderContext};
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct AdditiveCompositorEffect {
     /// The effects to be composited together. The output of every effect will be added together.
-    effects: Vec<Box<AnyEffect>>
+    effects: Vec<AnyEffect>
 }
 
 impl AdditiveCompositorEffect {
     /// Creates a new additive compositor effect with the specified effects.
     #[allow(unused)]
-    pub fn new(effects: Vec<Box<AnyEffect>>) -> AnyEffect {
+    pub fn new(effects: Vec<AnyEffect>) -> AnyEffect {
         AdditiveCompositorEffect {
             effects
         }.into()

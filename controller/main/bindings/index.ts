@@ -78,7 +78,50 @@ effect: AnyEffect,
 /**
  * The number of pixels to rotate the frame by. If negative, it rotates to the left.
  */
-rotation: number };
+rotation: AnyExpression };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ * A wrapper for any expression.
+ * Used for serialization and deserialization.
+ */
+export type AnyExpression = { "type": "Number" } & LiteralExpression | { "type": "CurrentTime" } & CurrentTimeExpression | { "type": "Add" } & AddExpression | { "type": "Subtract" } & SubtractExpression | { "type": "Multiply" } & MultiplyExpression | { "type": "Divide" } & DivideExpression | { "type": "Round" } & RoundExpression | { "type": "Floor" } & FloorExpression | { "type": "Ceil" } & CeilExpression;
+
+/**
+ * Generated binding.
+ * A constant value.
+ */
+export type LiteralExpression = { value: number };
+
+/**
+ * Generated binding.
+ * Gets the current time in seconds.
+ */
+export type CurrentTimeExpression = {  };
+
+/**
+ * Generated binding.
+ */
+export type AddExpression = { left: AnyExpression, right: AnyExpression };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
+
+/**
+ * Generated binding.
+ */
+export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
+
+/**
+ * Generated binding.
+ */
+export type SubtractExpression = { left: AnyExpression, right: AnyExpression };
 
 /**
  * Generated binding.
@@ -104,6 +147,36 @@ color_b: PixelColor };
 /**
  * Generated binding.
  */
+export type MultiplyExpression = { left: AnyExpression, right: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type WebsocketInputEffect = {  };
+
+/**
+ * Generated binding.
+ */
+export type DivideExpression = { left: AnyExpression, right: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type RoundExpression = { number: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type FloorExpression = { number: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type CeilExpression = { number: AnyExpression };
+
+/**
+ * Generated binding.
+ */
 export type SolidColorEffect = { 
 /**
  * The color to make every pixel.
@@ -117,22 +190,4 @@ start: number,
  * The stop pixel index.
  */
 stop: number };
-
-/**
- * Generated binding.
- */
-export type WebsocketInputEffect = {  };
-
-/**
- * Generated binding.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
-
-/**
- * Generated binding.
- */
-export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
 

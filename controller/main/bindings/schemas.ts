@@ -233,13 +233,329 @@ export const RotateEffectSchema: Schema = {
     {
       "name": "rotation",
       "ty": {
-        "type": "Number"
+        "type": "Reference",
+        "content": "AnyExpression"
       },
       "docs": "The number of pixels to rotate the frame by. If negative, it rotates to the left."
     }
   ]
 };
 schemas["RotateEffect"] = RotateEffectSchema;
+
+/**
+ * Generated schema.
+ * Tagged with "type".
+ * A wrapper for any expression.
+ * Used for serialization and deserialization.
+ */
+export const AnyExpressionSchema: Schema = {
+  "type": "Enum",
+  "content": {
+    "variants": [
+      {
+        "name": "Number",
+        "value": {
+          "type": "Reference",
+          "content": "LiteralExpression"
+        }
+      },
+      {
+        "name": "CurrentTime",
+        "value": {
+          "type": "Reference",
+          "content": "CurrentTimeExpression"
+        }
+      },
+      {
+        "name": "Add",
+        "value": {
+          "type": "Reference",
+          "content": "AddExpression"
+        }
+      },
+      {
+        "name": "Subtract",
+        "value": {
+          "type": "Reference",
+          "content": "SubtractExpression"
+        }
+      },
+      {
+        "name": "Multiply",
+        "value": {
+          "type": "Reference",
+          "content": "MultiplyExpression"
+        }
+      },
+      {
+        "name": "Divide",
+        "value": {
+          "type": "Reference",
+          "content": "DivideExpression"
+        }
+      },
+      {
+        "name": "Round",
+        "value": {
+          "type": "Reference",
+          "content": "RoundExpression"
+        }
+      },
+      {
+        "name": "Floor",
+        "value": {
+          "type": "Reference",
+          "content": "FloorExpression"
+        }
+      },
+      {
+        "name": "Ceil",
+        "value": {
+          "type": "Reference",
+          "content": "CeilExpression"
+        }
+      }
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
+};
+schemas["AnyExpression"] = AnyExpressionSchema;
+
+/**
+ * Generated schema.
+ * A constant value.
+ */
+export const LiteralExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "value",
+      "ty": {
+        "type": "Number"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["LiteralExpression"] = LiteralExpressionSchema;
+
+/**
+ * Generated schema.
+ * Gets the current time in seconds.
+ */
+export const CurrentTimeExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": []
+};
+schemas["CurrentTimeExpression"] = CurrentTimeExpressionSchema;
+
+/**
+ * Generated schema.
+ * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export const AnyTemporaryEffectSchema: Schema = {
+  "type": "Enum",
+  "content": {
+    "variants": [
+      {
+        "name": "TemporaryEffectWrapper",
+        "value": {
+          "type": "Reference",
+          "content": "DurationTemporaryEffect"
+        }
+      }
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
+};
+schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const DurationTemporaryEffectSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "duration",
+      "ty": {
+        "type": "Number"
+      },
+      "docs": null
+    },
+    {
+      "name": "effect",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyEffect"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const AddExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "left",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    },
+    {
+      "name": "right",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["AddExpression"] = AddExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const SubtractExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "left",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    },
+    {
+      "name": "right",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["SubtractExpression"] = SubtractExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const MultiplyExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "left",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    },
+    {
+      "name": "right",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["MultiplyExpression"] = MultiplyExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const DivideExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "left",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    },
+    {
+      "name": "right",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["DivideExpression"] = DivideExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const RoundExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "number",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["RoundExpression"] = RoundExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const FloorExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "number",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["FloorExpression"] = FloorExpressionSchema;
+
+/**
+ * Generated schema.
+ */
+export const CeilExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "number",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["CeilExpression"] = CeilExpressionSchema;
 
 /**
  * Generated schema.
@@ -321,53 +637,4 @@ export const WebsocketInputEffectSchema: Schema = {
   "content": []
 };
 schemas["WebsocketInputEffect"] = WebsocketInputEffectSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export const AnyTemporaryEffectSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "TemporaryEffectWrapper",
-        "value": {
-          "type": "Reference",
-          "content": "DurationTemporaryEffect"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const DurationTemporaryEffectSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "duration",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": null
-    },
-    {
-      "name": "effect",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyEffect"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
 
