@@ -17,6 +17,8 @@ mod rotate;
 
 mod temporary;
 
+mod node_editor;
+
 pub use additive_compositor::AdditiveCompositorEffect;
 pub use alpha_compositor::AlphaCompositorEffect;
 use enum_dispatch::enum_dispatch;
@@ -28,6 +30,7 @@ pub use rotate::RotateEffect;
 pub use flashing_color::FlashingColorEffect;
 pub use solid_color::SolidColorEffect;
 pub use websocket_input::WebsocketInputEffect;
+pub use node_editor::NodeEditorEffect;
 
 pub use temporary::duration::DurationTemporaryEffect;
 pub use temporary::TemporaryEffectCompositor;
@@ -63,8 +66,9 @@ pub trait TemporaryEffect {
     fn stop(&mut self, render_info: &mut RenderInfo);
 }
 
-// TODO: Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
-// to avoid this enum? I'm not sure if ts-rs will be able to create bindings for it, though.
+// Maybe we could use [typetag](https://github.com/dtolnay/typetag) instead
+// to avoid this enum? I'm not sure if how to create bindings for it, though.
+// This is pretty ergonomic for now.
 
 /// A wrapper for any effect that can be rendered.
 /// Used for serialization and deserialization.
@@ -81,6 +85,7 @@ pub enum AnyEffect {
     FlashingColor(FlashingColorEffect),
     SolidColor(SolidColorEffect),
     WebsocketInput(WebsocketInputEffect),
+    NodeEditorEffect(NodeEditorEffect)
 }
 
 /// A wrapper for any temporary effect that can be rendered.

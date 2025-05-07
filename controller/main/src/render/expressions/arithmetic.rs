@@ -10,6 +10,7 @@ pub struct AddExpression {
 }
 
 impl AddExpression {
+    #[allow(unused)]
     pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
         AnyExpression::Add(AddExpression {
             left: Box::new(left),
@@ -31,6 +32,7 @@ pub struct DivideExpression {
 }
 
 impl DivideExpression {
+    #[allow(unused)]
     pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
         AnyExpression::Divide(DivideExpression {
             left: Box::new(left),
@@ -52,6 +54,7 @@ pub struct MultiplyExpression {
 }
 
 impl MultiplyExpression {
+    #[allow(unused)]
     pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
         AnyExpression::Multiply(MultiplyExpression {
             left: Box::new(left),
@@ -74,6 +77,7 @@ pub struct SubtractExpression {
 }
 
 impl SubtractExpression {
+    #[allow(unused)]
     pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
         AnyExpression::Subtract(SubtractExpression {
             left: Box::new(left),

@@ -4,7 +4,7 @@
 mod export;
 pub mod schema;
 
-use std::{rc::Rc, sync::Arc};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 pub use reflection_derive::Reflect;
 
@@ -119,6 +119,32 @@ impl <T: Reflect> Reflect for Vec<T> {
     }
 }
 
+// Hashmaps
+
+impl<K: Reflect, V: Reflect, H> Reflect for HashMap<K, V, H> {
+    const INLINE: bool = true;
+
+    fn ts_definition() -> String {
+        format!(
+            "{{ [key in {}]?: {} }}",
+            K::noninline_ts_definition(),
+            V::noninline_ts_definition()
+        )
+    }
+
+    fn schema() -> schema::Schema {
+        schema::Schema::ObjectOf(schema::ObjectSchema {
+            key_schema: Box::new(K::schema()),
+            value_schema: Box::new(V::schema())
+        })
+    }
+
+    fn visit_dependencies(visitor: &mut impl TypeVisitor) where Self: 'static {
+        visitor.visit_export::<K>();
+        visitor.visit_export::<V>();
+    }
+}
+
 macro_rules! container_reflect {
     ($($ty:ident),*) => {
         $(
@@ -181,6 +207,8 @@ basic_reflect! {
     u16, "number", Number;
     u32, "number", Number;
     u64, "number", Number;
+    isize, "number", Number;
+    usize, "number", Number;
     f32, "number", Number;
     f64, "number", Number;
     char, "string", String;

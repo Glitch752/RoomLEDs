@@ -55,6 +55,13 @@ export const SchemaSchema: Schema = {
         }
       },
       {
+        "name": "ObjectOf",
+        "value": {
+          "type": "Reference",
+          "content": "ObjectSchema"
+        }
+      },
+      {
         "name": "Reference",
         "value": {
           "type": "String"
@@ -182,4 +189,31 @@ export const EnumVariantSchema: Schema = {
   ]
 };
 schemas["EnumVariant"] = EnumVariantSchema;
+
+/**
+ * Generated schema.
+ * A schema definition for an arbitrary object type (hashmap).
+ */
+export const ObjectSchemaSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "key_schema",
+      "ty": {
+        "type": "Reference",
+        "content": "Schema"
+      },
+      "docs": null
+    },
+    {
+      "name": "value_schema",
+      "ty": {
+        "type": "Reference",
+        "content": "Schema"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["ObjectSchema"] = ObjectSchemaSchema;
 

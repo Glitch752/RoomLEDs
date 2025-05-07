@@ -79,6 +79,7 @@ impl From<(u8, u8, u8)> for PixelColor {
 }
 
 /// A frame is a single set of pixel data.
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct Frame {
     pixel_data: Vec<PixelColor>
 }

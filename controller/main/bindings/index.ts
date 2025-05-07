@@ -19,7 +19,7 @@ effects: Array<AnyEffect> };
  * A wrapper for any effect that can be rendered.
  * Used for serialization and deserialization.
  */
-export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "MusicVisualizer" } & MusicVisualizerEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect;
+export type AnyEffect = { "type": "AdditiveCompositor" } & AdditiveCompositorEffect | { "type": "AlphaCompositor" } & AlphaCompositorEffect | { "type": "Stripe" } & StripeEffect | { "type": "MusicVisualizer" } & MusicVisualizerEffect | { "type": "Rotate" } & RotateEffect | { "type": "FlashingColor" } & FlashingColorEffect | { "type": "SolidColor" } & SolidColorEffect | { "type": "WebsocketInput" } & WebsocketInputEffect | { "type": "NodeEditorEffect" } & NodeEditorEffect;
 
 /**
  * Generated binding.
@@ -113,24 +113,6 @@ export type MultiplyExpression = { left: AnyExpression, right: AnyExpression };
 
 /**
  * Generated binding.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
-
-/**
- * Generated binding.
- */
-export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
-
-/**
- * Generated binding.
- */
-export type WebsocketInputEffect = {  };
-
-/**
- * Generated binding.
  */
 export type DivideExpression = { left: AnyExpression, right: AnyExpression };
 
@@ -186,4 +168,58 @@ start: number,
  * The stop pixel index.
  */
 stop: number };
+
+/**
+ * Generated binding.
+ */
+export type WebsocketInputEffect = {  };
+
+/**
+ * Generated binding.
+ * An effect that renders a frame based on a node-based graphical editor.
+ * This is by far the most complex effect type, as it allows for arbitrary
+ * calculations for every pixel in the frame.
+ */
+export type NodeEditorEffect = { nodes: { [key in string]?: Node } };
+
+/**
+ * Generated binding.
+ */
+export type Node = { id: string, implementation: AnyNodeImplementation, inputs: Array<[string, number]>, last_frame_rendered: number };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ */
+export type AnyNodeImplementation = { "type": "LiteralNode" } & LiteralNode;
+
+/**
+ * Generated binding.
+ */
+export type LiteralNode = { value: Value };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ */
+export type Value = { "type": "Float" } & number | { "type": "Integer" } & number | { "type": "Color" } & PixelColor | { "type": "Boolean" } & boolean | { "type": "Frame" } & Frame;
+
+/**
+ * Generated binding.
+ * A frame is a single set of pixel data.
+ */
+export type Frame = { pixel_data: Array<PixelColor> };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & DurationTemporaryEffect;
+
+/**
+ * Generated binding.
+ */
+export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
 

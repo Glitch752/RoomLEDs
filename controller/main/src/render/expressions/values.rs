@@ -10,6 +10,7 @@ pub struct LiteralExpression {
 }
 
 impl LiteralExpression {
+    #[allow(unused)]
     pub fn new(value: f64) -> AnyExpression {
         AnyExpression::Number(LiteralExpression { value })
     }
@@ -27,6 +28,7 @@ pub struct CurrentTimeExpression {
 }
 
 impl CurrentTimeExpression {
+    #[allow(unused)]
     pub fn new() -> AnyExpression {
         AnyExpression::CurrentTime(CurrentTimeExpression {})
     }
