@@ -33,7 +33,7 @@ effects: Array<AnyEffect> };
 
 /**
  * Generated binding.
- * The stripes effect renders a rotating pattern with stripes of color.
+ * The stripes effect renders a pattern with stripes of color. To make the stripes move, a rotate effect may be used.
  */
 export type StripeEffect = { 
 /**
@@ -43,11 +43,7 @@ stripe_width: number,
 /**
  * The colors of the stripes.
  */
-stripe_colors: Array<PixelColor>, 
-/**
- * The speed of the rotation in pixels per second.
- */
-speed: number };
+stripe_colors: Array<PixelColor> };
 
 /**
  * Generated binding.
@@ -107,6 +103,16 @@ export type AddExpression = { left: AnyExpression, right: AnyExpression };
 
 /**
  * Generated binding.
+ */
+export type SubtractExpression = { left: AnyExpression, right: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type MultiplyExpression = { left: AnyExpression, right: AnyExpression };
+
+/**
+ * Generated binding.
  * Tagged with "type".
  * A wrapper for any temporary effect that can be rendered.
  * Used for serialization and deserialization.
@@ -117,37 +123,6 @@ export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & Duration
  * Generated binding.
  */
 export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
-
-/**
- * Generated binding.
- */
-export type SubtractExpression = { left: AnyExpression, right: AnyExpression };
-
-/**
- * Generated binding.
- */
-export type FlashingColorEffect = { 
-/**
- * The offset of the flashing effect, in seconds.
- */
-offset: number, 
-/**
- * The speed of the flashing effect, in Hz.
- */
-speed: number, 
-/**
- * The color of the first flashing color.
- */
-color_a: PixelColor, 
-/**
- * The color of the second flashing color.
- */
-color_b: PixelColor };
-
-/**
- * Generated binding.
- */
-export type MultiplyExpression = { left: AnyExpression, right: AnyExpression };
 
 /**
  * Generated binding.
@@ -173,6 +148,27 @@ export type FloorExpression = { number: AnyExpression };
  * Generated binding.
  */
 export type CeilExpression = { number: AnyExpression };
+
+/**
+ * Generated binding.
+ */
+export type FlashingColorEffect = { 
+/**
+ * The offset of the flashing effect, in seconds.
+ */
+offset: number, 
+/**
+ * The speed of the flashing effect, in Hz.
+ */
+speed: number, 
+/**
+ * The color of the first flashing color.
+ */
+color_a: PixelColor, 
+/**
+ * The color of the second flashing color.
+ */
+color_b: PixelColor };
 
 /**
  * Generated binding.

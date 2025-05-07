@@ -9,6 +9,15 @@ pub struct AddExpression {
     pub right: Box<AnyExpression>
 }
 
+impl AddExpression {
+    pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
+        AnyExpression::Add(AddExpression {
+            left: Box::new(left),
+            right: Box::new(right)
+        })
+    }
+}
+
 impl Expression for AddExpression {
     fn compute<'a>(&mut self, context: &'a super::ExpressionContext) -> f64 {
         return self.left.compute(&context) + self.right.compute(&context);
@@ -19,6 +28,15 @@ impl Expression for AddExpression {
 pub struct DivideExpression {
     pub left: Box<AnyExpression>,
     pub right: Box<AnyExpression>
+}
+
+impl DivideExpression {
+    pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
+        AnyExpression::Divide(DivideExpression {
+            left: Box::new(left),
+            right: Box::new(right)
+        })
+    }
 }
 
 impl Expression for DivideExpression {
@@ -33,6 +51,15 @@ pub struct MultiplyExpression {
     pub right: Box<AnyExpression>
 }
 
+impl MultiplyExpression {
+    pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
+        AnyExpression::Multiply(MultiplyExpression {
+            left: Box::new(left),
+            right: Box::new(right)
+        })
+    }
+}
+
 impl Expression for MultiplyExpression {
     fn compute<'a>(&mut self, context: &'a super::ExpressionContext) -> f64 {
         return self.left.compute(&context) * self.right.compute(&context);
@@ -44,6 +71,15 @@ impl Expression for MultiplyExpression {
 pub struct SubtractExpression {
     pub left: Box<AnyExpression>,
     pub right: Box<AnyExpression>
+}
+
+impl SubtractExpression {
+    pub fn new(left: AnyExpression, right: AnyExpression) -> AnyExpression {
+        AnyExpression::Subtract(SubtractExpression {
+            left: Box::new(left),
+            right: Box::new(right)
+        })
+    }
 }
 
 impl Expression for SubtractExpression {

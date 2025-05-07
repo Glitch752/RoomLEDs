@@ -123,7 +123,7 @@ schemas["AlphaCompositorEffect"] = AlphaCompositorEffectSchema;
 
 /**
  * Generated schema.
- * The stripes effect renders a rotating pattern with stripes of color.
+ * The stripes effect renders a pattern with stripes of color. To make the stripes move, a rotate effect may be used.
  */
 export const StripeEffectSchema: Schema = {
   "type": "Struct",
@@ -145,13 +145,6 @@ export const StripeEffectSchema: Schema = {
         }
       },
       "docs": "The colors of the stripes."
-    },
-    {
-      "name": "speed",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": "The speed of the rotation in pixels per second."
     }
   ]
 };
@@ -352,6 +345,32 @@ schemas["CurrentTimeExpression"] = CurrentTimeExpressionSchema;
 
 /**
  * Generated schema.
+ */
+export const AddExpressionSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "left",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    },
+    {
+      "name": "right",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyExpression"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["AddExpression"] = AddExpressionSchema;
+
+/**
+ * Generated schema.
  * Tagged with "type".
  * A wrapper for any temporary effect that can be rendered.
  * Used for serialization and deserialization.
@@ -398,32 +417,6 @@ export const DurationTemporaryEffectSchema: Schema = {
   ]
 };
 schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const AddExpressionSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "left",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyExpression"
-      },
-      "docs": null
-    },
-    {
-      "name": "right",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyExpression"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["AddExpression"] = AddExpressionSchema;
 
 /**
  * Generated schema.

@@ -77,15 +77,21 @@ impl EffectPresets {
                 EffectPreset::new(
                     "Rainbow stripes".to_string(),
                     "fas fa-rainbow".to_string(),
-                    effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
-                        (255, 0, 0).into(),
-                        (255, 100, 0).into(),
-                        (255, 255, 0).into(),
-                        (0, 255, 0).into(),
-                        (0, 0, 255).into(),
-                        (143, 0, 255).into(),
-                        (255, 255, 255).into(),
-                    ], 84.0)
+                    effects::RotateEffect::new(
+                        effects::StripeEffect::new(TOTAL_PIXELS as f64 / 28., vec![
+                            (255, 0, 0).into(),
+                            (255, 100, 0).into(),
+                            (255, 255, 0).into(),
+                            (0, 255, 0).into(),
+                            (0, 0, 255).into(),
+                            (143, 0, 255).into(),
+                            (255, 255, 255).into(),
+                        ]).into(),
+                        expressions::MultiplyExpression::new(
+                            expressions::CurrentTimeExpression::new().into(),
+                            expressions::LiteralExpression::new(84.0).into()
+                        ).into()
+                    )
                 ),
                 EffectPreset::new(
                     "Music visualizer".to_string(),

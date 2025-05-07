@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
 pub use arithmetic::{AddExpression, DivideExpression, MultiplyExpression, SubtractExpression};

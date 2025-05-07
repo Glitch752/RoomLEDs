@@ -14,6 +14,7 @@ impl LiteralExpression {
         AnyExpression::Number(LiteralExpression { value })
     }
 }
+
 impl Expression for LiteralExpression {
     fn compute<'a>(&mut self, _context: &'a super::ExpressionContext) -> f64 {
         return self.value;
@@ -23,6 +24,12 @@ impl Expression for LiteralExpression {
 /// Gets the current time in seconds.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct CurrentTimeExpression {
+}
+
+impl CurrentTimeExpression {
+    pub fn new() -> AnyExpression {
+        AnyExpression::CurrentTime(CurrentTimeExpression {})
+    }
 }
 
 impl Expression for CurrentTimeExpression {

@@ -31,7 +31,7 @@ impl Effect for RotateEffect {
         let mut rotated_frame = Frame::empty(context.pixels);
         let rot = self.rotation.compute(&context.expression_context());
         for i in 0..context.pixels {
-            let new_i = (i as i32 + rot as i32).rem_euclid(context.pixels as i32) as usize;
+            let new_i = (i as i32 - rot as i32).rem_euclid(context.pixels as i32) as usize;
             rotated_frame.set_pixel(new_i as u32, rendered_frame.get_pixel(i));
         }
 
