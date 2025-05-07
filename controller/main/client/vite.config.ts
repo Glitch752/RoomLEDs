@@ -20,7 +20,8 @@ export default {
         target: 'http://localhost:3000',
         changeOrigin: true
       },
-    }
+    },
+    allowedHosts: true
   },
   build: {
     outDir: '../static',
