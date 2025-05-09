@@ -5,25 +5,17 @@ use crate::render::frame::PresentedFrame;
 pub mod power_device;
 pub mod esphome_plug;
 
-/**
- * We always send an update at this interval, so we can be sure we don't
- * accidentally leave the lights in the wrong state somehow.
- */
+/// We always send an update at this interval, so we can be sure we don't
+/// accidentally leave the lights in the wrong state somehow.
 static POWER_UPDATE_INTERVAL: Duration = Duration::from_secs(60 * 10);
 
-/**
- * Tracks when the lights are idle and disables power to them.
- */
+/// Tracks when the lights are idle and disables power to them.
 pub struct IdleTracker {
     last_power_update: Instant,
     
-    /**
-     * The debounce when transitioning from non-idle to idle.
-     */
+    /// The debounce when transitioning from non-idle to idle.
     rising_debounce_time: Duration,
-    /**
-     * The debounce when transitioning from idle to non-idle.
-     */
+    /// The debounce when transitioning from idle to non-idle.
     falling_debounce_time: Duration,
 
     idle: Option<bool>,

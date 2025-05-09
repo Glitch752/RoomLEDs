@@ -18,7 +18,7 @@ pub enum Schema {
     ArrayOf(Box<Schema>),
     TupleOf(Vec<Schema>),
     ObjectOf(ObjectSchema),
-    /** A reference to another schema definition. Used to avoid infinite recursion. */
+    /// A reference to another schema definition. Used to avoid infinite recursion.
     Reference(String),
     Number,
     String,

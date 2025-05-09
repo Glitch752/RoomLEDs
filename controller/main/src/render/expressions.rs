@@ -11,9 +11,7 @@ mod round;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ExpressionContext {
-    /**
-     * The current time, in seconds.
-     */
+    /// The current time, in seconds.
     pub current_time: f64
 }
 

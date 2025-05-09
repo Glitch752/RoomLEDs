@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
+use types::{AnyType, TryConvert, Type};
 
 use crate::{render::frame::{Frame, PixelColor}, RenderInfo};
 use super::{Effect, RenderContext};
 
-mod literal;
-
-pub use literal::LiteralNode;
+mod types;
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 struct NodeID(uuid::Uuid);
@@ -31,37 +30,21 @@ impl Reflect for NodeID {
     fn visit_dependencies(_: &mut impl reflection::TypeVisitor) where Self: 'static {}
 }
 
-pub enum ValueType {
-    Float,
-    Integer,
-    Color,
-    Boolean,
-    Frame
-}
-
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-#[serde(tag = "type")]
-pub enum Value {
-    Float(f32),
-    Integer(i32),
-    Color(PixelColor),
-    Boolean(bool),
-    Frame(Frame),
-}
-
 #[enum_dispatch]
 pub trait NodeImplementation {
+    type Input: TryConvert;
+    type Output: TryConvert;
+
     fn should_recompute(&self) -> bool {
         return true;
     }
-    fn compute(&mut self, inputs: &[&Value]) -> Vec<Value>;
+    fn compute(&mut self, inputs: Self::Input) -> Self::Output;
 }
 
 #[enum_dispatch(NodeImplementation)]
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
 pub enum AnyNodeImplementation {
-    LiteralNode(LiteralNode)
 }
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
@@ -71,7 +54,7 @@ pub struct Node {
     inputs: Vec<(NodeID, usize)>,
     last_frame_rendered: u32,
     #[serde(skip)]
-    output_values: Vec<Value>
+    output_values: Vec<AnyType>
 }
 
 impl Node {
@@ -85,18 +68,6 @@ impl Node {
         }
     }
     
-    pub fn compute(&mut self, inputs: &[&Value], current_frame: u32) -> Vec<Value> {
-        if self.implementation.should_recompute() || self.last_frame_rendered != current_frame {
-            self.output_values = self.implementation.compute(inputs);
-            self.last_frame_rendered = 0;
-        }
-        self.last_frame_rendered = current_frame;
-        self.output_values.clone()
-    }
-
-    pub fn get_output(&self, index: usize) -> Option<&Value> {
-        self.output_values.get(index)
-    }
 }
 
 /// An effect that renders a frame based on a node-based graphical editor.
