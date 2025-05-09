@@ -31,7 +31,7 @@ impl Reflect for NodeID {
     fn visit_dependencies(_: &mut impl reflection::TypeVisitor) where Self: 'static {}
 }
 
-enum ValueType {
+pub enum ValueType {
     Float,
     Integer,
     Color,
@@ -41,7 +41,7 @@ enum ValueType {
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-enum Value {
+pub enum Value {
     Float(f32),
     Integer(i32),
     Color(PixelColor),
@@ -51,9 +51,10 @@ enum Value {
 
 #[enum_dispatch]
 pub trait NodeImplementation {
-    fn should_rerender(&self) -> bool {
+    fn should_recompute(&self) -> bool {
         return true;
     }
+    fn compute(&mut self, inputs: &[&Value]) -> Vec<Value>;
 }
 
 #[enum_dispatch(NodeImplementation)]
@@ -82,6 +83,15 @@ impl Node {
             last_frame_rendered: 0,
             output_values: Vec::new(),
         }
+    }
+    
+    pub fn compute(&mut self, inputs: &[&Value], current_frame: u32) -> Vec<Value> {
+        if self.implementation.should_recompute() || self.last_frame_rendered != current_frame {
+            self.output_values = self.implementation.compute(inputs);
+            self.last_frame_rendered = 0;
+        }
+        self.last_frame_rendered = current_frame;
+        self.output_values.clone()
     }
 
     pub fn get_output(&self, index: usize) -> Option<&Value> {

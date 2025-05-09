@@ -9,7 +9,10 @@ pub struct LiteralNode {
 }
 
 impl NodeImplementation for LiteralNode {
-    fn should_rerender(&self) -> bool {
+    fn should_recompute(&self) -> bool {
         return false;
+    }
+    fn compute(&mut self, inputs: &[&Value]) -> Vec<Value> {
+        return vec![self.value.clone()];
     }
 }
