@@ -1,7 +1,7 @@
 import type { LightPosition, ServerToClientMessage, StatusUpdateMessage, SystemStatusUpdateMessage, EffectPreset } from "@shared-bindings/index";
 import { writable } from "svelte/store";
 
-const websocket = new WebSocket(`ws://${window.location.host}/websocket`);
+const websocket = new WebSocket(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/websocket`);
 websocket.binaryType = "arraybuffer";
 
 export type LightPositionData = {
