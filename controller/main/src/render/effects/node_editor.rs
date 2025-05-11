@@ -1,14 +1,17 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use types::{AnyType, TryConvert, Type};
+use types::AnyType;
 
-use crate::{render::frame::{Frame, PixelColor}, RenderInfo};
+use crate::{render::frame::Frame, RenderInfo};
 use super::{Effect, RenderContext};
 
 mod types;
+mod nodes;
+
+pub use nodes::FloatNode;
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 struct NodeID(uuid::Uuid);
@@ -31,34 +34,32 @@ impl Reflect for NodeID {
 }
 
 #[enum_dispatch]
-pub trait NodeImplementation {
-    type Input: TryConvert;
-    type Output: TryConvert;
-
+pub trait Node {
     fn should_recompute(&self) -> bool {
         return true;
     }
-    fn compute(&mut self, inputs: Self::Input) -> Self::Output;
+    fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String>;
 }
 
-#[enum_dispatch(NodeImplementation)]
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-pub enum AnyNodeImplementation {
+#[enum_dispatch(Node)]
+enum NodeImplementation {
+    Float(FloatNode)
 }
 
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-pub struct Node {
+pub struct NodeInstance {
     id: NodeID,
-    implementation: AnyNodeImplementation,
+    implementation: NodeImplementation,
     inputs: Vec<(NodeID, usize)>,
     last_frame_rendered: u32,
     #[serde(skip)]
     output_values: Vec<AnyType>
 }
 
-impl Node {
-    pub fn new(implementation: AnyNodeImplementation) -> Self {
+impl NodeInstance {
+    pub fn new(implementation: NodeImplementation) -> Self {
         Self {
             id: NodeID::new(),
             implementation,
@@ -75,7 +76,7 @@ impl Node {
 /// calculations for every pixel in the frame.
 #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct NodeEditorEffect {
-    nodes: HashMap<NodeID, Node>
+    nodes: HashMap<NodeID, NodeInstance>
 }
 
 impl Effect for NodeEditorEffect {

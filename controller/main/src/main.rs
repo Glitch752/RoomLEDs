@@ -1,3 +1,5 @@
+#![feature(associated_type_defaults)]
+
 use std::sync::Arc;
 
 use interface::presets::EffectPresets;

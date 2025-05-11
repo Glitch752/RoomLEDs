@@ -5,7 +5,7 @@ pub trait Type {
     fn upcast(self) -> AnyType;
 }
 #[derive(Clone, Debug, Copy)]
-pub struct FloatValue(f32);
+pub struct FloatValue(f64);
 #[derive(Clone, Debug, Copy)]
 pub struct IntegerValue(i32);
 #[derive(Clone, Debug, Copy)]
@@ -20,9 +20,19 @@ impl Type for FloatValue {
         AnyType::FloatValue(self)
     }
 }
+impl From<f64> for FloatValue {
+    fn from(value: f64) -> Self {
+        return Self(value);
+    }
+}
 impl Type for BoolValue {
     fn upcast(self) -> AnyType {
         AnyType::BoolValue(self)
+    }
+}
+impl From<bool> for BoolValue {
+    fn from(value: bool) -> Self {
+        return Self(value);
     }
 }
 impl Type for ColorValue {
@@ -30,14 +40,29 @@ impl Type for ColorValue {
         AnyType::ColorValue(self)
     }
 }
+impl From<PixelColor> for ColorValue {
+    fn from(value: PixelColor) -> Self {
+        return Self(value);
+    }
+}
 impl Type for FrameValue {
     fn upcast(self) -> AnyType {
         AnyType::FrameValue(self)
     }
 }
+impl From<Frame> for FrameValue {
+    fn from(value: Frame) -> Self {
+        return Self(value);
+    }
+}
 impl Type for IntegerValue {
     fn upcast(self) -> AnyType {
         AnyType::IntegerValue(self)
+    }
+}
+impl From<i32> for IntegerValue {
+    fn from(value: i32) -> Self {
+        return Self(value);
     }
 }
 
@@ -64,22 +89,28 @@ impl AnyType {
 
 /// Converts a vector of AnyType to a predefined tuple of specific types.  
 /// Used to move error-checking from the nodes themselves to the evaluator.
-pub trait TryConvert {
-    type Output;
-    fn try_convert(self, value: VecDeque<AnyType>) -> Result<Self::Output, String>;
+pub trait TryConvert<T> {
+    type Output = T;
+    fn try_convert(self) -> Result<T, String>;
+}
+
+/// Converts a specialized type to a generic vector of AnyType.
+/// Used to move error-checking from the nodes themselves to the evaluator.
+pub trait TryConvertBack {
+    fn try_convert_back(self) -> Vec<AnyType>;
 }
 
 macro_rules! impl_try_convert {
-    ($($name:ident),+) => {
-        impl TryConvert for ($($name,)*) {
-            type Output = ($($name,)*);
-            fn try_convert(self, mut value: VecDeque<AnyType>) -> Result<Self::Output, String> {
+    ($(($idx:tt, $name:ident)),+) => {
+        impl TryConvert<($($name,)*)> for VecDeque<AnyType> where
+            $($name: Type),* {
+            fn try_convert(mut self) -> Result<Self::Output, String> {
                 let value_count = [$(stringify!($name),)*].len();
-                if value.len() != value_count {
-                    return Err(format!("Expected {} values, got {}", value_count, value.len()));
+                if self.len() != value_count {
+                    return Err(format!("Expected {} values, got {}", value_count, self.len()));
                 }
                 let result = ($(
-                    match value.pop_front() {
+                    match self.pop_front() {
                         Some(AnyType::$name(v)) => v,
                         Some(v) => return Err(format!("Expected {}, got {}", stringify!($name), v.type_name())),
                         None => unreachable!(),
@@ -88,7 +119,37 @@ macro_rules! impl_try_convert {
                 Ok(result)
             }
         }
+        impl TryConvertBack for ($($name,)*) {
+            fn try_convert_back(self) -> Vec<AnyType> {
+                let mut result = Vec::new();
+                $(
+                    result.push(self.$idx.upcast());
+                )*
+                result
+            }
+        }
     };
+
+    // We just have a preset list of parameter counts since it's easiest with declarative macros.
+    ($name0:ident) => { impl_try_convert!((0, $name0)); };
+    ($name0:ident, $name1:ident) => { impl_try_convert!((0, $name0), (1, $name1)); };
+    ($name0:ident, $name1:ident, $name2:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident, $name4:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3), (4, $name4)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident, $name4:ident, $name5:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3), (4, $name4), (5, $name5)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident, $name4:ident, $name5:ident, $name6:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3), (4, $name4), (5, $name5), (6, $name6)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident, $name4:ident, $name5:ident, $name6:ident, $name7:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3), (4, $name4), (5, $name5), (6, $name6), (7, $name7)); };
+    ($name0:ident, $name1:ident, $name2:ident, $name3:ident, $name4:ident, $name5:ident, $name6:ident, $name7:ident, $name8:ident) => { impl_try_convert!((0, $name0), (1, $name1), (2, $name2), (3, $name3), (4, $name4), (5, $name5), (6, $name6), (7, $name7), (8, $name8)); };
+}
+
+// Manual implementation for empty tuples
+impl TryConvert<()> for VecDeque<AnyType> {
+    fn try_convert(self) -> Result<Self::Output, String> {
+        if self.len() != 0 {
+            return Err(format!("Expected 0 values, got {}", self.len()));
+        }
+        Ok(())
+    }
 }
 
 impl_try_convert!(FloatValue);
