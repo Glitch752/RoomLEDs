@@ -76,7 +76,7 @@ pub enum AnyType {
 }
 
 impl AnyType {
-    fn type_name(&self) -> String {
+    pub fn type_name(&self) -> String {
         match self {
             AnyType::FloatValue(_) => "flaot".to_string(),
             AnyType::BoolValue(_) => "boolean".to_string(),
@@ -100,10 +100,11 @@ pub trait TryConvertBack {
     fn try_convert_back(self) -> Vec<AnyType>;
 }
 
+#[macro_export]
 macro_rules! impl_try_convert {
     ($(($idx:tt, $name:ident)),+) => {
         impl TryConvert<($($name,)*)> for VecDeque<AnyType> where
-            $($name: Type),* {
+            $($name: crate::effects::node_editor::types::Type),* {
             fn try_convert(mut self) -> Result<Self::Output, String> {
                 let value_count = [$(stringify!($name),)*].len();
                 if self.len() != value_count {
@@ -121,6 +122,8 @@ macro_rules! impl_try_convert {
         }
         impl TryConvertBack for ($($name,)*) {
             fn try_convert_back(self) -> Vec<AnyType> {
+                use crate::render::effects::node_editor::types::Type;
+                
                 let mut result = Vec::new();
                 $(
                     result.push(self.$idx.upcast());
@@ -151,5 +154,3 @@ impl TryConvert<()> for VecDeque<AnyType> {
         Ok(())
     }
 }
-
-impl_try_convert!(FloatValue);

@@ -8,7 +8,21 @@ use types::AnyType;
 use crate::{render::frame::Frame, RenderInfo};
 use super::{Effect, RenderContext};
 
+macro_rules! implement_node {
+    ($name:ident, $input_type:ty, $output_type:ty, $body:expr) => {
+        impl Node for $name {
+            fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String> {
+                let input: $input_type = inputs.try_convert()?;
+                let result: $output_type = $body(self as &mut $name, input);
+                return Ok(result.try_convert_back());
+            }
+        }
+    };
+}
+
+#[macro_use]
 mod types;
+
 mod nodes;
 
 pub use nodes::FloatNode;

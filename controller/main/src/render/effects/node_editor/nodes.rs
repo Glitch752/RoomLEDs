@@ -3,17 +3,27 @@ use std::collections::VecDeque;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
-use super::{types::{AnyType, FloatValue, TryConvertBack, TryConvert}, Node};
+use crate::render::frame::{Frame, PixelColor};
 
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-pub struct FloatNode {
-    pub value: f64
-}
+use super::{types::{AnyType, BoolValue, ColorValue, FloatValue, FrameValue, IntegerValue, TryConvert, TryConvertBack}, Node};
 
-impl Node for FloatNode {
-    fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String> {
-        let input: () = inputs.try_convert()?;
-        let result: (FloatValue,) = (self.value.into(),);
-        return Ok(result.try_convert_back());
+// Insane macros
+
+macro_rules! implement_literal_node {
+    ($name:ident, $value_type:ty, $var_type:ident) => {
+        #[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
+        pub struct $name {
+            pub value: $value_type
+        }
+
+        implement_node!($name, (), ($var_type,), |node: &mut $name, _input| (node.value.clone().into(),));
+
+        impl_try_convert!($var_type);
     }
 }
+
+implement_literal_node!(FloatNode, f64, FloatValue);
+implement_literal_node!(IntegerNode, i32, IntegerValue);
+implement_literal_node!(BoolNode, bool, BoolValue);
+implement_literal_node!(ColorNode, PixelColor, ColorValue);
+implement_literal_node!(FrameNode, Frame, FrameValue);
