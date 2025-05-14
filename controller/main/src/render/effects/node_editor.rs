@@ -1,31 +1,18 @@
-use std::collections::{HashMap, VecDeque};
+use core::fmt;
+use std::{any::TypeId, collections::{HashMap, VecDeque}};
 
 use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
-use types::AnyType;
+use types::{AnyType, TryConvert, TryConvertBack};
 
 use crate::{render::frame::Frame, RenderInfo};
 use super::{Effect, RenderContext};
-
-macro_rules! implement_node {
-    ($name:ident, $input_type:ty, $output_type:ty, $body:expr) => {
-        impl Node for $name {
-            fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String> {
-                let input: $input_type = inputs.try_convert()?;
-                let result: $output_type = $body(self as &mut $name, input);
-                return Ok(result.try_convert_back());
-            }
-        }
-    };
-}
 
 #[macro_use]
 mod types;
 
 mod nodes;
-
-pub use nodes::FloatNode;
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 struct NodeID(uuid::Uuid);
@@ -47,50 +34,110 @@ impl Reflect for NodeID {
     fn visit_dependencies(_: &mut impl reflection::TypeVisitor) where Self: 'static {}
 }
 
-#[enum_dispatch]
+#[derive(Debug, Clone)]
+pub struct TypeInfo {
+    pub name: &'static str,
+    pub type_id: TypeId,
+}
+
+impl TypeInfo {
+    pub const INT: Self = Self { name: "int", type_id: TypeId::of::<i32>() };
+    pub const FLOAT: Self = Self { name: "float", type_id: TypeId::of::<f64>() };
+    pub const BOOL: Self = Self { name: "bool", type_id: TypeId::of::<bool>() };
+    pub const STRING: Self = Self { name: "string", type_id: TypeId::of::<String>() };
+}
+
+#[derive(Debug, Clone)]
+pub struct PortInfo {
+    pub name: String,
+    pub type_info: TypeInfo,
+}
+
 pub trait Node {
-    fn should_recompute(&self) -> bool {
-        return true;
-    }
+    fn name(&self) -> &'static str;
+    fn input_ports(&self) -> &[PortInfo];
+    fn output_ports(&self) -> &[PortInfo];
     fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String>;
 }
 
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-#[serde(tag = "type")]
-#[enum_dispatch(Node)]
-enum NodeImplementation {
-    Float(FloatNode)
+pub struct TypedNode<I, O> {
+    name: &'static str,
+    inputs: Vec<PortInfo>,
+    outputs: Vec<PortInfo>,
+    func: Box<dyn Fn(I) -> Result<O, String> + Send + Sync>,
 }
 
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
-pub struct NodeInstance {
-    id: NodeID,
-    implementation: NodeImplementation,
-    inputs: Vec<(NodeID, usize)>,
-    last_frame_rendered: u32,
-    #[serde(skip)]
-    output_values: Vec<AnyType>
-}
-
-impl NodeInstance {
-    pub fn new(implementation: NodeImplementation) -> Self {
+impl<I, O> TypedNode<I, O>
+where
+    I: TryConvert<I> + 'static,
+    O: TryConvertBack + 'static,
+{
+    pub fn new(
+        name: &'static str,
+        inputs: Vec<PortInfo>,
+        outputs: Vec<PortInfo>,
+        func: impl Fn(I) -> Result<O, String> + Send + Sync + 'static,
+    ) -> Self {
         Self {
-            id: NodeID::new(),
-            implementation,
-            inputs: Vec::new(),
-            last_frame_rendered: 0,
-            output_values: Vec::new(),
+            name,
+            inputs,
+            outputs,
+            func: Box::new(func),
         }
     }
-    
+}
+
+impl<I, O> Node for TypedNode<I, O>
+where
+    VecDeque<AnyType>: TryConvert<I> + 'static,
+    O: TryConvertBack + 'static,
+{
+    fn name(&self) -> &'static str {
+        self.name
+    }
+
+    fn input_ports(&self) -> &[PortInfo] {
+        &self.inputs
+    }
+
+    fn output_ports(&self) -> &[PortInfo] {
+        &self.outputs
+    }
+
+    fn compute(&mut self, inputs: VecDeque<AnyType>) -> Result<Vec<AnyType>, String> {
+        let typed_inputs: I = inputs.try_convert()?;
+        let output = (self.func)(typed_inputs)?;
+        Ok(output.try_convert_back())
+    }
+}
+
+struct NodeRegistry {
+    nodes: HashMap<String, Box<dyn Node + Send + Sync>>,
+}
+
+impl NodeRegistry {
+    fn new() -> Self {
+        let mut nodes = HashMap::new();
+        // TODO: Register built-in nodes
+        Self { nodes }
+    }
+
+    fn get_node(&self, name: &str) -> Option<&Box<dyn Node + Send + Sync>> {
+        self.nodes.get(name)
+    }
+}
+
+struct NodeData {
+    node_type: String,
+    input_connections: Vec<(NodeID, usize)>,
+    output_connections: Vec<(NodeID, usize)>
 }
 
 /// An effect that renders a frame based on a node-based graphical editor.
 /// This is by far the most complex effect type, as it allows for arbitrary
 /// calculations for every pixel in the frame.
-#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct NodeEditorEffect {
-    nodes: HashMap<NodeID, NodeInstance>
+    nodes: HashMap<NodeID, NodeData>
 }
 
 impl Effect for NodeEditorEffect {

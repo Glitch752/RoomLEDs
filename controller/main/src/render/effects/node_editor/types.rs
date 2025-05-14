@@ -123,7 +123,7 @@ macro_rules! impl_try_convert {
         impl TryConvertBack for ($($name,)*) {
             fn try_convert_back(self) -> Vec<AnyType> {
                 use crate::render::effects::node_editor::types::Type;
-                
+
                 let mut result = Vec::new();
                 $(
                     result.push(self.$idx.upcast());
