@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{any::TypeId, collections::{HashMap, VecDeque}};
+use std::{any::TypeId, cell::RefCell, collections::{HashMap, VecDeque}};
 
 use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
@@ -11,8 +11,25 @@ use super::{Effect, RenderContext};
 
 #[macro_use]
 mod types;
-
 mod nodes;
+
+thread_local! {
+    pub static NODE_REGISTRY: RefCell<NodeRegistry> = RefCell::new(NodeRegistry::new());
+}
+
+#[macro_export]
+macro_rules! register_node {
+    ($name:expr, $node:expr) => {
+        #[ctor::ctor]
+        fn register_node() {
+            use crate::render::effects::node_editor::NODE_REGISTRY;
+            NODE_REGISTRY.with(|registry| {
+                let mut registry = registry.borrow_mut();
+                registry.nodes.insert($name.to_string(), Box::new($node));
+            });
+        }
+    };
+}
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 struct NodeID(uuid::Uuid);
@@ -69,7 +86,7 @@ pub struct TypedNode<I, O> {
 
 impl<I, O> TypedNode<I, O>
 where
-    I: TryConvert<I> + 'static,
+    VecDeque<AnyType>: TryConvert<I> + 'static,
     O: TryConvertBack + 'static,
 {
     pub fn new(
@@ -118,7 +135,8 @@ struct NodeRegistry {
 impl NodeRegistry {
     fn new() -> Self {
         let mut nodes = HashMap::new();
-        // TODO: Register built-in nodes
+        // Register built-in nodes
+
         Self { nodes }
     }
 
@@ -127,6 +145,8 @@ impl NodeRegistry {
     }
 }
 
+
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 struct NodeData {
     node_type: String,
     input_connections: Vec<(NodeID, usize)>,
@@ -136,6 +156,7 @@ struct NodeData {
 /// An effect that renders a frame based on a node-based graphical editor.
 /// This is by far the most complex effect type, as it allows for arbitrary
 /// calculations for every pixel in the frame.
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
 pub struct NodeEditorEffect {
     nodes: HashMap<NodeID, NodeData>
 }

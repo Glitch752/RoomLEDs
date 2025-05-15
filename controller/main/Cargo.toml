@@ -24,6 +24,7 @@ reqwest = { version = "0.12.12", features = ["blocking", "json"] }
 enum_dispatch = "0.3.13"
 dirs = "6.0.0"
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
+ctor = "0.4.2"
 
 [features]
 # Turns off features that prohibit local testing.

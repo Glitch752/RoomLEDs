@@ -1,8 +1,22 @@
-use std::collections::VecDeque;
+use crate::{register_node, render::effects::node_editor::{types::FloatValue, TypeInfo}};
 
-use reflection::Reflect;
-use serde::{Deserialize, Serialize};
+use super::{PortInfo, TypedNode};
 
-use crate::render::frame::{Frame, PixelColor};
-
-use super::{types::{AnyType, BoolValue, ColorValue, FloatValue, FrameValue, IntegerValue, TryConvert, TryConvertBack}, Node};
+register_node!("AddNode", TypedNode::new(
+    "Add",
+    vec![
+        PortInfo {
+            name: "a".into(),
+            type_info: TypeInfo::FLOAT,
+        },
+        PortInfo {
+            name: "b".into(),
+            type_info: TypeInfo::FLOAT,
+        },
+    ],
+    vec![PortInfo {
+        name: "result".into(),
+        type_info: TypeInfo::FLOAT,
+    }],
+    |(a, b): (FloatValue, FloatValue)| Ok((FloatValue(a.0 + b.0),)),
+));

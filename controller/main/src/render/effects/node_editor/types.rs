@@ -5,15 +5,15 @@ pub trait Type {
     fn upcast(self) -> AnyType;
 }
 #[derive(Clone, Debug, Copy)]
-pub struct FloatValue(f64);
+pub struct FloatValue(pub f64);
 #[derive(Clone, Debug, Copy)]
-pub struct IntegerValue(i32);
+pub struct IntegerValue(pub i32);
 #[derive(Clone, Debug, Copy)]
-pub struct BoolValue(bool);
+pub struct BoolValue(pub bool);
 #[derive(Clone, Debug)]
-pub struct ColorValue(PixelColor);
+pub struct ColorValue(pub PixelColor);
 #[derive(Clone, Debug)]
-pub struct FrameValue(Frame);
+pub struct FrameValue(pub Frame);
 
 impl Type for FloatValue {
     fn upcast(self) -> AnyType {
@@ -154,3 +154,6 @@ impl TryConvert<()> for VecDeque<AnyType> {
         Ok(())
     }
 }
+
+impl_try_convert!(FloatValue);
+impl_try_convert!(FloatValue, FloatValue);
