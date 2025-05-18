@@ -1,7 +1,5 @@
-use core::fmt;
 use std::{any::TypeId, cell::RefCell, collections::{HashMap, VecDeque}};
 
-use enum_dispatch::enum_dispatch;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 use types::{AnyType, TryConvert, TryConvertBack};
@@ -20,13 +18,16 @@ thread_local! {
 #[macro_export]
 macro_rules! register_node {
     ($name:expr, $node:expr) => {
-        #[ctor::ctor]
-        fn register_node() {
-            use crate::render::effects::node_editor::NODE_REGISTRY;
-            NODE_REGISTRY.with(|registry| {
-                let mut registry = registry.borrow_mut();
-                registry.nodes.insert($name.to_string(), Box::new($node));
-            });
+        paste::paste! {
+            #[ctor::ctor]
+            #[allow(non_snake_case)]
+            fn [<register_node_ $name>]() {
+                use crate::render::effects::node_editor::NODE_REGISTRY;
+                NODE_REGISTRY.with(|registry| {
+                    let mut registry = registry.borrow_mut();
+                    registry.nodes.insert($name.to_string(), Box::new($node));
+                });
+            }
         }
     };
 }
@@ -62,6 +63,8 @@ impl TypeInfo {
     pub const FLOAT: Self = Self { name: "float", type_id: TypeId::of::<f64>() };
     pub const BOOL: Self = Self { name: "bool", type_id: TypeId::of::<bool>() };
     pub const STRING: Self = Self { name: "string", type_id: TypeId::of::<String>() };
+    pub const COLOR: Self = Self { name: "color", type_id: TypeId::of::<[f32; 4]>() };
+    pub const FRAME: Self = Self { name: "frame", type_id: TypeId::of::<Frame>() };
 }
 
 #[derive(Debug, Clone)]

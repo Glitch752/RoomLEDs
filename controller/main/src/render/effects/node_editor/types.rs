@@ -157,3 +157,12 @@ impl TryConvert<()> for VecDeque<AnyType> {
 
 impl_try_convert!(FloatValue);
 impl_try_convert!(FloatValue, FloatValue);
+impl_try_convert!(FloatValue, FloatValue, FloatValue);
+impl_try_convert!(FloatValue, FloatValue, FloatValue, FloatValue);
+
+impl_try_convert!(BoolValue);
+impl_try_convert!(BoolValue, BoolValue);
+
+impl_try_convert!(ColorValue);
+
+impl_try_convert!(ColorValue, ColorValue, FloatValue);

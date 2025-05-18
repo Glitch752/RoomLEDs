@@ -25,6 +25,7 @@ enum_dispatch = "0.3.13"
 dirs = "6.0.0"
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 ctor = "0.4.2"
+paste = "1.0.15"
 
 [features]
 # Turns off features that prohibit local testing.

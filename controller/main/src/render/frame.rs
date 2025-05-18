@@ -30,6 +30,21 @@ impl PixelColor {
         }
     }
 
+    pub fn from_hsl(h: f64, s: f64, l: f64, alpha: f64) -> PixelColor {
+        let rgb: Rgb = Hsl::new(h, s, l).into();
+        PixelColor {
+            r: rgb.r as u8,
+            g: rgb.g as u8,
+            b: rgb.b as u8,
+            alpha
+        }
+    }
+
+    pub fn to_hsl(self) -> (f64, f64, f64) {
+        let hsl: Hsl = self.into();
+        (hsl.h, hsl.s, hsl.l)
+    }
+
     pub fn with_alpha(&self, alpha: f64) -> PixelColor {
         PixelColor {
             r: self.r,
@@ -63,6 +78,23 @@ impl From<Rgb> for PixelColor {
 impl From<Hsl> for PixelColor {
     fn from(hsl: Hsl) -> Self {
         let rgb: Rgb = hsl.into();
+        rgb.into()
+    }
+}
+
+impl From<PixelColor> for Rgb {
+    fn from(pixel: PixelColor) -> Self {
+        Rgb {
+            r: pixel.r as f64,
+            g: pixel.g as f64,
+            b: pixel.b as f64
+        }
+    }
+}
+
+impl From<PixelColor> for Hsl {
+    fn from(pixel: PixelColor) -> Self {
+        let rgb: Rgb = pixel.into();
         rgb.into()
     }
 }
