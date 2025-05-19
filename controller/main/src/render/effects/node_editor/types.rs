@@ -1,5 +1,19 @@
+use reflection::Reflect;
+use serde::{Deserialize, Serialize};
+
 use crate::render::frame::{Frame, PixelColor};
-use std::collections::VecDeque;
+use std::{collections::VecDeque};
+
+#[derive(Reflect, Serialize, Deserialize, Clone, Debug)]
+#[serde(tag = "type")]
+pub enum TypeInfo {
+    Int,
+    Float,
+    Bool,
+    String,
+    Color,
+    Frame
+}
 
 pub trait Type {
     fn upcast(self) -> AnyType;
