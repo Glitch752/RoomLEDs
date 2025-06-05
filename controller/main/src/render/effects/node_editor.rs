@@ -38,8 +38,7 @@ impl Serialize for NodeData {
     where
         S: serde::Serializer,
     {
-        // TODO...
-        Ok(())
+        todo!()
     }
 }
 
