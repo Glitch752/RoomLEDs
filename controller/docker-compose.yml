@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  lights-controller:
+    build: 
+      context: ..
+      dockerfile: controller/Dockerfile
+    container_name: lights-controller
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - "/dev/ttyUSB1:/dev/ttyUSB1"
+    volumes:
+      - controller_data:/app/data
+    environment:
+      - RUST_LOG=info
+    privileged: false
+    cap_add:
+      - SYS_NICE
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  controller_data:
