@@ -1,0 +1,13 @@
+target/
+.direnv
+.vscode
+
+*/target
+*/debug
+
+*/Cargo.lock
+
+arduino-driver/
+
+controller/main/client/node_modules
+controller/main/static

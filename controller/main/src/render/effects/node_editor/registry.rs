@@ -25,7 +25,7 @@ macro_rules! register_node {
 }
 
 pub struct NodeRegistry {
-    nodes: HashMap<String, Box<dyn Node + Send + Sync>>
+    nodes: HashMap<String, Box<dyn Node>>
 }
 
 impl NodeRegistry {
@@ -35,11 +35,11 @@ impl NodeRegistry {
         }
     }
 
-    pub fn register_node(&mut self, name: &str, node: Box<dyn Node + Send + Sync>) {
+    pub fn register_node(&mut self, name: &str, node: Box<dyn Node>) {
         self.nodes.insert(name.to_string(), node);
     }
 
-    pub fn get_node(&self, name: &str) -> Option<&Box<dyn Node + Send + Sync>> {
+    pub fn get_node(&self, name: &str) -> Option<&Box<dyn Node>> {
         self.nodes.get(name)
     }
 }

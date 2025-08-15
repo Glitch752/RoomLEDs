@@ -3,8 +3,8 @@ version: '3.8'
 services:
   lights-controller:
     build: 
-      context: ..
-      dockerfile: controller/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: lights-controller
     restart: unless-stopped
     ports:

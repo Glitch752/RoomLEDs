@@ -13,9 +13,16 @@ mod node;
 #[macro_use]
 mod registry;
 
-#[derive(Clone)]
 struct NodeData {
     instance: Box<dyn Node>
+}
+
+impl Clone for NodeData {
+    fn clone(&self) -> Self {
+        NodeData {
+            instance: dyn_clone::clone_box(&*self.instance)
+        }
+    }
 }
 
 impl Reflect for NodeData {
@@ -42,13 +49,12 @@ impl Serialize for NodeData {
     }
 }
 
-impl Deserialize<'_> for NodeData {
+impl<'de> Deserialize<'de> for NodeData {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        // TODO...
-        Ok(NodeData { instance: Box::new(nodes::SimpleNode {}) })
+        todo!()
     }
 }
 

@@ -2,9 +2,11 @@
 
 set -e
 
-# Make sure the current working directory is correct
-if [ ! -f "./docker-deploy.sh" ]; then
-  echo "Please run this script from the controller directory"
+cd "$(dirname "$0")"
+
+# Ensure docker is installed
+if ! command -v docker &> /dev/null; then
+  echo "Docker is not installed. Please install Docker to proceed."
   exit 1
 fi
 
@@ -36,42 +38,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-update_dockerfile_target() {
-  local arch=$1
-  local dockerfile="./Dockerfile"
-  
-  case $arch in
-    "aarch64-unknown-linux-gnu")
-      sed -i 's/gcc-[a-z0-9-]*/gcc-aarch64-linux-gnu/g' "$dockerfile"
-      sed -i 's/CARGO_TARGET_[A-Z0-9_]*_LINKER/CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER/g' "$dockerfile"
-      sed -i 's/CC_[a-z0-9-]*/CC_aarch64_unknown_linux_gnu/g' "$dockerfile"
-      sed -i 's/CXX_[a-z0-9-]*/CXX_aarch64_unknown_linux_gnu/g' "$dockerfile"
-      sed -i 's/aarch64-linux-gnu-gcc/aarch64-linux-gnu-gcc/g' "$dockerfile"
-      sed -i 's/--target [a-z0-9-]*/--target aarch64-unknown-linux-gnu/g' "$dockerfile"
-      ;;
-    "x86_64-unknown-linux-gnu")
-      # For x86_64, we don't need cross-compilation tools
-      sed -i 's/gcc-aarch64-linux-gnu //g' "$dockerfile"
-      sed -i '/ENV CARGO_TARGET_.*_LINKER/d' "$dockerfile"
-      sed -i '/ENV CC_.*=/d' "$dockerfile"
-      sed -i '/ENV CXX_.*=/d' "$dockerfile"
-      sed -i 's/--target aarch64-unknown-linux-gnu//g' "$dockerfile"
-      ;;
-    *)
-      echo "Unsupported target architecture $arch"
-      exit 1
-      ;;
-  esac
-}
-
 build_image() {
-  update_dockerfile_target "$TARGET_ARCH"
   
-  # Build the image
+  # Build the image.gitignore
   local full_image_name="$IMAGE_NAME:$IMAGE_TAG"
   
   echo "Building image $full_image_name"
-  docker build -t "$full_image_name" -f Dockerfile ..
+  docker build -t "$full_image_name" -f Dockerfile .
   
   echo "Image built successfully"
 }
@@ -111,7 +84,6 @@ deploy_to_server() {
 
     # Clean up local file
     rm /tmp/lights-controller.tar.gz
-  fi
 }
 
 main() {

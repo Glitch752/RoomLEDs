@@ -1,5 +1,6 @@
 use std::{collections::VecDeque, sync::Arc};
 
+use dyn_clone::DynClone;
 use reflection::Reflect;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +33,7 @@ pub struct PortInfo {
     pub type_info: TypeInfo
 }
 
-pub trait Node<'a> : Reflect + Serialize + Deserialize<'a> + Send + Sync {
+pub trait Node : DynClone + Send + Sync {
     fn name(&self) -> &'static str;
     fn input_ports(&self) -> &[PortInfo];
     fn output_ports(&self) -> &[PortInfo];
@@ -41,6 +42,7 @@ pub trait Node<'a> : Reflect + Serialize + Deserialize<'a> + Send + Sync {
 
 /// A simple node with no state or parameters.
 /// Types can be inferred from the function types, and type-checking code will be automatically generated!
+#[derive(Clone)]
 pub struct SimpleTypedNode<I, O> {
     name: &'static str,
     inputs: Vec<PortInfo>,
@@ -63,15 +65,16 @@ where
             name,
             inputs,
             outputs,
-            func: Box::new(func),
+            func: Arc::new(Box::new(func)),
         }
     }
 }
 
-impl<'a, I, O> Node<'a> for SimpleTypedNode<I, O>
+impl<I, O> Node for SimpleTypedNode<I, O>
 where
     VecDeque<AnyType>: TryConvert<I> + 'static,
-    O: TryConvertBack + 'static,
+    I: Clone,
+    O: Clone + TryConvertBack + 'static,
 {
     fn name(&self) -> &'static str {
         self.name
