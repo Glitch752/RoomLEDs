@@ -24,7 +24,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --target-arch)
-      TARGET_ARCH="$2"
+      if [ "$2" = "x86" ]; then
+        TARGET_ARCH="x86_64-unknown-linux-gnu"
+      else
+        TARGET_ARCH="$2"
+      fi
       shift 2
       ;;
     --image-tag)
@@ -39,12 +43,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 build_image() {
-  
-  # Build the image.gitignore
   local full_image_name="$IMAGE_NAME:$IMAGE_TAG"
+  local cross_compile="false"
   
-  echo "Building image $full_image_name"
-  docker build -t "$full_image_name" -f Dockerfile .
+  # Determine if we need cross-compilation
+  if [ "$TARGET_ARCH" = "aarch64-unknown-linux-gnu" ]; then
+    cross_compile="true"
+  fi
+  
+  echo "Building image $full_image_name for architecture $TARGET_ARCH"
+  docker build \
+    --build-arg TARGET_ARCH="$TARGET_ARCH" \
+    --build-arg CROSS_COMPILE="$cross_compile" \
+    -t "$full_image_name" \
+    -f Dockerfile .
   
   echo "Image built successfully"
 }
@@ -69,20 +81,18 @@ deploy_to_server() {
         sed -i '/dockerfile:/d' ~/lights-controller-compose.yml
     "
     
-    echo "Saving image to transfer to server..."
     docker save "$full_image_name" | gzip > /tmp/lights-controller.tar.gz
 
-    echo "Transferring image to server..."
+    echo "Transferring image to server"
     scp -i "$SERVER_IDENTITY_FILE" /tmp/lights-controller.tar.gz "$SERVER_USER@$SERVER_IP:~/lights-controller.tar.gz"
 
-    echo "Loading image on server and starting container..."
+    echo "Loading image on server and starting container"
     ssh -i "$SERVER_IDENTITY_FILE" "$SERVER_USER@$SERVER_IP" "
         docker load < ~/lights-controller.tar.gz &&
         rm ~/lights-controller.tar.gz &&
         docker compose -f ~/lights-controller-compose.yml up -d
     "
 
-    # Clean up local file
     rm /tmp/lights-controller.tar.gz
 }
 

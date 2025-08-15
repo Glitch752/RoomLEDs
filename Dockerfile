@@ -17,39 +17,45 @@ FROM node:20-alpine AS build-client-stage
 
 FROM rustlang/rust:nightly-slim AS build-rust-stage
 
+    ARG TARGET_ARCH=x86_64-unknown-linux-gnu
+    ARG CROSS_COMPILE=false
+
     # Required dependencies for cross-compilation
     RUN apt-get update && apt-get install -y \
         pkg-config \
         libssl-dev \
         libudev-dev \
-        gcc-aarch64-linux-gnu \
+        $(if [ "$CROSS_COMPILE" = "true" ]; then echo "gcc-aarch64-linux-gnu"; fi) \
         && rm -rf /var/lib/apt/lists/*
 
-    # ARM64 libraries
-    RUN dpkg --add-architecture arm64 && \
+    # ARM64 libraries (only if cross-compiling)
+    RUN if [ "$CROSS_COMPILE" = "true" ]; then \
+        dpkg --add-architecture arm64 && \
         apt-get update && \
         apt-get install -y \
         libssl-dev:arm64 \
         libudev-dev:arm64 \
-        && rm -rf /var/lib/apt/lists/*
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 
     # Create pkg-config wrapper for cross-compilation
-    RUN mkdir -p /usr/local/bin && \
+    RUN if [ "$CROSS_COMPILE" = "true" ]; then \
+        mkdir -p /usr/local/bin && \
         echo '#!/bin/bash\n\
 export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig\n\
 export PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig\n\
 export PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu\n\
 PKG_CONFIG_ALLOW_CROSS=1\n\
 exec /usr/bin/pkg-config "$@"' > /usr/local/bin/pkg-config-wrapper && \
-        chmod +x /usr/local/bin/pkg-config-wrapper
+        chmod +x /usr/local/bin/pkg-config-wrapper; \
+        fi
 
-    RUN rustup target add aarch64-unknown-linux-gnu
+    RUN rustup target add $TARGET_ARCH
 
-    # Set up cross-compilation environment
-    ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-    ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-    ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
-    ENV PKG_CONFIG_aarch64_unknown_linux_gnu=pkg-config-wrapper
+    ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=${CROSS_COMPILE:+aarch64-linux-gnu-gcc}
+    ENV CC_aarch64_unknown_linux_gnu=${CROSS_COMPILE:+aarch64-linux-gnu-gcc}
+    ENV CXX_aarch64_unknown_linux_gnu=${CROSS_COMPILE:+aarch64-linux-gnu-g++}
+    ENV PKG_CONFIG_aarch64_unknown_linux_gnu=${CROSS_COMPILE:+pkg-config-wrapper}
 
     WORKDIR /app
     COPY Cargo.toml Cargo.lock ./
@@ -59,7 +65,9 @@ exec /usr/bin/pkg-config "$@"' > /usr/local/bin/pkg-config-wrapper && \
     COPY roomlightsctl/ ./roomlightsctl/
 
     WORKDIR /app/controller/main
-    RUN cargo build --release --target aarch64-unknown-linux-gnu
+    RUN cargo build --release --target $TARGET_ARCH
+
+    RUN mv /app/target/$TARGET_ARCH/release/lights-controller /app/lights-controller
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -76,7 +84,7 @@ FROM debian:bookworm-slim
         usermod -aG dialout controller
 
     # Copy the built binary
-    COPY --from=build-rust-stage /app/target/aarch64-unknown-linux-gnu/release/lights-controller /app/lights-controller
+    COPY --from=build-rust-stage /app/lights-controller /app/lights-controller
     COPY --from=build-client-stage /app/controller/main/static /app/static
 
     # Set capabilities for real-time scheduling
