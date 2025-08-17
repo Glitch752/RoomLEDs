@@ -88,6 +88,20 @@ deploy_to_server() {
         } >> ~/.ssh/config
     fi
 
+    # Set up passwordless sudo if required
+    if ! ssh "$remote_ssh" "sudo -n true" 2>/dev/null; then
+        # Confirm with the user they're fine compromising the security of this machine
+        echo "This script will set up passwordless sudo on the remote machine. This is probably not secure, but it shouldn't matter too much for a lighting controller. Are you sure you want to continue? (y/N)"
+        read -r confirmation
+        if [[ ! "$confirmation" =~ ^[Yy]$ ]]; then
+            echo "Aborting deployment."
+            exit 1
+        fi
+
+        echo "Setting up passwordless sudo on remote server"
+        ssh -t "$remote_ssh" "echo '$SERVER_USER ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/$SERVER_USER"
+    fi
+
     # Ensure the docker context exists
     if ! docker context inspect "$remote_context" >/dev/null 2>&1; then
         echo "Creating docker context $remote_context"
@@ -97,11 +111,11 @@ deploy_to_server() {
     echo "Deploying to $remote_ssh"
   
     echo "Checking if Docker is installed remotely"
-    ssh -i "$SERVER_IDENTITY_FILE" "$REMOTE_SSH" <<'EOF'
+    ssh "$remote_ssh" <<'EOF'
     set -e
     if ! command -v docker >/dev/null 2>&1; then
         echo "Installing Docker"
-        curl -fsSL https://get.docker.com | sh
+        curl -fsSL https://get.docker.com | sudo sh
     fi
     if ! docker compose version >/dev/null 2>&1; then
         echo "Installing Docker Compose plugin"
