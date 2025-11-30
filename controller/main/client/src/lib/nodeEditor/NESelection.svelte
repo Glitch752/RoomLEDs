@@ -2,11 +2,9 @@
     import type { MarqueeState, NodeData, SelectionState } from "./NodeTypes";
 
     let {
-        nodes,
         marquee = $bindable(),
         selection = $bindable()
     }: {
-        nodes: NodeData[],
         marquee: MarqueeState,
         selection: SelectionState
     } = $props();

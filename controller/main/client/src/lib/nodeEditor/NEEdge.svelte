@@ -1,25 +1,26 @@
 <script lang="ts">
-    import type { EdgeData, NodeData } from "./NodeTypes";
+    import type NodeEditorState from "./NodeEditorState";
+    import type { EdgeData } from "./NodeTypes";
 
     const {
-        nodes,
+        nodeState,
         edge
     }: {
-        nodes: NodeData[],
+        nodeState: NodeEditorState,
         edge: EdgeData
     } = $props();
 
-    const startNode = $derived.by(() => nodes.find(n => n.id === edge.from.nodeId));
-    const endNode = $derived.by(() => nodes.find(n => n.id === edge.to.nodeId));
+    const startNode = $derived.by(() => nodeState.getNode(edge.from.nodeId));
+    const endNode = $derived.by(() => nodeState.getNode(edge.to.nodeId));
 
-    const startNodePos = $derived.by(() => startNode ? ({
-        x: startNode.x + startNode.width,
-        y: startNode.y + (startNode.outputPositionCache?.[edge.from.outputIndex] ?? 0)
-    }) : { x: 0, y: 0 });
-    const endNodePos = $derived.by(() => endNode ? ({
-        x: endNode.x,
-        y: endNode.y + (endNode.inputPositionCache?.[edge.to.inputIndex] ?? 0)
-    }) : { x: 0, y: 0 });
+    const startNodePos = $derived.by(() => ({
+        x: $startNode.x + $startNode.width,
+        y: $startNode.y + ($startNode.outputPositionCache?.[edge.from.outputIndex] ?? 0)
+    }));
+    const endNodePos = $derived.by(() => ({
+        x: $endNode.x,
+        y: $endNode.y + ($endNode.inputPositionCache?.[edge.to.inputIndex] ?? 0)
+    }));
 
     const bezierHandleDist = $derived(
         endNodePos.x < startNodePos.x

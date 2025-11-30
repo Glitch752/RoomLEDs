@@ -1,31 +1,36 @@
 <!-- Node.svelte -->
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { CameraState, NodeData, SelectionState } from "./NodeTypes";
+    import type { SelectionState } from "./NodeTypes";
+    import type NodeEditorState from "./NodeEditorState";
 
     let {
-        nodes,
-        node = $bindable(),
-        camera,
+        id,
+        nodeState,
         selection = $bindable()
     }: {
-        nodes: NodeData[],
-        node: NodeData,
-        camera: CameraState,
+        id: string,
+        nodeState: NodeEditorState,
         selection: SelectionState
     } = $props();
 
     let nodeElement: HTMLDivElement;
 
+    let camera = nodeState.camera;
+    let node = $derived.by(() => nodeState.getNode(id));
+
     let didMouseMove = false;
     function onDrag(event: MouseEvent) {
         // Drag every selected node
         for(const nodeId of selection.nodes) {
-            const n = nodes.find(n => n.id === nodeId);
+            const n = nodeState.getNode(nodeId);
             if(!n) continue;
 
-            n.x += event.movementX / camera.zoom;
-            n.y += event.movementY / camera.zoom;
+            n.update(n => ({
+                ...n,
+                x: n.x + event.movementX / $camera.zoom,
+                y: n.y + event.movementY / $camera.zoom
+            }));
         }
 
         didMouseMove = true;
@@ -35,12 +40,12 @@
         // if this node isn't active, make it the active selection
         // and ensure it's part of the selection set
         // otherwise, remove it from the selection entirely
-        if(selection.activeNode !== node.id) {
-            selection.nodes.add(node.id);
-            selection.activeNode = node.id;
+        if(selection.activeNode !== id) {
+            selection.nodes.add(id);
+            selection.activeNode = id;
         } else {
-            selection.nodes.delete(node.id);
-            if(selection.activeNode === node.id) {
+            selection.nodes.delete(id);
+            if(selection.activeNode === id) {
                 selection.activeNode = null;
             }
         }
@@ -63,8 +68,8 @@
                 // If the mouse didn't move, this was a click, so set ourself
                 // as the active node
                 selection.nodes.clear();
-                selection.nodes.add(node.id);
-                selection.activeNode = node.id;
+                selection.nodes.add(id);
+                selection.activeNode = id;
                 selection = { ...selection }; // Trigger reactivity
             }
         }, { once: true });
@@ -72,10 +77,10 @@
         didMouseMove = false;
 
         // If we're not part of the selection, set ourself as the sole active node
-        if(!selection.nodes.has(node.id)) {
+        if(!selection.nodes.has(id)) {
             selection.nodes.clear();
-            selection.nodes.add(node.id);
-            selection.activeNode = node.id;
+            selection.nodes.add(id);
+            selection.activeNode = id;
             selection = { ...selection }; // Trigger reactivity
         }
     }
@@ -89,14 +94,17 @@
         // get the canvas-space heights of the sockets based on their bounding boxes
         // relative to the node editor canvas
         const nodeBounds = nodeElement.getBoundingClientRect();
-        node.inputPositionCache = Array.from(inputSockets).map(socket => {
-            const socketBounds = socket.getBoundingClientRect();
-            return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / camera.zoom
-        });
-        node.outputPositionCache = Array.from(outputSockets).map(socket => {
-            const socketBounds = socket.getBoundingClientRect();
-            return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / camera.zoom
-        });
+        node.update((n) => ({
+            ...n,
+            inputPositionCache: Array.from(inputSockets).map(socket => {
+                const socketBounds = socket.getBoundingClientRect();
+                return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / $camera.zoom
+            }),
+            outputPositionCache: Array.from(outputSockets).map(socket => {
+                const socketBounds = socket.getBoundingClientRect();
+                return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / $camera.zoom
+            })
+        }));
     }
 
     onMount(() => {
@@ -107,26 +115,26 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     class="node"
-    class:active={selection.activeNode === node.id}
-    class:selected={selection.nodes.has(node.id)}
-    data-node-id={node.id}
+    class:active={selection.activeNode === id}
+    class:selected={selection.nodes.has(id)}
+    data-node-id={id}
 
     bind:this={nodeElement}
-    style="left:{node.x}px;top:{node.y}px;width:{node.width}px;"
+    style="left:{$node.x}px;top:{$node.y}px;width:{$node.width}px;"
 
     {onmousedown}
 >
-    <div class="title">{node.label}</div>
+    <div class="title">{$node.label}</div>
 
     <div class="lines">
-        {#each node.outputs as output, i}
+        {#each $node.outputs as output, i}
             <div class="line output">
                 <span class="content">{output}</span>
                 <div class="socket"></div>
             </div>
         {/each}
         
-        {#each node.inputs as input, i}
+        {#each $node.inputs as input, i}
             <div class="line input">
                 <div class="socket"></div>
                 <span class="content">{input}</span>
