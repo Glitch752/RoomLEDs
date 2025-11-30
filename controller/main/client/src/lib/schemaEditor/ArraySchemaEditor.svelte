@@ -57,7 +57,6 @@ let {
         </div>
     {/each}
     <button onclick={() => {
-        console.log(value);
         value.push(createDefaultValue(schema));
         onchange?.();
     }}>Add</button>

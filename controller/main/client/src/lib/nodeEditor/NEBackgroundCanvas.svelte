@@ -1,11 +1,14 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import type { CameraState } from './NodeTypes';
+    import type CallbackContainer from '../../util/callbackContainer';
 
     const {
-        camera
+        camera,
+        renderCallbacks
     }: {
-        camera: CameraState
+        camera: CameraState,
+        renderCallbacks: CallbackContainer
     } = $props();
 
     let canvas: HTMLCanvasElement;
@@ -58,8 +61,6 @@
         if(!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        console.time("a");
-
         const baseGridSize = 100;
 
         // Draw the nearest two powers of two based on the camera zoom
@@ -76,11 +77,7 @@
 
         ctx.globalAlpha = upperWeight * 0.5;
         drawGrid(upperGridSize);
-
-        console.timeEnd("a");
     }
-
-    let animFrame: number | null = null;
 
     onMount(() => {
         ctx = canvas.getContext('2d')!;
@@ -89,20 +86,12 @@
         const resizeObserver = new ResizeObserver(() => resizeCanvas());
         resizeObserver.observe(canvas.parentElement!);
 
+        renderCallbacks.addCallback(draw);
+
         return () => {
             resizeObserver.disconnect();
-            if(animFrame) cancelAnimationFrame(animFrame);
+            renderCallbacks.removeCallback(draw);
         };
-    });
-
-    $effect(() => {
-        $state.snapshot(camera);
-
-        if(animFrame) return;
-        animFrame = requestAnimationFrame(() => {
-            draw();
-            animFrame = null;
-        });
     });
 </script>
 

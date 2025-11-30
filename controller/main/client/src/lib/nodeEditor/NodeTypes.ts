@@ -32,4 +32,21 @@ export type EdgeData = {
 export type CameraState = {
     center: { x: number; y: number };
     zoom: number;
-}
+};
+
+export type SelectionState = {
+    nodes: Set<string>;
+    // The primary active node. guarenteed to be present in `nodes`.
+    // It's possible to have a nonempty selection without an active node,
+    // e.g. when the user clicks and drags to select multiple nodes and
+    // doesn't already have one of them selected.
+    activeNode: string | null;
+};
+
+export type MarqueeState = {
+    active: boolean;
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+};

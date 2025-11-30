@@ -162,8 +162,6 @@ const resizeObserver = new ResizeObserver((event) => {
     canvas.width = width;
     canvas.height = height;
 
-    console.log("Resized canvas to", width, height);
-
     draw();
 });
 

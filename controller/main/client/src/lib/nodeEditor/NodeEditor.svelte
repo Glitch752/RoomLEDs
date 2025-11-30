@@ -1,8 +1,12 @@
 <script lang="ts">
+    import { onDestroy } from "svelte";
     import NEBackgroundCanvas from "./NEBackgroundCanvas.svelte";
     import NEEdge from "./NEEdge.svelte";
     import NENode from "./NENode.svelte";
-    import type { CameraState, EdgeData, NodeData } from "./NodeTypes";
+    import NESelection from "./NESelection.svelte";
+    import NESelector from "./NESelector.svelte";
+    import type { CameraState, EdgeData, MarqueeState, NodeData, SelectionState } from "./NodeTypes";
+    import CallbackContainer from "../../util/callbackContainer";
 
     const nodes: NodeData[] = $state([
         { id: 'node1', x: 100, y: 100, width: 150, label: 'Input A', inputs: [], outputs: ['Value'], zIndex: 0 },
@@ -40,7 +44,10 @@
         { id: 'edge11', from: { nodeId: 'node13', outputIndex: 0 }, to: { nodeId: 'node14', inputIndex: 0 } },
         { id: 'edge12', from: { nodeId: 'node14', outputIndex: 0 }, to: { nodeId: 'node15', inputIndex: 0 } },
         { id: 'edge13', from: { nodeId: 'node15', outputIndex: 0 }, to: { nodeId: 'node16', inputIndex: 0 } },
-        { id: 'edge14', from: { nodeId: 'node16', outputIndex: 0 }, to: { nodeId: 'node17', inputIndex: 0 } }
+        { id: 'edge14', from: { nodeId: 'node16', outputIndex: 0 }, to: { nodeId: 'node17', inputIndex: 0 } },
+        { id: 'edgeidk', from: { nodeId: 'node8', outputIndex: 0 }, to: { nodeId: 'node9', inputIndex: 0 } },
+        { id: 'edgeidk2', from: { nodeId: 'node8', outputIndex: 0 }, to: { nodeId: 'node5', inputIndex: 0 } },
+        { id: 'edgeidk3', from: { nodeId: 'node8', outputIndex: 0 }, to: { nodeId: 'node5', inputIndex: 1 } }
     ]);
 
     const camera: CameraState = $state({
@@ -48,22 +55,79 @@
         zoom: 1
     });
 
+    let targetCamera: CameraState = {
+        center: { x: 0, y: 0 },
+        zoom: 1
+    };
+
+    /**
+     * exponential decay function to smoothly interpolate between two values
+     * while properly respecting delta time.
+     * @param a
+     * @param b
+     * @param decay decay rate; reasonable values are around 1 to 10
+     * @param dt
+     */
+    function expDecay(a: number, b: number, decay: number, dt: number) {
+        return a + (b - a) * Math.exp(-decay * dt);
+    }
+
+    let animFrame: number | null = null;
+    onDestroy(() => {
+        if(animFrame !== null) cancelAnimationFrame(animFrame);
+    });
+    let lastTime = performance.now();
+    let renderCallbacks = new CallbackContainer();
+
+    function render(time = performance.now()) {
+        const dt = (time - lastTime) / 1000;
+        lastTime = time;
+        if(
+            Math.abs(camera.center.x - targetCamera.center.x) > 0.01 ||
+            Math.abs(camera.center.y - targetCamera.center.y) > 0.01 ||
+            Math.abs(camera.zoom - targetCamera.zoom) > 0.0005
+        ) {
+            camera.center.x = expDecay(camera.center.x, targetCamera.center.x, 10, dt);
+            camera.center.y = expDecay(camera.center.y, targetCamera.center.y, 10, dt);
+            camera.zoom = expDecay(camera.zoom, targetCamera.zoom, 10, dt);
+        }
+        
+        renderCallbacks.invokeAll();
+
+        animFrame = requestAnimationFrame(render);
+    }
+    render();
+
+    let selection: SelectionState = $state({
+        nodes: new Set<string>(),
+        activeNode: null
+    });
+    let marquee: MarqueeState = $state({ active: false, startX: 0, startY: 0, endX: 0, endY: 0 });
+
     function handleWheel(event: WheelEvent) {
         if (event.ctrlKey) {
             // Zoom when holding control
             const zoomFactor = 0.1;
-            camera.zoom = Math.max(0.1, camera.zoom - event.deltaY * zoomFactor / 100);
+            targetCamera.zoom = Math.max(0.1, Math.min(10,
+                targetCamera.zoom * (1 - event.deltaY * zoomFactor / 100)
+            ))
         } else {
             // Pan camera
-            camera.center.x -= event.deltaX / camera.zoom / 2;
-            camera.center.y -= event.deltaY / camera.zoom / 2;
+            targetCamera.center.x -= event.deltaX / camera.zoom / 2;
+            targetCamera.center.y -= event.deltaY / camera.zoom / 2;
         }
         event.preventDefault();
     }
 </script>
 
-<div class="editor" onwheel={handleWheel}>
-    <NEBackgroundCanvas {camera} />
+<!-- 
+    TODO: Zones
+    https://raw.githubusercontent.com/brian3kb/graham_scan_js/master/src/graham_scan.js
+-->
+
+<div class="editor" onwheel={handleWheel} style="--zoom: {camera.zoom};">
+    <NEBackgroundCanvas {camera} {renderCallbacks} />
+    <NESelector bind:marquee />
     <div class="canvas" style="transform: scale({camera.zoom}) translate({camera.center.x}px, {camera.center.y}px);">
         <svg class="edges">
             {#each edges as edge (edge.id)}
@@ -72,10 +136,11 @@
         </svg>
         <div class="nodes">
             {#each nodes as node, i (node.id)}
-                <NENode bind:node={nodes[i]} {camera} />
+                <NENode bind:node={nodes[i]} {camera} bind:selection {nodes} />
             {/each}
         </div>
     </div>
+    <NESelection {nodes} bind:marquee bind:selection />
 </div>
 
 <style>
@@ -93,6 +158,11 @@
     width: 100%;
     height: 100%;
     transform-origin: center;
+    pointer-events: none;
+
+    * {
+        pointer-events: all;
+    }
 }
 
 .edges {

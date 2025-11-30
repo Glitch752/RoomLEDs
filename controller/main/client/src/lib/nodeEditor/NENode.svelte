@@ -1,21 +1,83 @@
 <!-- Node.svelte -->
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { CameraState, NodeData } from "./NodeTypes";
+    import type { CameraState, NodeData, SelectionState } from "./NodeTypes";
 
-    const {
+    let {
+        nodes,
         node = $bindable(),
-        camera
+        camera,
+        selection = $bindable()
     }: {
+        nodes: NodeData[],
         node: NodeData,
-        camera: CameraState
+        camera: CameraState,
+        selection: SelectionState
     } = $props();
 
     let nodeElement: HTMLDivElement;
 
+    let didMouseMove = false;
     function onDrag(event: MouseEvent) {
-        node.x += event.movementX / camera.zoom;
-        node.y += event.movementY / camera.zoom;
+        // Drag every selected node
+        for(const nodeId of selection.nodes) {
+            const n = nodes.find(n => n.id === nodeId);
+            if(!n) continue;
+
+            n.x += event.movementX / camera.zoom;
+            n.y += event.movementY / camera.zoom;
+        }
+
+        didMouseMove = true;
+    }
+
+    function handleMultiSelectMousedown(event: MouseEvent) {
+        // if this node isn't active, make it the active selection
+        // and ensure it's part of the selection set
+        // otherwise, remove it from the selection entirely
+        if(selection.activeNode !== node.id) {
+            selection.nodes.add(node.id);
+            selection.activeNode = node.id;
+        } else {
+            selection.nodes.delete(node.id);
+            if(selection.activeNode === node.id) {
+                selection.activeNode = null;
+            }
+        }
+        selection = { ...selection }; // Trigger reactivity
+    }
+
+    function onmousedown(event: MouseEvent) {
+        event.preventDefault();
+
+        if(event.shiftKey) {
+            handleMultiSelectMousedown(event);
+            return;
+        }
+
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', () => {
+            window.removeEventListener('mousemove', onDrag);
+
+            if(!didMouseMove) {
+                // If the mouse didn't move, this was a click, so set ourself
+                // as the active node
+                selection.nodes.clear();
+                selection.nodes.add(node.id);
+                selection.activeNode = node.id;
+                selection = { ...selection }; // Trigger reactivity
+            }
+        }, { once: true });
+
+        didMouseMove = false;
+
+        // If we're not part of the selection, set ourself as the sole active node
+        if(!selection.nodes.has(node.id)) {
+            selection.nodes.clear();
+            selection.nodes.add(node.id);
+            selection.activeNode = node.id;
+            selection = { ...selection }; // Trigger reactivity
+        }
     }
 
     function updateSocketCache() {
@@ -45,13 +107,14 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     class="node"
+    class:active={selection.activeNode === node.id}
+    class:selected={selection.nodes.has(node.id)}
+    data-node-id={node.id}
+
     bind:this={nodeElement}
-    style="position:absolute; left:{node.x}px; top:{node.y}px; width:{node.width}px;"
-    onmousedown={e => {
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), { once: true });
-        e.preventDefault();
-    }}
+    style="left:{node.x}px;top:{node.y}px;width:{node.width}px;"
+
+    {onmousedown}
 >
     <div class="title">{node.label}</div>
 
@@ -74,20 +137,34 @@
 
 <style lang="scss">
 .node {
+    --border-radius: 4px;
+
+    position: absolute;
+
     background: var(--surface0);
     border: 1px solid var(--surface1);
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     cursor: grab;
     user-select: none;
+
+    &.active {
+        border-color: white;
+    }
+    &.selected:not(.active) {
+        border-color: var(--peach);
+        border-width: calc(max(1px, 1.5px / var(--zoom)));
+    }
 }
 .node .title {
     text-align: left;
     padding: 1px 8px;
     background: var(--surface1);
     font-size: 0.9rem;
+
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .lines {
