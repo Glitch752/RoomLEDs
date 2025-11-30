@@ -55,7 +55,7 @@ server {
 Enable the new site:
 ```bash
 sudo ln -s /etc/nginx/sites-available/lights /etc/nginx/sites-enabled/
-sudo nginx -t # Test the configuration; good practice to do this before restarting nginx
+sudo unlink /etc/nginx/sites-enabled/default # Disable the default site
 sudo systemctl restart nginx
 ```
 

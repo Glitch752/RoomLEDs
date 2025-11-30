@@ -4,13 +4,28 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+echo-colored() {
+    local GREEN='\033[0;32m'
+    local NC='\033[0m' # No Color
+    echo -e "${GREEN}$1${NC}"
+}
+
+# optional-pv pipes through pv if it's installed, otherwise just a normal pipe
+optional-pv() {
+    if command -v pv >/dev/null 2>&1; then
+        pv "$@"
+    else
+        cat
+    fi
+}
+
 # Ensure docker and docker-compose are installed
 if ! command -v docker >/dev/null 2>&1; then
-    echo "Docker is not installed. Please install Docker."
+    echo-colored "Docker is not installed. Please install Docker."
     exit 1
 fi
 if ! command -v docker-compose >/dev/null 2>&1; then
-    echo "Docker Compose is not installed. Please install Docker Compose."
+    echo-colored "Docker Compose is not installed. Please install Docker Compose."
     exit 1
 fi
 
@@ -55,19 +70,24 @@ build_image() {
         cross_compile="true"
     fi
     
-    echo "Building image $IMAGE_NAME for architecture $TARGET_ARCH"
-    docker build \
+    echo-colored "Building image $IMAGE_NAME for architecture $TARGET_ARCH"
+    
+    # for cross-building docker yay
+    docker run --rm --privileged tonistiigi/binfmt --install all
+
+    docker buildx build \
+        --platform linux/arm64 \
         --build-arg TARGET_ARCH="$TARGET_ARCH" \
         --build-arg CROSS_COMPILE="$cross_compile" \
         -t "$IMAGE_NAME" \
         -f Dockerfile .
     
-    echo "Image built successfully"
+    echo-colored "Image built successfully"
 }
 
 deploy_to_server() {
     if [ -z "${SERVER_IP:-}" ] || [ -z "${SERVER_USER:-}" ] || [ -z "${SERVER_IDENTITY_FILE:-}" ]; then
-        echo "SERVER_IP, SERVER_USER, and SERVER_IDENTITY_FILE must be set for deployment."
+        echo-colored "SERVER_IP, SERVER_USER, and SERVER_IDENTITY_FILE must be set for deployment."
         exit 1
     fi
 
@@ -76,11 +96,11 @@ deploy_to_server() {
 
     # Make sure the identity file is in ~/.ssh/config
     if [ ! -f "$SERVER_IDENTITY_FILE" ]; then
-        echo "Identity file $SERVER_IDENTITY_FILE does not exist."
+        echo-colored "Identity file $SERVER_IDENTITY_FILE does not exist."
         exit 1
     fi
     if ! grep -q "IdentityFile $SERVER_IDENTITY_FILE" ~/.ssh/config; then
-        echo "Adding IdentityFile $SERVER_IDENTITY_FILE to ~/.ssh/config"
+        echo-colored "Adding IdentityFile $SERVER_IDENTITY_FILE to ~/.ssh/config"
         {
             echo "Host $SERVER_IP"
             echo "    User $SERVER_USER"
@@ -91,26 +111,38 @@ deploy_to_server() {
     # Set up passwordless sudo if required
     if ! ssh "$remote_ssh" "sudo -n true" 2>/dev/null; then
         # Confirm with the user they're fine compromising the security of this machine
-        echo "This script will set up passwordless sudo on the remote machine. This is probably not secure, but it shouldn't matter too much for a lighting controller. Are you sure you want to continue? (y/N)"
+        echo-colored "This script will set up passwordless sudo on the remote machine. This is probably not secure, but it shouldn't matter too much for a lighting controller. Are you sure you want to continue? (y/N)"
         read -r confirmation
         if [[ ! "$confirmation" =~ ^[Yy]$ ]]; then
             echo "Aborting deployment."
             exit 1
         fi
 
-        echo "Setting up passwordless sudo on remote server"
+        echo-colored "Setting up passwordless sudo on remote server"
         ssh -t "$remote_ssh" "echo '$SERVER_USER ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/$SERVER_USER"
     fi
 
-    # Ensure the docker context exists
-    if ! docker context inspect "$remote_context" >/dev/null 2>&1; then
-        echo "Creating docker context $remote_context"
-        docker context create "$remote_context" --docker "host=ssh://$remote_ssh"
+    # ensure the docker context exists and points to the right SSH host
+    expected_host="ssh://$remote_ssh"
+    if docker context inspect "$remote_context" >/dev/null 2>&1; then
+        # Try to read the configured host for the context; fallback to empty on failure
+        existing_host=$(docker context inspect "$remote_context" --format '{{(index .Endpoints "docker").Host}}' 2>/dev/null || true)
+        if [ "$existing_host" != "$expected_host" ]; then
+            echo-colored "Docker context $remote_context exists but points to ${existing_host:-<unknown>}. Recreating to $expected_host"
+            # Remove and recreate to ensure it targets the intended server
+            docker context rm -f "$remote_context" >/dev/null 2>&1 || true
+            docker context create "$remote_context" --docker "host=$expected_host"
+        else
+            echo-colored "Docker context $remote_context already configured for $expected_host"
+        fi
+    else
+        echo-colored "Creating docker context $remote_context"
+        docker context create "$remote_context" --docker "host=$expected_host"
     fi
     
-    echo "Deploying to $remote_ssh"
+    echo-colored "Deploying to $remote_ssh"
   
-    echo "Checking if Docker is installed remotely"
+    echo-colored "Checking if Docker is installed remotely"
     ssh "$remote_ssh" <<'EOF'
     set -e
     if ! command -v docker >/dev/null 2>&1; then
@@ -121,17 +153,34 @@ deploy_to_server() {
         echo "Installing Docker Compose plugin"
         sudo apt-get update && sudo apt-get install -y docker-compose-plugin
     fi
+
+    # Make sure the user has the docker group
+    if ! groups "$USER" | grep -q '\bdocker\b'; then
+        echo "Adding $USER to docker group"
+        sudo usermod -aG docker "$USER"
+    fi
 EOF
 
-    docker-compose --context "$remote_context" up -d
+    echo-colored "Pushing image to remote context $remote_context and deploying"
 
-    echo "Deployment completed successfully on $remote_ssh"
+    docker --context "$remote_context" tag "$IMAGE_NAME" "$IMAGE_NAME"
+    echo-colored "Tagged image as $IMAGE_NAME for remote context (size: $(docker images --format '{{.Repository}}: {{.Size}}' | grep "^$APP_NAME:"))"
+    
+    # TODO: Rsync so we don't send the whole image every time
+
+    # Save and load the image
+    docker save "$IMAGE_NAME" | optional-pv -b -i 1 | docker --context "$remote_context" load
+
+    # Deploy using docker-compose on the remote server
+    docker --context "$remote_context" compose -f docker-compose.yml up -d
+    
+    echo-colored "Deployment completed successfully on $remote_ssh"
 }
 
 main() {
-    echo "Docker deployment for controller"
-    echo "Target architecture: $TARGET_ARCH"
-    echo "Image: $IMAGE_NAME"
+    echo-colored "Docker deployment for controller"
+    echo-colored "Target architecture: $TARGET_ARCH"
+    echo-colored "Image: $IMAGE_NAME"
     
     build_image
     
@@ -139,7 +188,7 @@ main() {
         deploy_to_server
     fi
     
-    echo "Completed successfully!"
+    echo-colored "Completed successfully!"
 }
 
 main "$@"

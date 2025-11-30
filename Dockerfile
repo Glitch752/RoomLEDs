@@ -1,6 +1,6 @@
 # Cross-compiles
 
-FROM node:20-alpine AS build-client-stage
+FROM --platform=${BUILDPLATFORM} node:20-alpine AS build-client-stage
 
     RUN npm install -g pnpm
 
@@ -15,17 +15,19 @@ FROM node:20-alpine AS build-client-stage
 
     RUN pnpm run build
 
-FROM rustlang/rust:nightly-slim AS build-rust-stage
+FROM --platform=${BUILDPLATFORM} rustlang/rust:nightly-slim AS build-rust-stage
 
     ARG TARGET_ARCH=x86_64-unknown-linux-gnu
     ARG CROSS_COMPILE=false
 
     # Required dependencies for cross-compilation
     RUN apt-get update && apt-get install -y \
-        pkg-config \
-        libssl-dev \
-        libudev-dev \
-        $(if [ "$CROSS_COMPILE" = "true" ]; then echo "gcc-aarch64-linux-gnu"; fi) \
+            pkg-config \
+            libssl-dev \
+            build-essential \
+            ca-certificates \
+            libudev-dev \
+            $(if [ "$CROSS_COMPILE" = "true" ]; then echo "gcc-aarch64-linux-gnu"; fi) \
         && rm -rf /var/lib/apt/lists/*
 
     # ARM64 libraries (only if cross-compiling)
@@ -33,8 +35,10 @@ FROM rustlang/rust:nightly-slim AS build-rust-stage
         dpkg --add-architecture arm64 && \
         apt-get update && \
         apt-get install -y \
-        libssl-dev:arm64 \
-        libudev-dev:arm64 \
+            pkg-config:arm64 \
+            libssl-dev:arm64 \
+            libudev-dev:arm64 \
+            ca-certificates:arm64 \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 
@@ -70,7 +74,7 @@ exec /usr/bin/pkg-config "$@"' > /usr/local/bin/pkg-config-wrapper && \
     RUN mv /app/target/$TARGET_ARCH/release/lights-controller /app/lights-controller
 
 # Runtime stage
-FROM debian:bookworm-slim
+FROM arm64v8/debian:bookworm-slim
 
     # Runtime dependencies
     RUN apt-get update && apt-get install -y \

@@ -1,14 +1,15 @@
-version: '3.8'
-
 services:
   lights-controller:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: lights-controller:latest
     container_name: lights-controller
     restart: unless-stopped
     ports:
       - "3000:3000"
+      - "3001:3001/udp" # UDP ports open for misc protocols
+      - "3002:3002/udp"
+      - "3003:3003/udp"
+      - "3004:3004/udp"
+      - "3005:3005/udp"
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
       - "/dev/ttyUSB1:/dev/ttyUSB1"
