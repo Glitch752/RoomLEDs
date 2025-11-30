@@ -1,0 +1,4 @@
+{
+    // telling prettier to use 4 spaces fixes svelte even if we don't use it lol
+    "prettier.tabWidth": 4
+}

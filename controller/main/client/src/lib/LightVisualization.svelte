@@ -51,7 +51,7 @@
         }
 
         // Copy the canvas to the blur canvas
-        if(blurctx) {
+        if(blurctx && blurcanvas) {
             blurctx.clearRect(0, 0, blurcanvas.width, blurcanvas.height);
             blurctx.drawImage(canvas, 0, 0);
         }
