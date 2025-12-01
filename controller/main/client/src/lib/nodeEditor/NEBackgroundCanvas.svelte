@@ -40,8 +40,8 @@
         const canvasCenterY = canvas.height / 2;
 
         // Offset so that camera.center is at the center of the canvas
-        const offsetX = ((canvasCenterX + camera.center.x * pixelRatioZoom) % zoomedGridSize + zoomedGridSize) % zoomedGridSize;
-        const offsetY = ((canvasCenterY + camera.center.y * pixelRatioZoom) % zoomedGridSize + zoomedGridSize) % zoomedGridSize;
+        const offsetX = ((canvasCenterX - camera.center.x * pixelRatioZoom) % zoomedGridSize + zoomedGridSize) % zoomedGridSize;
+        const offsetY = ((canvasCenterY - camera.center.y * pixelRatioZoom) % zoomedGridSize + zoomedGridSize) % zoomedGridSize;
         
         for(let x = offsetX; x < canvas.width; x += zoomedGridSize) {
             ctx.beginPath();

@@ -1,15 +1,22 @@
 <script lang="ts">
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import NEBackgroundCanvas from "./NEBackgroundCanvas.svelte";
-    import NEEdge from "./NEEdge.svelte";
-    import NENode from "./NENode.svelte";
+    import NEEdge from "./edge/NEEdge.svelte";
+    import NENode from "./node/NENode.svelte";
     import NESelection from "./NESelection.svelte";
     import NESelector from "./NESelector.svelte";
     import type { CameraState, MarqueeState, SelectionState } from "./NodeTypes";
     import CallbackContainer from "../../util/callbackContainer";
     import NodeEditorState from './NodeEditorState';
+    import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
 
+    let editorElement: HTMLDivElement;
     const nodeState = new NodeEditorState();
+
+    onMount(() => {
+        nodeState.editorElement = editorElement;
+    });
+
     const nodes = nodeState.nodes;
     const edges = nodeState.edges;
     const camera = nodeState.camera;
@@ -81,8 +88,8 @@
              // Pan camera
              // read current camera zoom from the store
              const currentZoom = $camera.zoom;
-             targetCamera.center.x -= event.deltaX / currentZoom / 2;
-             targetCamera.center.y -= event.deltaY / currentZoom / 2;
+             targetCamera.center.x += event.deltaX / currentZoom / 2;
+             targetCamera.center.y += event.deltaY / currentZoom / 2;
          }
          event.preventDefault();
      }
@@ -93,14 +100,15 @@
     https://raw.githubusercontent.com/brian3kb/graham_scan_js/master/src/graham_scan.js
 -->
 
-<div class="editor" onwheel={handleWheel} style="--zoom: {$camera.zoom};">
+<div class="editor" onwheel={handleWheel} style="--zoom: {$camera.zoom};" bind:this={editorElement}>
     <NEBackgroundCanvas camera={$camera} {renderCallbacks} />
     <NESelector bind:marquee />
-    <div class="canvas" style="transform: scale({$camera.zoom}) translate({$camera.center.x}px, {$camera.center.y}px);">
+    <div class="canvas" style="transform: scale({$camera.zoom}) translate(50%, 50%) translate({-$camera.center.x}px, {-$camera.center.y}px);">
         <svg class="edges">
             {#each $edges as edge (edge.id)}
                 <NEEdge {edge} {nodeState} />
             {/each}
+            <NEDraggingEdge {nodeState} />
         </svg>
         <div class="nodes">
             {#each $nodes as node (node.id)}

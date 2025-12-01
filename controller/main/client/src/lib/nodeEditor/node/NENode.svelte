@@ -1,8 +1,8 @@
-<!-- Node.svelte -->
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { SelectionState } from "./NodeTypes";
-    import type NodeEditorState from "./NodeEditorState";
+    import type { SelectionState } from "../NodeTypes";
+    import type NodeEditorState from "../NodeEditorState";
+    import NENodeLine from "./NENodeLine.svelte";
 
     let {
         id,
@@ -128,17 +128,11 @@
 
     <div class="lines">
         {#each $node.outputs as output, i}
-            <div class="line output">
-                <span class="content">{output}</span>
-                <div class="socket"></div>
-            </div>
+            <NENodeLine isInput={false} {nodeState} node={$node} index={i} text={output} />
         {/each}
         
         {#each $node.inputs as input, i}
-            <div class="line input">
-                <div class="socket"></div>
-                <span class="content">{input}</span>
-            </div>
+            <NENodeLine isInput={true} {nodeState} node={$node} index={i} text={input} />
         {/each}
     </div>
 </div>
@@ -179,35 +173,5 @@
     display: flex;
     flex-direction: column;
     padding: 0.25rem 0;
-}
-.line {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-    gap: 0.7rem;
-
-    .content {
-        font-size: 0.85rem;
-        flex: 1;
-    }
-    &.output .content {
-        text-align: right;
-    }
-    &.input .content {
-        text-align: left;
-    }
-    
-    .socket {
-        width: 6px;
-        height: 10px;
-        margin: 0 -3px;
-        background: var(--subtext0);
-        border: 1px solid var(--subtext1);
-        border-radius: 3px;
-    }
-    &.input .socket {
-        order: 0;
-    }
 }
 </style>
