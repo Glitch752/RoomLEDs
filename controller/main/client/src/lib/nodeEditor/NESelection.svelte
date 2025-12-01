@@ -1,15 +1,16 @@
 <script lang="ts">
-    import type { MarqueeState, NodeData, SelectionState } from "./NodeTypes";
+    import type { Writable } from "svelte/store";
+    import type { MarqueeState, NodeData, NodeID, SelectionState } from "./NodeTypes";
 
     let {
         marquee = $bindable(),
-        selection = $bindable()
+        selection
     }: {
         marquee: MarqueeState,
-        selection: SelectionState
+        selection: Writable<SelectionState>
     } = $props();
 
-    $inspect(selection);
+    let selectionValue = $selection;
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -35,14 +36,14 @@
             const x2 = Math.max(marquee.startX, marquee.endX);
             const y2 = Math.max(marquee.startY, marquee.endY);
 
-            const oldActiveNode = selection.activeNode;
-            selection.activeNode = null;
-            selection.nodes.clear();
+            const oldActiveNode = selectionValue.activeNode;
+            selectionValue.activeNode = null;
+            selectionValue.nodes.clear();
 
             const nodes = (event.target as HTMLDivElement)
                 .parentElement?.querySelectorAll('[data-node-id]') ?? [];
             for(const node of nodes) {
-                const nodeId = node.getAttribute('data-node-id');
+                const nodeId = node.getAttribute('data-node-id') as NodeID;
                 if(!nodeId) continue;
 
                 const nodeRect = node.getBoundingClientRect();
@@ -55,15 +56,16 @@
 
                 // Check if the node is within the marquee selection
                 if(nodeX1 < x2 && nodeX2 > x1 && nodeY1 < y2 && nodeY2 > y1) {
-                    selection.nodes.add(nodeId);
+                    selectionValue.nodes.add(nodeId);
                 }
             }
 
-            if(oldActiveNode && selection.nodes.has(oldActiveNode)) {
-                selection.activeNode = oldActiveNode;
+            if(oldActiveNode && selectionValue.nodes.has(oldActiveNode)) {
+                selectionValue.activeNode = oldActiveNode;
             }
 
-            selection = { ...selection }; // Trigger reactivity
+            // Trigger reactivity
+            selection.set({ ...selectionValue });
 
             event.preventDefault();
         }}

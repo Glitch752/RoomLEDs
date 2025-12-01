@@ -1,7 +1,10 @@
 // VERY temporary for testing rendering
 
+export type NodeID = string & { readonly __brand: unique symbol };
+export type EdgeID = string & { readonly __brand: unique symbol };
+
 export type NodeData = {
-    id: string;
+    id: NodeID;
     x: number;
     y: number;
     width: number;
@@ -18,13 +21,13 @@ export type NodeData = {
 };
 
 export type EdgeData = {
-    id: string;
+    id: EdgeID;
     from: {
-        nodeId: string;
+        nodeId: NodeID;
         outputIndex: number;
     };
     to: {
-        nodeId: string;
+        nodeId: NodeID;
         inputIndex: number;
     };
 };
@@ -35,12 +38,12 @@ export type CameraState = {
 };
 
 export type SelectionState = {
-    nodes: Set<string>;
+    nodes: Set<NodeID>;
     // The primary active node. guarenteed to be present in `nodes`.
     // It's possible to have a nonempty selection without an active node,
     // e.g. when the user clicks and drags to select multiple nodes and
     // doesn't already have one of them selected.
-    activeNode: string | null;
+    activeNode: NodeID | null;
 };
 
 export type MarqueeState = {

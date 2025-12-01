@@ -5,7 +5,7 @@
     import NENode from "./node/NENode.svelte";
     import NESelection from "./NESelection.svelte";
     import NESelector from "./NESelector.svelte";
-    import type { CameraState, MarqueeState, SelectionState } from "./NodeTypes";
+    import type { CameraState, MarqueeState, NodeID, SelectionState } from "./NodeTypes";
     import CallbackContainer from "../../util/callbackContainer";
     import NodeEditorState from './NodeEditorState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
@@ -71,10 +71,6 @@
     }
     render();
 
-    let selection: SelectionState = $state({
-        nodes: new Set<string>(),
-        activeNode: null
-    });
     let marquee: MarqueeState = $state({ active: false, startX: 0, startY: 0, endX: 0, endY: 0 });
 
     function handleWheel(event: WheelEvent) {
@@ -100,7 +96,22 @@
     https://raw.githubusercontent.com/brian3kb/graham_scan_js/master/src/graham_scan.js
 -->
 
-<div class="editor" onwheel={handleWheel} style="--zoom: {$camera.zoom};" bind:this={editorElement}>
+<svelte:document onkeydown={(e) => {
+    // If the mouse is over the editor, forward keydown events to the node editor state
+    // this isn't a very robust way to do it, but it matches Blender's
+    // behavior and works for now.
+    if(editorElement && editorElement.matches(':hover')) {
+        nodeState.onkeydown(e);
+    }
+}} />
+
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+    class="editor"
+    onwheel={handleWheel}
+    style="--zoom: {$camera.zoom};"
+    bind:this={editorElement}
+>
     <NEBackgroundCanvas camera={$camera} {renderCallbacks} />
     <NESelector bind:marquee />
     <div class="canvas" style="transform: scale({$camera.zoom}) translate(50%, 50%) translate({-$camera.center.x}px, {-$camera.center.y}px);">
@@ -111,12 +122,12 @@
             <NEDraggingEdge {nodeState} />
         </svg>
         <div class="nodes">
-            {#each $nodes as node (node.id)}
-                <NENode id={node.id} bind:selection {nodeState} />
+            {#each $nodes as [id, node] (id)}
+                <NENode id={id} {nodeState} />
             {/each}
         </div>
     </div>
-    <NESelection bind:marquee bind:selection />
+    <NESelection bind:marquee selection={nodeState.selection} />
 </div>
 
 <style>

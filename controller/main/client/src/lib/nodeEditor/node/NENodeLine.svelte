@@ -1,6 +1,6 @@
 <script lang="ts">
     import type NodeEditorState from "../NodeEditorState";
-    import type { EdgeData, NodeData } from "../NodeTypes";
+    import type { EdgeData, NodeData, NodeID, EdgeID } from "../NodeTypes";
 
     const {
         isInput,
@@ -41,7 +41,7 @@
                             if(inputNodeId !== edge.fromNodeId) {
                                 to = {
                                     type: 'nodeInput',
-                                    nodeId: inputNodeId,
+                                    nodeId: inputNodeId as NodeID,
                                     inputIndex
                                 };
                             }
@@ -71,7 +71,7 @@
                             if(outputNodeId !== edge.toNodeId) {
                                 from = {
                                     type: 'nodeOutput',
-                                    nodeId: outputNodeId,
+                                    nodeId: outputNodeId as NodeID,
                                     outputIndex
                                 };
                             }
@@ -95,13 +95,13 @@
             if(!edge) return null;
 
             let newEdge: EdgeData = {
-                id: crypto.randomUUID(),
+                id: crypto.randomUUID() as EdgeID,
                 from: {
-                    nodeId: "",
+                    nodeId: "" as NodeID,
                     outputIndex: 0
                 },
                 to: {
-                    nodeId: "",
+                    nodeId: "" as NodeID,
                     inputIndex: 0
                 }
             };

@@ -1,28 +1,28 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { SelectionState } from "../NodeTypes";
+    import type { NodeID, SelectionState } from "../NodeTypes";
     import type NodeEditorState from "../NodeEditorState";
     import NENodeLine from "./NENodeLine.svelte";
 
     let {
         id,
-        nodeState,
-        selection = $bindable()
+        nodeState
     }: {
-        id: string,
-        nodeState: NodeEditorState,
-        selection: SelectionState
+        id: NodeID,
+        nodeState: NodeEditorState
     } = $props();
 
     let nodeElement: HTMLDivElement;
 
-    let camera = nodeState.camera;
-    let node = $derived.by(() => nodeState.getNode(id));
+    const camera = nodeState.camera;
+    const selection = nodeState.selection;
+
+    const node = $derived.by(() => nodeState.getNode(id));
 
     let didMouseMove = false;
     function onDrag(event: MouseEvent) {
         // Drag every selected node
-        for(const nodeId of selection.nodes) {
+        for(const nodeId of $selection.nodes) {
             const n = nodeState.getNode(nodeId);
             if(!n) continue;
 
@@ -40,16 +40,16 @@
         // if this node isn't active, make it the active selection
         // and ensure it's part of the selection set
         // otherwise, remove it from the selection entirely
-        if(selection.activeNode !== id) {
-            selection.nodes.add(id);
-            selection.activeNode = id;
+        if($selection.activeNode !== id) {
+            $selection.nodes.add(id);
+            $selection.activeNode = id;
         } else {
-            selection.nodes.delete(id);
-            if(selection.activeNode === id) {
-                selection.activeNode = null;
+            $selection.nodes.delete(id);
+            if($selection.activeNode === id) {
+                $selection.activeNode = null;
             }
         }
-        selection = { ...selection }; // Trigger reactivity
+        selection.set({ ...$selection });
     }
 
     function onmousedown(event: MouseEvent) {
@@ -67,21 +67,21 @@
             if(!didMouseMove) {
                 // If the mouse didn't move, this was a click, so set ourself
                 // as the active node
-                selection.nodes.clear();
-                selection.nodes.add(id);
-                selection.activeNode = id;
-                selection = { ...selection }; // Trigger reactivity
+                $selection.nodes.clear();
+                $selection.nodes.add(id);
+                $selection.activeNode = id;
+                selection.set({ ...$selection });
             }
         }, { once: true });
 
         didMouseMove = false;
 
         // If we're not part of the selection, set ourself as the sole active node
-        if(!selection.nodes.has(id)) {
-            selection.nodes.clear();
-            selection.nodes.add(id);
-            selection.activeNode = id;
-            selection = { ...selection }; // Trigger reactivity
+        if(!$selection.nodes.has(id)) {
+            $selection.nodes.clear();
+            $selection.nodes.add(id);
+            $selection.activeNode = id;
+            selection.set({ ...$selection });
         }
     }
 
@@ -115,8 +115,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     class="node"
-    class:active={selection.activeNode === id}
-    class:selected={selection.nodes.has(id)}
+    class:active={$selection.activeNode === id}
+    class:selected={$selection.nodes.has(id)}
     data-node-id={id}
 
     bind:this={nodeElement}
