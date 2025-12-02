@@ -3,6 +3,7 @@
     import type { NodeID, SelectionState } from "../NodeTypes";
     import type NodeEditorState from "../NodeEditorState";
     import NENodeLine from "./NENodeLine.svelte";
+    import NENodeDataValue from "./NENodeDataValue.svelte";
 
     let {
         id,
@@ -26,11 +27,11 @@
             const n = nodeState.getNode(nodeId);
             if(!n) continue;
 
-            n.update(n => ({
-                ...n,
-                x: n.x + event.movementX / $camera.zoom,
-                y: n.y + event.movementY / $camera.zoom
-            }));
+            n.update(n => {
+                n.x += event.movementX / $camera.zoom;
+                n.y += event.movementY / $camera.zoom;
+                return n;
+            });
         }
 
         didMouseMove = true;
@@ -53,6 +54,15 @@
     }
 
     function onmousedown(event: MouseEvent) {
+        if(
+            document.activeElement instanceof HTMLElement &&
+            (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "TEXTAREA")
+        ) {
+            document.activeElement.blur();
+            return;
+        }
+
         event.preventDefault();
 
         if(event.shiftKey) {
@@ -94,17 +104,17 @@
         // get the canvas-space heights of the sockets based on their bounding boxes
         // relative to the node editor canvas
         const nodeBounds = nodeElement.getBoundingClientRect();
-        node.update((n) => ({
-            ...n,
-            inputPositionCache: Array.from(inputSockets).map(socket => {
+        node.update((n) => {
+            n.inputPositionCache = Array.from(inputSockets).map(socket => {
                 const socketBounds = socket.getBoundingClientRect();
                 return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / $camera.zoom
-            }),
-            outputPositionCache: Array.from(outputSockets).map(socket => {
+            });
+            n.outputPositionCache = Array.from(outputSockets).map(socket => {
                 const socketBounds = socket.getBoundingClientRect();
                 return (socketBounds.y + socketBounds.height / 2 - nodeBounds.y) / $camera.zoom
-            })
-        }));
+            });
+            return n;
+        });
     }
 
     onMount(() => {
@@ -124,15 +134,24 @@
 
     {onmousedown}
 >
-    <div class="title">{$node.label}</div>
+    <div class="title" title={$node.variantInfo.description}>{$node.variantInfo.name}</div>
 
     <div class="lines">
-        {#each $node.outputs as output, i}
-            <NENodeLine isInput={false} {nodeState} node={$node} index={i} text={output} />
+        {#each Object.entries($node.variantInfo.dataValues) as [name, dataValue] (name)}
+            <NENodeDataValue key={name} descriptor={dataValue} value={$node.dataValues[name]} onchange={(newValue) => {
+                node.update(n => {
+                    n.dataValues[name] = newValue;
+                    return n;
+                });
+            }} />
+        {/each}
+
+        {#each $node.variantInfo.outputs as output, i}
+            <NENodeLine isInput={false} {nodeState} node={$node} index={i} text={output.label} type={output.type} />
         {/each}
         
-        {#each $node.inputs as input, i}
-            <NENodeLine isInput={true} {nodeState} node={$node} index={i} text={input} />
+        {#each $node.variantInfo.inputs as input, i}
+            <NENodeLine isInput={true} {nodeState} node={$node} index={i} text={input.label} type={input.type} />
         {/each}
     </div>
 </div>

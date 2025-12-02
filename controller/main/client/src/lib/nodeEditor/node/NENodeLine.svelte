@@ -1,20 +1,25 @@
 <script lang="ts">
     import type NodeEditorState from "../NodeEditorState";
     import type { EdgeData, NodeData, NodeID, EdgeID } from "../NodeTypes";
+    import { nodeDataTypeInfo, type NodeDataType } from "../NodeVariants";
 
     const {
         isInput,
         text,
+        type,
         nodeState,
         node,
         index
     }: {
         isInput: boolean,
         text: string,
+        type: NodeDataType,
         nodeState: NodeEditorState,
         node: NodeData,
         index: number
     } = $props();
+
+    const typeInfo = nodeDataTypeInfo[type];
 
     function onmousemove(event: MouseEvent) {
         // TODO: do the thing where the camera moves when dragging near the edge of the
@@ -193,10 +198,14 @@
     data-node-id={node.id}
     data-input-index={isInput ? index : undefined}
     data-output-index={!isInput ? index : undefined}
+
+    title={`${text}
+    Type: ${typeInfo.label}`}
 >
     <span class="content">{text}</span>
     <div
         class="socket"
+        style="--color: {typeInfo.primaryColor}; --lightColor: {typeInfo.lightColor};"
         {onmousedown}
     ></div>
 </div>
@@ -239,8 +248,8 @@
         display: block;
         width: 6px;
         height: 10px;
-        background: var(--subtext0);
-        border: 1px solid var(--subtext1);
+        background: var(--color, var(--subtext0));
+        border: 1px solid var(--lightColor, var(--subtext1));
         border-radius: 3px;
     }
     &.input .socket {

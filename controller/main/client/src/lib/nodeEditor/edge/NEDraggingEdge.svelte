@@ -3,6 +3,7 @@
 
 <script lang="ts">
     import type NodeEditorState from "../NodeEditorState";
+    import { nodeDataTypeInfo } from "../NodeVariants";
     import NEPositionedEdge from "./NEPositionedEdge.svelte";
 
     const {
@@ -49,6 +50,21 @@
             };
         }
     });
+
+    const type = $derived.by(() => {
+        if(!$edge || !$attachedNode) return null;
+
+        if($edge.type === "to") {
+            return $attachedNode.variantInfo.inputs[$edge.toInputIndex].type;
+        } else {
+            return $attachedNode.variantInfo.outputs[$edge.fromOutputIndex].type;
+        }
+    });
+    const typeInfo = $derived(type !== null ? nodeDataTypeInfo[type] : {
+        primaryColor: "#ffffff",
+        lightColor: "#ffffff",
+        alphaBackgroundColor: "#ffffff22"
+    });
 </script>
 
 {#if $edge && $attachedNode}
@@ -59,6 +75,8 @@
                 x: $attachedNode.x,
                 y: $attachedNode.y + ($attachedNode.inputPositionCache?.[$edge.toInputIndex] ?? 0)
             }}
+            primaryColor={typeInfo.primaryColor}
+            alphaBackgroundColor={typeInfo.alphaBackgroundColor}
         ></NEPositionedEdge>
     {:else}
         <NEPositionedEdge
@@ -67,6 +85,8 @@
                 y: $attachedNode.y + ($attachedNode.outputPositionCache?.[$edge.fromOutputIndex] ?? 0)
             }}
             end={otherEndPosition}
+            primaryColor={typeInfo.primaryColor}
+            alphaBackgroundColor={typeInfo.alphaBackgroundColor}
         ></NEPositionedEdge>
     {/if}
 {/if}

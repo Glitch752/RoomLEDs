@@ -1,5 +1,7 @@
 import { get, writable, type Writable } from 'svelte/store';
-import type { CameraState, EdgeData, EdgeID, NodeData, NodeID, SelectionState } from './NodeTypes';
+import { tick } from 'svelte';
+import { NodeData, type CameraState, type EdgeData, type EdgeID, type NodeID, type SelectionState, type SerializedNodeData, type SerializedNodeEditorState } from './NodeTypes';
+import { NodeVariant } from './NodeVariants';
 
 export type DraggingEdgeData = {
     type: 'to',
@@ -134,46 +136,10 @@ export default class NodeEditorState {
     }
 
     constructor() {
-        this.nodes = writable(new Map(([
-            { id: 'node1' as NodeID, x: 100, y: 100, width: 150, label: 'Input A', inputs: [], outputs: ['Value'], zIndex: 0 },
-            { id: 'node2' as NodeID, x: 100, y: 300, width: 150, label: 'Input B', inputs: [], outputs: ['Value'], zIndex: 1 },
-            { id: 'node3' as NodeID, x: 300, y: 200, width: 150, label: 'Add', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 2 },
-            { id: 'node4' as NodeID, x: 500, y: 100, width: 150, label: 'Multiply', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 3 },
-            { id: 'node5' as NodeID, x: 500, y: 300, width: 150, label: 'Subtract', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 4 },
-            { id: 'node6' as NodeID, x: 700, y: 200, width: 150, label: 'Divide', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 5 },
-            { id: 'node7' as NodeID, x: 900, y: 200, width: 150, label: 'Output', inputs: ['Value'], outputs: [], zIndex: 6 },
-            { id: 'node8' as NodeID, x: 300, y: 400, width: 150, label: 'Constants C', inputs: [], outputs: ['One', 'Two'], zIndex: 7 },
-            { id: 'node9' as NodeID, x: 500, y: 500, width: 150, label: 'Power', inputs: ['Base', 'Exponent'], outputs: ['Result'], zIndex: 8 },
-            { id: 'node10' as NodeID, x: 700, y: 400, width: 150, label: 'Modulo', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 9 },
-            { id: 'node11' as NodeID, x: 900, y: 400, width: 150, label: 'Output 2', inputs: ['Value'], outputs: [], zIndex: 10 },
-            { id: 'node12' as NodeID, x: 100, y: 500, width: 150, label: 'Input D', inputs: [], outputs: ['Value'], zIndex: 11 },
-            { id: 'node13' as NodeID, x: 300, y: 600, width: 150, label: 'Logarithm', inputs: ['Value'], outputs: ['Result'], zIndex: 12 },
-            { id: 'node14' as NodeID, x: 500, y: 700, width: 150, label: 'Square Root', inputs: ['Value'], outputs: ['Result'], zIndex: 13 },
-            { id: 'node15' as NodeID, x: 700, y: 600, width: 150, label: 'Add', inputs: ['A', 'B'], outputs: ['Result'], zIndex: 14 },
-            { id: 'node16' as NodeID, x: 900, y: 600, width: 150, label: 'Cos', inputs: ['Angle'], outputs: ['Result'], zIndex: 15 },
-            { id: 'node17' as NodeID, x: 1100, y: 200, width: 150, label: 'Final Output', inputs: ['Value'], outputs: [], zIndex: 16 }
-        ] satisfies NodeData[]).map((n) => [n.id, n])));
+        this.nodes = writable(new Map());
+        this.edges = writable<EdgeData[]>([]);
 
-        this.edges = writable<EdgeData[]>([
-            { id: 'edge1' as EdgeID, from: { nodeId: 'node1' as NodeID, outputIndex: 0 }, to: { nodeId: 'node3' as NodeID, inputIndex: 0 } },
-            { id: 'edge2' as EdgeID, from: { nodeId: 'node2' as NodeID, outputIndex: 0 }, to: { nodeId: 'node3' as NodeID, inputIndex: 1 } },
-            { id: 'edge3' as EdgeID, from: { nodeId: 'node3' as NodeID, outputIndex: 0 }, to: { nodeId: 'node4' as NodeID, inputIndex: 0 } },
-            { id: 'edge4' as EdgeID, from: { nodeId: 'node8' as NodeID, outputIndex: 0 }, to: { nodeId: 'node4' as NodeID, inputIndex: 1 } },
-            { id: 'edge5' as EdgeID, from: { nodeId: 'node4' as NodeID, outputIndex: 0 }, to: { nodeId: 'node6' as NodeID, inputIndex: 0 } },
-            { id: 'edge6' as EdgeID, from: { nodeId: 'node5' as NodeID, outputIndex: 0 }, to: { nodeId: 'node6' as NodeID, inputIndex: 1 } },
-            { id: 'edge7' as EdgeID, from: { nodeId: 'node6' as NodeID, outputIndex: 0 }, to: { nodeId: 'node7' as NodeID, inputIndex: 0 } },
-            { id: 'edge8' as EdgeID, from: { nodeId: 'node9' as NodeID, outputIndex: 0 }, to: { nodeId: 'node10' as NodeID, inputIndex: 0 } },
-            { id: 'edge9' as EdgeID, from: { nodeId: 'node10' as NodeID, outputIndex: 0 }, to: { nodeId: 'node11' as NodeID, inputIndex: 0 } },
-            { id: 'edge10' as EdgeID, from: { nodeId: 'node12' as NodeID, outputIndex: 0 }, to: { nodeId: 'node13' as NodeID, inputIndex: 0 } },
-            { id: 'edge11' as EdgeID, from: { nodeId: 'node13' as NodeID, outputIndex: 0 }, to: { nodeId: 'node14' as NodeID, inputIndex: 0 } },
-            { id: 'edge12' as EdgeID, from: { nodeId: 'node14' as NodeID, outputIndex: 0 }, to: { nodeId: 'node15' as NodeID, inputIndex: 1 } },
-            { id: 'edge13' as EdgeID, from: { nodeId: 'node15' as NodeID, outputIndex: 0 }, to: { nodeId: 'node16' as NodeID, inputIndex: 0 } },
-            { id: 'edge14' as EdgeID, from: { nodeId: 'node16' as NodeID, outputIndex: 0 }, to: { nodeId: 'node17' as NodeID, inputIndex: 0 } },
-            { id: 'edgeidk' as EdgeID, from: { nodeId: 'node8' as NodeID, outputIndex: 0 }, to: { nodeId: 'node9' as NodeID, inputIndex: 0 } },
-            { id: 'edgeidk2' as EdgeID, from: { nodeId: 'node8' as NodeID, outputIndex: 0 }, to: { nodeId: 'node5' as NodeID, inputIndex: 0 } },
-            { id: 'edgeidk3' as EdgeID, from: { nodeId: 'node8' as NodeID, outputIndex: 0 }, to: { nodeId: 'node5' as NodeID, inputIndex: 1 } },
-            { id: 'edgeidk4' as EdgeID, from: { nodeId: 'node8' as NodeID, outputIndex: 1 }, to: { nodeId: 'node15' as NodeID, inputIndex: 0 } }
-        ]);
+        this.generateTestGrid(10);
 
         this.camera = writable<CameraState>({
             center: { x: 0, y: 0 },
@@ -184,6 +150,132 @@ export default class NodeEditorState {
             nodes: new Set<NodeID>(),
             activeNode: null
         });
+    }
+
+    serialize(): SerializedNodeEditorState {
+        const nodesArray: SerializedNodeData[] = [];
+        get(this.nodes).forEach((node) => {
+            const { inputPositionCache, outputPositionCache, ...rest } = node;
+            nodesArray.push(rest);
+        });
+        
+        return {
+            version: 1,
+            nodes: nodesArray,
+            edges: get(this.edges),
+            camera: get(this.camera)
+        };
+    }
+
+    async deserialize(data: SerializedNodeEditorState): Promise<void> {
+        this.edges.set([]);
+        this.nodes.set(new Map());
+
+        // Tell svelte to wait a tick to ensure reactivity
+        await tick();
+
+        const nodesMap: Map<NodeID, NodeData> = new Map();
+        data.nodes.forEach((node) => {
+            nodesMap.set(node.id, new NodeData(node));
+        });
+        this.nodes.set(nodesMap);
+        this.edges.set(data.edges);
+        this.camera.set(data.camera);
+    }
+
+
+
+    // spaghetti, yum 🍝
+    // only for testing! this isn't made to be good code
+    generateTestGrid(n: number) {
+        this.nodes.set(new Map());
+        this.edges.set([]);
+
+        const nodes = new Map<NodeID, NodeData>();
+        const edges: EdgeData[] = [];
+        let edgeId = 0;
+
+        for(let row = 0; row < n; row++) {
+            for(let col = row; col < n; col++) {
+                const id = `node-${row}-${col}` as NodeID;
+                const middleNode = col !== 0 && col !== n - 1;
+                nodes.set(id, new NodeData({
+                    id,
+                    variant: col === 0 ? NodeVariant.InputNumber : (
+                        col === n - 1 ? NodeVariant.OutputNumber : NodeVariant.UnaryNumberOperation
+                    ),
+                    x: col * 300 + Math.floor(Math.random() * 100 - 50),
+                    y: row * 180 + Math.floor(Math.random() * 100 - 50),
+                    width: middleNode ? 200 : 150,
+                    zonePartner: null,
+                    dataValues: middleNode ? {
+                        operation: 'sqrt'
+                    } : {},
+                    zIndex: 0
+                }));
+            }
+        }
+
+        const getNodeId = (row: number, col: number) => `node-${row}-${col}` as NodeID;
+
+        const addEdgeIfValid = (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
+            if(fromCol < 0 || fromCol >= n || toCol < 0 || toCol >= n) return;
+            const fromId = getNodeId(fromRow, fromCol);
+            const toId = getNodeId(toRow, toCol);
+            if(!nodes.has(fromId) || !nodes.has(toId)) return;
+
+            // Check if the to node already has an edge on that input
+            const existingEdge = edges.find((e) => e.to.nodeId === toId && e.to.inputIndex === 0);
+            if(existingEdge) return;
+            
+            edges.push({
+                id: `edge-${edgeId++}`,
+                from: { nodeId: fromId, outputIndex: 0 },
+                to: { nodeId: toId, inputIndex: 0 },
+            } as EdgeData);
+        };
+
+        // For each column, pick random nodes in the previous column
+        // to make edges with
+        for(let col = 1; col < n; col++) {
+            const possibleFromRows = [];
+            for(let row = 0; row < n; row++) {
+                if(nodes.has(getNodeId(row, col - 1))) {
+                    possibleFromRows.push(row);
+                }
+            }
+            
+            for(let row = 0; row < n; row++) {
+                const fromRow = possibleFromRows[Math.floor(Math.random() * possibleFromRows.length)];
+                addEdgeIfValid(fromRow, col - 1, row, col);
+            }
+        }
+
+        // Remove nodes with no outputs
+        let removed = true;
+        while(removed) {
+            removed = false;
+            nodes.forEach((node, nodeId) => {
+                if(node.variantInfo.outputs.length !== 0) {
+                    const hasOutgoingEdge = edges.some((edge) => edge.from.nodeId === nodeId);
+                    if(!hasOutgoingEdge) {
+                        nodes.delete(nodeId);
+
+                        // Delete edges connected to this node
+                        for(let i = edges.length - 1; i >= 0; i--) {
+                            if(edges[i].from.nodeId === nodeId || edges[i].to.nodeId === nodeId) {
+                                edges.splice(i, 1);
+                            }
+                        }
+
+                        removed = true;
+                    }
+                }
+            });
+        }
+
+        this.nodes.set(nodes);
+        this.edges.set(edges);
     }
 
     clientToCanvas(x: number, y: number): { x: number; y: number } {

@@ -2,6 +2,7 @@
     import NEPositionedEdge from "./NEPositionedEdge.svelte";
     import type NodeEditorState from "../NodeEditorState";
     import type { EdgeData } from "../NodeTypes";
+    import { nodeDataTypeInfo } from "../NodeVariants";
 
     const {
         nodeState,
@@ -22,6 +23,14 @@
         x: $endNode.x,
         y: $endNode.y + ($endNode.inputPositionCache?.[edge.to.inputIndex] ?? 0)
     }));
+
+    const type = $derived($startNode.variantInfo.outputs[edge.from.outputIndex]?.type);
+    const typeInfo = $derived(nodeDataTypeInfo[type]);
 </script>
 
-<NEPositionedEdge start={startNodePos} end={endNodePos} />
+<NEPositionedEdge
+    start={startNodePos}
+    end={endNodePos}
+    primaryColor={typeInfo.primaryColor}
+    alphaBackgroundColor={typeInfo.alphaBackgroundColor}
+/>

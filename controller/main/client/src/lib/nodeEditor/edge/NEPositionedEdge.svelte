@@ -1,7 +1,14 @@
 <script lang="ts">
-    const { start, end }: {
+    const {
+        start,
+        end,
+        primaryColor,
+        alphaBackgroundColor
+    }: {
         start: { x: number; y: number };
         end: { x: number; y: number };
+        primaryColor: string;
+        alphaBackgroundColor: string;
     } = $props();
 
     const bezierHandleDist = $derived(
@@ -17,5 +24,5 @@
 </script>
 
 <!-- Background outline -->
-<path class="edge" d={path} stroke="#ff000055" fill="none" stroke-width="4"/>
-<path class="edge" d={path} stroke="#ff6666" fill="none" stroke-width="2"/>
+<path class="edge" d={path} stroke={alphaBackgroundColor} fill="none" stroke-width="4"/>
+<path class="edge" d={path} stroke={primaryColor} fill="none" stroke-width="2"/>

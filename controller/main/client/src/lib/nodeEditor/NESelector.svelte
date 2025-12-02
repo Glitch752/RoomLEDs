@@ -14,6 +14,15 @@
     onmousedown={(event) => {
         if(event.button !== 0) return; // Only respond to left mouse button
 
+        if(
+            document.activeElement instanceof HTMLElement &&
+            (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "TEXTAREA")
+        ) {
+            document.activeElement.blur();
+            return;
+        }
+
         marquee.active = true;
         const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
         marquee.startX = event.clientX - rect.left;

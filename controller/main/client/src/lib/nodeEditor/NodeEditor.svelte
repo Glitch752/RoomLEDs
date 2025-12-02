@@ -15,6 +15,11 @@
 
     onMount(() => {
         nodeState.editorElement = editorElement;
+
+        // @ts-ignore
+        window.ns = nodeState; // for debugging
+        // @ts-ignore
+        return () => { window.ns = undefined; };
     });
 
     const nodes = nodeState.nodes;
