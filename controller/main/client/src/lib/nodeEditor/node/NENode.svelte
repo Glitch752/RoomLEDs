@@ -17,6 +17,7 @@
 
     const camera = nodeState.camera;
     const selection = nodeState.selection;
+    const editMode = nodeState.editMode;
 
     const node = $derived.by(() => nodeState.getNode(id));
 
