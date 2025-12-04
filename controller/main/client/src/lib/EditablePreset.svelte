@@ -4,7 +4,7 @@
     import { schemas } from "@bindings/schemas";
     import type { AnyEffect } from "@bindings/index";
     import { deleteEffectPreset, getPresetData, runArbitraryEffect, updateEffectPreset } from "../api/presets";
-    import { debounce } from "../util/debouncer";
+    import { debounce } from "../util/timing";
     import IconSelector from "./iconSelector/IconSelector.svelte";
     import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
 

@@ -9,6 +9,7 @@
     import CallbackContainer from "../../util/callbackContainer";
     import NodeEditorState from './NodeEditorState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
+    import { expDecay } from "../../util/timing";
 
     let editorElement: HTMLDivElement;
     const nodeState = new NodeEditorState();
@@ -30,18 +31,6 @@
         center: { x: 0, y: 0 },
         zoom: 1
     };
-
-    /**
-     * exponential decay function to smoothly interpolate between two values
-     * while properly respecting delta time.
-     * @param a
-     * @param b
-     * @param decay decay rate; reasonable values are around 1 to 10
-     * @param dt
-     */
-    function expDecay(a: number, b: number, decay: number, dt: number) {
-        return a + (b - a) * Math.exp(-decay * dt);
-    }
 
     let animFrame: number | null = null;
     onDestroy(() => {

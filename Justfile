@@ -1,3 +1,6 @@
+install:
+    cd controller/main/client && pnpm install
+
 deploy:
     bash ./docker-deploy.sh --deploy
 

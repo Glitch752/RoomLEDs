@@ -5,7 +5,7 @@
     import { createEffectPreset, runArbitraryEffect } from "../api/presets";
     import IconSelector from "./iconSelector/IconSelector.svelte";
     import { previewedComponent, setPreviewedComponent } from "./preview.svelte";
-    import { debounce } from "../util/debouncer";
+    import { debounce } from "../util/timing";
     
     const id = $props.id();
     let debounceEffectUpdate = debounce(0.25);
