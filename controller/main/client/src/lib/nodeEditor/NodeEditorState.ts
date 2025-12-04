@@ -31,6 +31,16 @@ export type DraggingEdgeData = {
     }
 } | null;
 
+export type NodeEditMode = {
+    type: "none",
+} | {
+    type: "drag-move",
+    end: () => void
+} | {
+    type: "keyboard-move",
+    end: () => void
+};
+
 export default class NodeEditorState {
     nodes: Writable<Map<NodeID, NodeData>>;
     edges: Writable<EdgeData[]>;
@@ -44,6 +54,7 @@ export default class NodeEditorState {
     draggingEdge: Writable<DraggingEdgeData> = writable(null);
 
     selection: Writable<SelectionState>;
+    editMode: Writable<NodeEditMode> = writable({ type: "none" });
 
     private get currentEdges(): EdgeData[] {
         return get(this.edges);

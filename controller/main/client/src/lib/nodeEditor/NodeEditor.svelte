@@ -5,7 +5,7 @@
     import NENode from "./node/NENode.svelte";
     import NESelection from "./NESelection.svelte";
     import NESelector from "./NESelector.svelte";
-    import type { CameraState, MarqueeState, NodeID, SelectionState } from "./NodeTypes";
+    import type { CameraState, MarqueeState } from "./NodeTypes";
     import CallbackContainer from "../../util/callbackContainer";
     import NodeEditorState from './NodeEditorState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
