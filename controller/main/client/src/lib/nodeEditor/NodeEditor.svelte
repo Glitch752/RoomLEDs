@@ -90,14 +90,18 @@
     https://raw.githubusercontent.com/brian3kb/graham_scan_js/master/src/graham_scan.js
 -->
 
-<svelte:document onkeydown={(e) => {
-    // If the mouse is over the editor, forward keydown events to the node editor state
-    // this isn't a very robust way to do it, but it matches Blender's
-    // behavior and works for now.
-    if(editorElement && editorElement.matches(':hover')) {
-        nodeState.onkeydown(e);
-    }
-}} />
+<svelte:document
+    onkeydown={(e) => {
+        // If the mouse is over the editor, forward keydown events to the node editor state
+        // this isn't a very robust way to do it, but it matches Blender's
+        // behavior and works for now.
+        if(editorElement && editorElement.matches(':hover')) {
+            nodeState.onkeydown(e);
+        }
+    }}
+    onmousemove={(e) => nodeState.onmousemove(e)}
+    onmousedown={(e) => nodeState.onmousedown(e)}    
+/>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div

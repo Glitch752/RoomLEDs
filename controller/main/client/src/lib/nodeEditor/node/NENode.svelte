@@ -21,23 +21,6 @@
 
     const node = $derived.by(() => nodeState.getNode(id));
 
-    let didMouseMove = false;
-    function onDrag(event: MouseEvent) {
-        // Drag every selected node
-        for(const nodeId of $selection.nodes) {
-            const n = nodeState.getNode(nodeId);
-            if(!n) continue;
-
-            n.update(n => {
-                n.x += event.movementX / $camera.zoom;
-                n.y += event.movementY / $camera.zoom;
-                return n;
-            });
-        }
-
-        didMouseMove = true;
-    }
-
     function handleMultiSelectMousedown(event: MouseEvent) {
         // if this node isn't active, make it the active selection
         // and ensure it's part of the selection set
@@ -52,6 +35,8 @@
             }
         }
         selection.set({ ...$selection });
+
+        editMode.set({ type: "drag-move", didMouseMove: false });
     }
 
     function onmousedown(event: MouseEvent) {
@@ -65,17 +50,19 @@
         }
 
         event.preventDefault();
+        event.stopPropagation();
 
         if(event.shiftKey) {
             handleMultiSelectMousedown(event);
             return;
         }
 
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', () => {
-            window.removeEventListener('mousemove', onDrag);
+        editMode.set({ type: "drag-move", didMouseMove: false });
 
-            if(!didMouseMove) {
+        window.addEventListener('mouseup', () => {
+            if($editMode.type !== "drag-move") return;
+
+            if(!$editMode.didMouseMove) {
                 // If the mouse didn't move, this was a click, so set ourself
                 // as the active node
                 $selection.nodes.clear();
@@ -83,9 +70,9 @@
                 $selection.activeNode = id;
                 selection.set({ ...$selection });
             }
-        }, { once: true });
 
-        didMouseMove = false;
+            editMode.set({ type: "none" });
+        }, { once: true });
 
         // If we're not part of the selection, set ourself as the sole active node
         if(!$selection.nodes.has(id)) {

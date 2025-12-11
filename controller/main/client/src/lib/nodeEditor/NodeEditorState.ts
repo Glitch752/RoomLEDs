@@ -35,7 +35,7 @@ export type NodeEditMode = {
     type: "none",
 } | {
     type: "drag-move",
-    end: () => void
+    didMouseMove: boolean
 } | {
     type: "keyboard-move",
     end: () => void
@@ -321,5 +321,53 @@ export default class NodeEditorState {
                 return nodes;
             });
         }
+
+        if(e.key.toLowerCase() === 'g') {
+            // Start keyboard move mode
+            const editMode = get(this.editMode);
+            if(editMode.type === "none") {
+                this.editMode.set({
+                    type: "keyboard-move",
+                    end: () => {
+                        this.editMode.set({ type: "none" });
+                    }
+                });
+            } else if(editMode.type === "keyboard-move") {
+                editMode.end();
+            }
+        }
+    }
+
+    onmousemove(e: MouseEvent) {
+        const editMode = get(this.editMode);
+        if(editMode.type !== "drag-move" && editMode.type !== "keyboard-move") return;
+
+        const camera = get(this.camera);
+
+        if(editMode.type === "drag-move" && !editMode.didMouseMove) this.editMode.set({
+            ...editMode,
+            didMouseMove: true
+        });
+
+        // Drag every selected node
+        for(const nodeId of get(this.selection).nodes) {
+            const n = this.getNode(nodeId);
+            if(!n) continue;
+
+            n.update(n => {
+                n.x += e.movementX / camera.zoom;
+                n.y += e.movementY / camera.zoom;
+                return n;
+            });
+        }
+    }
+
+    onmousedown(e: MouseEvent) {
+        const editMode = get(this.editMode);
+        if(editMode.type === "none") return;
+
+        this.editMode.set({ type: "none" });
+        e.preventDefault();
+        e.stopPropagation();
     }
 }
