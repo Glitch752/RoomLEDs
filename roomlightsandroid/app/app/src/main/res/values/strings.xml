@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Room Lights</string>
+    <string name="app_ver" translatable="false">0.0.1</string>
+</resources>

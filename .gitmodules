@@ -1,0 +1,6 @@
+[submodule "roomlightsandroid/fftw3-android"]
+	path = roomlightsandroid/fftw3-android
+	url = https://github.com/Lauszus/fftw3-android
+[submodule "roomlightsandroid/cava"]
+	path = roomlightsandroid/cava
+	url = https://github.com/karlstav/cava

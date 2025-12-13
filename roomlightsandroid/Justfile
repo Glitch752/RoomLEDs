@@ -1,0 +1,6 @@
+build:
+    cd app && ./gradlew assembleDebug
+
+run-android:
+    cd app && ./gradlew installDebug
+    adb shell am start -n "com.roomlights.android/com.roomlights.android.MainActivity"

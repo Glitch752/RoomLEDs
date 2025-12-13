@@ -1,4 +1,13 @@
 {
     // telling prettier to use 4 spaces fixes svelte even if we don't use it lol
-    "prettier.tabWidth": 4
+    "prettier.tabWidth": 4,
+
+    // Remove most interactions with submodules
+    // so the roomlightsandroid repo doesn't mess up vscode
+    "git.detectSubmodules": false,
+    "git.ignoreSubmodules": true,
+    "search.exclude": {
+        "roomlightsandroid/cava/**": true,
+        "roomlightsandroid/fftw3-android/**": true
+    }
 }
