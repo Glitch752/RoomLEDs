@@ -47,7 +47,7 @@ android {
         // Encapsulates the CMake build configurations.
         cmake {
             // Provides a relative path to the CMake build script.
-            path = file("../../cava/CMakeLists.txt")
+            path = file("../../cavacore/CMakeLists.txt")
         }
     }
     compileOptions {

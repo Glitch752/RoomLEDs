@@ -10,6 +10,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import android.opengl.GLES30
 import android.content.Context
+import android.graphics.PixelFormat
 import android.opengl.GLSurfaceView
 import android.util.Log
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,7 @@ private const val VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES
 private const val UNKNOWN_PROGRAM = -1
 private const val UNKNOWN_ATTRIBUTE = -1
 
-private const val MAX_VISUALIZER_BARS = 256
+const val MAX_VISUALIZER_BARS = 256
 
 private const val LOG_TAG = "room_lights_visualizer"
 
@@ -35,7 +36,14 @@ class Visualizer(
         if(!isInEditMode) {
             setEGLContextClientVersion(3)
             setRenderer(renderer)
+
+            setZOrderOnTop(false)
+            holder.setFormat(PixelFormat.TRANSLUCENT)
         }
+    }
+
+    fun setBarCount(count: Int) {
+        renderer.setBarCount(count)
     }
 }
 
@@ -43,7 +51,7 @@ class VisualizerRenderer(
     private val context: Context,
     private val barsFlow: StateFlow<FloatArray>
 ) : GLSurfaceView.Renderer {
-    private var visualizedBars: Int
+    private var visualizedBars: Int = 64
     private val visualizerBarData = FloatArray(MAX_VISUALIZER_BARS)
 
     private var screenWidth: Int = 0
@@ -58,6 +66,12 @@ class VisualizerRenderer(
     private var uniformBarsCount = UNKNOWN_ATTRIBUTE
     private var uniformResolution = UNKNOWN_ATTRIBUTE
     private var inPositionHandle = UNKNOWN_ATTRIBUTE
+
+    private var shouldReloadConfig = false
+    fun setBarCount(count: Int) {
+        visualizedBars = count
+        shouldReloadConfig = true
+    }
 
     init {
         program = UNKNOWN_PROGRAM
@@ -74,8 +88,6 @@ class VisualizerRenderer(
         
         barBuffer = ByteBuffer.allocateDirect(MAX_VISUALIZER_BARS * FLOAT_SIZE_BYTES)
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
-        
-        visualizedBars = numberOfBarsSet
     }
     
     override fun onSurfaceCreated(unused: GL10, config: EGLConfig) {
@@ -129,15 +141,13 @@ class VisualizerRenderer(
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4)
         checkGlError("glDrawArrays")
         
-        if(configReload) {
-            visualizedBars = numberOfBarsSet
-
+        if(shouldReloadConfig) {
             GLES30.glUniform1i(uniformBarsCount, visualizedBars)
             for(i in 0 until visualizedBars) {
                 visualizerBarData[i] = 0.0.toFloat()
             }
             
-            configReload = false
+            shouldReloadConfig = false
         }
     }
     

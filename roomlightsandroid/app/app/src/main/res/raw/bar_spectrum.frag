@@ -4,7 +4,7 @@ precision highp float;
 in vec2 fragCoord;
 out vec4 fragColor;
 
-// Bar values - defaults to left channels first (low to high), then right (high to low).
+// Bar values - left channels first (low to high), then right (high to low).
 uniform vec4 bars[64];
 uniform int bars_count; // Number of bars (left + right)
 uniform vec3 u_resolution; // Window resolution

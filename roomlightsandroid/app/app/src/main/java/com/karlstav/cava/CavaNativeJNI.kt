@@ -1,19 +1,21 @@
 package com.karlstav.cava;
 
-// Why does cavacore call it this...
-public class MyGLRenderer {
+public class CavaNativeJNI {
     companion object {
         init {
-            System.loadLibrary("cavacore")
+            System.loadLibrary("cavacore-jni")
         }
         
         @JvmStatic
         public external fun InitCava(
-            bars: Int,
+            barsPerChannel: Int,
             sampleRate: Int,
+            channels: Int,
+            autosens: Boolean,
+            noiseReduction: Float,
             lowerCutoff: Int,
             higherCutoff: Int
-        ): FloatArray
+        )
 
         @JvmStatic
         public external fun ExecCava(
