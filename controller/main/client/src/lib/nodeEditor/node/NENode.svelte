@@ -17,71 +17,8 @@
 
     const camera = nodeState.camera;
     const selection = nodeState.selection;
-    const editMode = nodeState.editMode;
 
     const node = $derived.by(() => nodeState.getNode(id));
-
-    function handleMultiSelectMousedown(event: MouseEvent) {
-        // if this node isn't active, make it the active selection
-        // and ensure it's part of the selection set
-        // otherwise, remove it from the selection entirely
-        if($selection.activeNode !== id) {
-            $selection.nodes.add(id);
-            $selection.activeNode = id;
-        } else {
-            $selection.nodes.delete(id);
-            if($selection.activeNode === id) {
-                $selection.activeNode = null;
-            }
-        }
-        selection.set({ ...$selection });
-
-        editMode.set({ type: "drag-move", didMouseMove: false });
-    }
-
-    function onmousedown(event: MouseEvent) {
-        if(
-            document.activeElement instanceof HTMLElement &&
-            (document.activeElement.tagName === "INPUT" ||
-            document.activeElement.tagName === "TEXTAREA")
-        ) {
-            document.activeElement.blur();
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if(event.shiftKey) {
-            handleMultiSelectMousedown(event);
-            return;
-        }
-
-        editMode.set({ type: "drag-move", didMouseMove: false });
-
-        window.addEventListener('mouseup', () => {
-            if($editMode.type !== "drag-move") return;
-
-            if(!$editMode.didMouseMove) {
-                // If the mouse didn't move, this was a click, so set ourself
-                // as the active node
-                $selection.nodes.clear();
-                $selection.nodes.add(id);
-                $selection.activeNode = id;
-                selection.set({ ...$selection });
-            }
-
-            editMode.set({ type: "none" });
-        }, { once: true });
-
-        // If we're not part of the selection, set ourself as the sole active node
-        if(!$selection.nodes.has(id)) {
-            $selection.nodes.clear();
-            $selection.nodes.add(id);
-            $selection.activeNode = id;
-            selection.set({ ...$selection });
-        }
-    }
 
     function updateSocketCache() {
         // TODO: this is a garbage way to do this, and I recognize it, but
@@ -119,8 +56,6 @@
 
     bind:this={nodeElement}
     style="left:{$node.x}px;top:{$node.y}px;width:{$node.width}px;"
-
-    {onmousedown}
 >
     <div class="title" title={$node.variantInfo.description}>{$node.variantInfo.name}</div>
 

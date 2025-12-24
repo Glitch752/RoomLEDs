@@ -362,12 +362,86 @@ export default class NodeEditorState {
         }
     }
 
+    private handleMultiSelectMousedown(event: MouseEvent, id: NodeID) {
+        const selection = get(this.selection);
+
+        // if this node isn't active, make it the active selection
+        // and ensure it's part of the selection set
+        // otherwise, remove it from the selection entirely
+        if(selection.activeNode !== id) {
+            selection.nodes.add(id);
+            selection.activeNode = id;
+        } else {
+            selection.nodes.delete(id);
+            if(selection.activeNode === id) {
+                selection.activeNode = null;
+            }
+        }
+        this.selection.set({ ...selection });
+    }
+
+
+    private onNodeMouseDown(e: MouseEvent, id: NodeID) {
+        if(e.shiftKey) {
+            this.handleMultiSelectMousedown(e, id);
+            return;
+        }
+
+        this.editMode.set({ type: "drag-move", didMouseMove: false });
+        
+        const selection = get(this.selection);
+
+        window.addEventListener('mouseup', () => {
+            const editMode = get(this.editMode);
+            if(editMode.type !== "drag-move") return;
+
+            if(!editMode.didMouseMove) {
+                // If the mouse didn't move, this was a click, so set ourself
+                // as the active node
+                selection.nodes.clear();
+                selection.nodes.add(id);
+                selection.activeNode = id;
+                this.selection.set({ ...selection });
+            }
+
+            this.editMode.set({ type: "none" });
+        }, { once: true });
+
+        // If we're not part of the selection, set ourself as the sole active node
+        if(!selection.nodes.has(id)) {
+            selection.nodes.clear();
+            selection.nodes.add(id);
+            selection.activeNode = id;
+            this.selection.set({ ...selection });
+        }
+    }
+
     onmousedown(e: MouseEvent) {
         const editMode = get(this.editMode);
-        if(editMode.type === "none") return;
+        if(editMode.type !== "none") {
+            this.editMode.set({ type: "none" });
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
 
-        this.editMode.set({ type: "none" });
-        e.preventDefault();
-        e.stopPropagation();
+        if(
+            document.activeElement instanceof HTMLElement &&
+            (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "TEXTAREA")
+        ) {
+            document.activeElement.blur();
+            return;
+        }
+
+        if(!e.target || !(e.target instanceof HTMLElement)) return;
+
+        const node = e.target.closest('[data-node-id]');
+        if(node) {
+            this.onNodeMouseDown(e, node.getAttribute('data-node-id') as NodeID);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
     }
 }
