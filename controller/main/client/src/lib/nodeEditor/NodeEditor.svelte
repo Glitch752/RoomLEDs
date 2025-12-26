@@ -10,6 +10,10 @@
     import NEDocumentState from './NEDocumentState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
     import { expDecay } from "../../util/timing";
+  import NEContextMenu from "./contextMenu/NEContextMenu.svelte";
+  import NEContextSubmenu from "./contextMenu/NEContextSubmenu.svelte";
+  import NEContextMenuItem from "./contextMenu/NEContextMenuItem.svelte";
+  import NEContextMenuDivider from "./contextMenu/NEContextMenuDivider.svelte";
 
     let editorElement: HTMLDivElement;
     const nodeState = new NEDocumentState();
@@ -98,6 +102,20 @@
         event.preventDefault();
     }
 
+    let contextMenu: NEContextMenu;
+    function handleContextMenu(event: MouseEvent) {
+        event.preventDefault();
+
+        contextMenu.openAtMouse();
+    }
+    function handleKeyDown(event: KeyboardEvent): boolean {
+        if(event.shiftKey && event.key === 'A') {
+            contextMenu.openAtMouse(["add"]);
+            return true;
+        }
+        return false;
+    }
+
     onMount(() => {
         function beginMiddlePan(e: MouseEvent) {
             const startX = e.clientX, startY = e.clientY;
@@ -121,7 +139,7 @@
             }
         });
         return unsubscribe;
-    })
+    });
 </script>
 
 <!-- 
@@ -135,6 +153,8 @@
         // this isn't a very robust way to do it, but it matches Blender's
         // behavior and works for now.
         if(editorElement && editorElement.matches(':hover')) {
+            if(handleKeyDown(e)) return;
+
             nodeState.onkeydown(e);
         }
     }}
@@ -147,6 +167,7 @@
 <div
     class="editor"
     onwheel={handleWheel}
+    oncontextmenu={handleContextMenu}
     style="--zoom: {$camera.zoom};"
     bind:this={editorElement}
 >
@@ -166,6 +187,26 @@
         </div>
     </div>
     <NESelection bind:marquee selection={nodeState.selection} />
+
+    <NEContextMenu bind:this={contextMenu}>
+        <NEContextSubmenu label="Add Node" path="add">
+            <NEContextSubmenu label="Math">
+                <NEContextMenuItem label="Unary" onselect={() => { console.log("unary thing") }} />
+                <NEContextMenuItem label="Binary" />
+            </NEContextSubmenu>
+            <NEContextSubmenu label="Input">
+                <NEContextMenuItem label="Number" />
+                <NEContextMenuItem label="Vector2" />
+                <NEContextMenuItem label="Color" />
+                <NEContextMenuItem label="..." />
+            </NEContextSubmenu>
+            <NEContextMenuItem label="Other..." />
+            <!-- ... probably should be generated instead of manual -->
+        </NEContextSubmenu>
+        <NEContextMenuDivider />
+        <NEContextMenuItem label="Copy" />
+        <NEContextMenuItem label="Paste" />
+    </NEContextMenu>
 </div>
 
 <style>
