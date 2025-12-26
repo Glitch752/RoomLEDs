@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import type { NodeID, SelectionState } from "../NodeTypes";
-    import type NodeEditorState from "../NodeEditorState";
+    import type NEDocumentState from "../NEDocumentState";
     import NENodeLine from "./NENodeLine.svelte";
     import NENodeDataValue from "./NENodeDataValue.svelte";
 
@@ -10,7 +10,7 @@
         nodeState
     }: {
         id: NodeID,
-        nodeState: NodeEditorState
+        nodeState: NEDocumentState
     } = $props();
 
     let nodeElement: HTMLDivElement;

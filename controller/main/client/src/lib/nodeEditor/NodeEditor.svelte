@@ -7,12 +7,12 @@
     import NESelector from "./NESelector.svelte";
     import type { CameraState, MarqueeState } from "./NodeTypes";
     import CallbackContainer from "../../util/callbackContainer";
-    import NodeEditorState from './NodeEditorState';
+    import NEDocumentState from './NEDocumentState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
     import { expDecay } from "../../util/timing";
 
     let editorElement: HTMLDivElement;
-    const nodeState = new NodeEditorState();
+    const nodeState = new NEDocumentState();
 
     onMount(() => {
         nodeState.editorElement = editorElement;

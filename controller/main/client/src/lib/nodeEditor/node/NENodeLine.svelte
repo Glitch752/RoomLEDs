@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type NodeEditorState from "../NodeEditorState";
+    import type NEDocumentState from "../NEDocumentState";
     import type { EdgeData, NodeData, NodeID, EdgeID } from "../NodeTypes";
     import { nodeDataTypeInfo, type NodeDataType } from "../NodeVariants";
 
@@ -14,7 +14,7 @@
         isInput: boolean,
         text: string,
         type: NodeDataType,
-        nodeState: NodeEditorState,
+        nodeState: NEDocumentState,
         node: NodeData,
         index: number
     } = $props();

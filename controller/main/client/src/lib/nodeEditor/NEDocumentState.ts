@@ -1,7 +1,6 @@
 import { get, writable, type Writable } from 'svelte/store';
 import { tick } from 'svelte';
-import { NodeData, type CameraState, type EdgeData, type EdgeID, type NodeID, type SelectionState, type SerializedNodeData, type SerializedNodeEditorState } from './NodeTypes';
-import { NodeVariant } from './NodeVariants';
+import { NodeData, type CameraState, type EdgeData, type EdgeID, type NodeID, type SelectionState, type SerializedNodeData, type SerializedDocumentState } from './NodeTypes';
 
 export type DraggingEdgeData = {
     type: 'to',
@@ -41,7 +40,7 @@ export type NodeEditMode = {
     end: () => void
 };
 
-export default class NodeEditorState {
+export default class NEDocumentState {
     nodes: Writable<Map<NodeID, NodeData>>;
     edges: Writable<EdgeData[]>;
     camera: Writable<CameraState>;
@@ -163,7 +162,7 @@ export default class NodeEditorState {
         });
     }
 
-    serialize(): SerializedNodeEditorState {
+    serialize(): SerializedDocumentState {
         const nodesArray: SerializedNodeData[] = [];
         get(this.nodes).forEach((node) => {
             const { inputPositionCache, outputPositionCache, ...rest } = node;
@@ -178,7 +177,7 @@ export default class NodeEditorState {
         };
     }
 
-    async deserialize(data: SerializedNodeEditorState): Promise<void> {
+    async deserialize(data: SerializedDocumentState): Promise<void> {
         this.edges.set([]);
         this.nodes.set(new Map());
 
@@ -293,14 +292,17 @@ export default class NodeEditorState {
             didMouseMove: true
         });
 
+
+        const moveSpeed = e.shiftKey ? 0.1 : 1;
+
         // Drag every selected node
         for(const nodeId of get(this.selection).nodes) {
             const n = this.getNode(nodeId);
             if(!n) continue;
 
             n.update(n => {
-                n.x += e.movementX / camera.zoom;
-                n.y += e.movementY / camera.zoom;
+                n.x += e.movementX / camera.zoom * moveSpeed;
+                n.y += e.movementY / camera.zoom * moveSpeed;
                 return n;
             });
         }

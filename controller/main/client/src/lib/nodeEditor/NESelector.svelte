@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
-  import type { NodeEditMode } from "./NodeEditorState";
+  import type { NodeEditMode } from "./NEDocumentState";
     import type { MarqueeState } from "./NodeTypes";
 
     let {
