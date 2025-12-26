@@ -149,13 +149,13 @@ export default class NodeEditorState {
     constructor() {
         this.nodes = writable(new Map());
         this.edges = writable<EdgeData[]>([]);
-
-        this.generateTestGrid(10);
-
+        
         this.camera = writable<CameraState>({
             center: { x: 0, y: 0 },
             zoom: 1
         });
+
+        this.deserialize(JSON.parse('{"version":1,"nodes":[{"id":"node-0-0","variant":0,"zonePartner":null,"x":-141.95570880296808,"y":524.6917003928421,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-0-4","variant":29,"zonePartner":null,"x":1228.8927871089236,"y":180.52683273147554,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-0-8","variant":29,"zonePartner":null,"x":3202.791470447396,"y":-59.333680913536945,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-0-9","variant":6,"zonePartner":null,"x":3216.0623077600403,"y":1029.5343535743855,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-1-1","variant":29,"zonePartner":null,"x":184.5170995769578,"y":502.5540743219631,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-1-2","variant":29,"zonePartner":null,"x":521.7978986458531,"y":695.9724994617342,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-1-5","variant":29,"zonePartner":null,"x":1578.9487796338549,"y":692.9382846076647,"width":200,"zIndex":0,"dataValues":{"operation":"negate"}},{"id":"node-1-6","variant":29,"zonePartner":null,"x":1856.4041478040954,"y":177.18014964392518,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-1-8","variant":29,"zonePartner":null,"x":3187.275806912383,"y":110.28317903885028,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-1-9","variant":6,"zonePartner":null,"x":3185.5987590607815,"y":268.9530116831554,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-2-2","variant":29,"zonePartner":null,"x":614.7091088879855,"y":207.47083149123236,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-2-3","variant":29,"zonePartner":null,"x":924.4724109127977,"y":177.83129122152042,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-2-4","variant":29,"zonePartner":null,"x":1233.7396406707428,"y":933.525927680031,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-2-5","variant":29,"zonePartner":null,"x":1850.4616478143334,"y":1116.7727655654196,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-2-9","variant":6,"zonePartner":null,"x":3310.2892334788166,"y":1182.2155627316256,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-3-3","variant":29,"zonePartner":null,"x":824.4373995881461,"y":716.1521266288267,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-3-4","variant":29,"zonePartner":null,"x":1257.6377391953063,"y":706.4969273990024,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-3-5","variant":29,"zonePartner":null,"x":1511.832242265747,"y":177.25126623361012,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-3-7","variant":29,"zonePartner":null,"x":2247.6275422652047,"y":667.6456768047979,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-3-8","variant":29,"zonePartner":null,"x":2840.867760390102,"y":1024.8388766594394,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-3-9","variant":6,"zonePartner":null,"x":3338.483268861375,"y":1299.6704340560123,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-4-8","variant":29,"zonePartner":null,"x":2546.288536948397,"y":675.6999200554962,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-4-9","variant":6,"zonePartner":null,"x":3320.533164853259,"y":1455.9281897435703,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-5-6","variant":29,"zonePartner":null,"x":1929.3710335831095,"y":677.9503599518284,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-5-7","variant":29,"zonePartner":null,"x":2477.1156932130552,"y":1106.772713394692,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-5-9","variant":6,"zonePartner":null,"x":2886.3956988670093,"y":676.6113717870262,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-6-6","variant":29,"zonePartner":null,"x":2153.049195701635,"y":1150.5809525694533,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-6-7","variant":29,"zonePartner":null,"x":2209.1509438858275,"y":186.51164984444716,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-6-8","variant":29,"zonePartner":null,"x":2589.9075425329142,"y":313.5574073290674,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-6-9","variant":6,"zonePartner":null,"x":3196.234048403714,"y":389.99894220123707,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-7-8","variant":29,"zonePartner":null,"x":2901.9016327494587,"y":1189.8276828842047,"width":200,"zIndex":0,"dataValues":{"operation":"sqrt"}},{"id":"node-7-9","variant":6,"zonePartner":null,"x":3496.9417382786146,"y":124.47877955754083,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-8-9","variant":6,"zonePartner":null,"x":3203.001110916343,"y":500.96003033314366,"width":150,"zIndex":0,"dataValues":{}},{"id":"node-9-9","variant":6,"zonePartner":null,"x":3499.1539647213935,"y":-56.980152102787606,"width":150,"zIndex":0,"dataValues":{}}],"edges":[{"id":"edge-1","from":{"nodeId":"node-0-0","outputIndex":0},"to":{"nodeId":"node-1-1","inputIndex":0}},{"id":"edge-3","from":{"nodeId":"node-1-1","outputIndex":0},"to":{"nodeId":"node-1-2","inputIndex":0}},{"id":"edge-4","from":{"nodeId":"node-1-1","outputIndex":0},"to":{"nodeId":"node-2-2","inputIndex":0}},{"id":"edge-7","from":{"nodeId":"node-2-2","outputIndex":0},"to":{"nodeId":"node-2-3","inputIndex":0}},{"id":"edge-8","from":{"nodeId":"node-1-2","outputIndex":0},"to":{"nodeId":"node-3-3","inputIndex":0}},{"id":"edge-9","from":{"nodeId":"node-2-3","outputIndex":0},"to":{"nodeId":"node-0-4","inputIndex":0}},{"id":"edge-11","from":{"nodeId":"node-3-3","outputIndex":0},"to":{"nodeId":"node-2-4","inputIndex":0}},{"id":"edge-12","from":{"nodeId":"node-3-3","outputIndex":0},"to":{"nodeId":"node-3-4","inputIndex":0}},{"id":"edge-15","from":{"nodeId":"node-3-4","outputIndex":0},"to":{"nodeId":"node-1-5","inputIndex":0}},{"id":"edge-16","from":{"nodeId":"node-2-4","outputIndex":0},"to":{"nodeId":"node-2-5","inputIndex":0}},{"id":"edge-17","from":{"nodeId":"node-0-4","outputIndex":0},"to":{"nodeId":"node-3-5","inputIndex":0}},{"id":"edge-21","from":{"nodeId":"node-3-5","outputIndex":0},"to":{"nodeId":"node-1-6","inputIndex":0}},{"id":"edge-25","from":{"nodeId":"node-1-5","outputIndex":0},"to":{"nodeId":"node-5-6","inputIndex":0}},{"id":"edge-26","from":{"nodeId":"node-2-5","outputIndex":0},"to":{"nodeId":"node-6-6","inputIndex":0}},{"id":"edge-30","from":{"nodeId":"node-5-6","outputIndex":0},"to":{"nodeId":"node-3-7","inputIndex":0}},{"id":"edge-32","from":{"nodeId":"node-6-6","outputIndex":0},"to":{"nodeId":"node-5-7","inputIndex":0}},{"id":"edge-33","from":{"nodeId":"node-1-6","outputIndex":0},"to":{"nodeId":"node-6-7","inputIndex":0}},{"id":"edge-35","from":{"nodeId":"node-6-7","outputIndex":0},"to":{"nodeId":"node-0-8","inputIndex":0}},{"id":"edge-36","from":{"nodeId":"node-6-7","outputIndex":0},"to":{"nodeId":"node-1-8","inputIndex":0}},{"id":"edge-38","from":{"nodeId":"node-5-7","outputIndex":0},"to":{"nodeId":"node-3-8","inputIndex":0}},{"id":"edge-39","from":{"nodeId":"node-3-7","outputIndex":0},"to":{"nodeId":"node-4-8","inputIndex":0}},{"id":"edge-41","from":{"nodeId":"node-6-7","outputIndex":0},"to":{"nodeId":"node-6-8","inputIndex":0}},{"id":"edge-42","from":{"nodeId":"node-5-7","outputIndex":0},"to":{"nodeId":"node-7-8","inputIndex":0}},{"id":"edge-44","from":{"nodeId":"node-3-8","outputIndex":0},"to":{"nodeId":"node-0-9","inputIndex":0}},{"id":"edge-45","from":{"nodeId":"node-6-8","outputIndex":0},"to":{"nodeId":"node-1-9","inputIndex":0}},{"id":"edge-46","from":{"nodeId":"node-7-8","outputIndex":0},"to":{"nodeId":"node-2-9","inputIndex":0}},{"id":"edge-47","from":{"nodeId":"node-7-8","outputIndex":0},"to":{"nodeId":"node-3-9","inputIndex":0}},{"id":"edge-48","from":{"nodeId":"node-7-8","outputIndex":0},"to":{"nodeId":"node-4-9","inputIndex":0}},{"id":"edge-49","from":{"nodeId":"node-4-8","outputIndex":0},"to":{"nodeId":"node-5-9","inputIndex":0}},{"id":"edge-50","from":{"nodeId":"node-6-8","outputIndex":0},"to":{"nodeId":"node-6-9","inputIndex":0}},{"id":"edge-51","from":{"nodeId":"node-1-8","outputIndex":0},"to":{"nodeId":"node-7-9","inputIndex":0}},{"id":"edge-52","from":{"nodeId":"node-6-8","outputIndex":0},"to":{"nodeId":"node-8-9","inputIndex":0}},{"id":"edge-53","from":{"nodeId":"node-0-8","outputIndex":0},"to":{"nodeId":"node-9-9","inputIndex":0}}],"camera":{"center":{"x":2052.088631599336,"y":733.8670938596996},"zoom":0.27363781062882725}}'));
 
         this.selection = writable<SelectionState>({
             nodes: new Set<NodeID>(),
@@ -192,101 +192,6 @@ export default class NodeEditorState {
         this.nodes.set(nodesMap);
         this.edges.set(data.edges);
         this.camera.set(data.camera);
-    }
-
-
-
-    // spaghetti, yum 🍝
-    // only for testing! this isn't made to be good code
-    generateTestGrid(n: number) {
-        this.nodes.set(new Map());
-        this.edges.set([]);
-
-        const nodes = new Map<NodeID, NodeData>();
-        const edges: EdgeData[] = [];
-        let edgeId = 0;
-
-        for(let row = 0; row < n; row++) {
-            for(let col = row; col < n; col++) {
-                const id = `node-${row}-${col}` as NodeID;
-                const middleNode = col !== 0 && col !== n - 1;
-                nodes.set(id, new NodeData({
-                    id,
-                    variant: col === 0 ? NodeVariant.InputNumber : (
-                        col === n - 1 ? NodeVariant.OutputNumber : NodeVariant.UnaryNumberOperation
-                    ),
-                    x: col * 300 + Math.floor(Math.random() * 100 - 50),
-                    y: row * 180 + Math.floor(Math.random() * 100 - 50),
-                    width: middleNode ? 200 : 150,
-                    zonePartner: null,
-                    dataValues: middleNode ? {
-                        operation: 'sqrt'
-                    } : {},
-                    zIndex: 0
-                }));
-            }
-        }
-
-        const getNodeId = (row: number, col: number) => `node-${row}-${col}` as NodeID;
-
-        const addEdgeIfValid = (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-            if(fromCol < 0 || fromCol >= n || toCol < 0 || toCol >= n) return;
-            const fromId = getNodeId(fromRow, fromCol);
-            const toId = getNodeId(toRow, toCol);
-            if(!nodes.has(fromId) || !nodes.has(toId)) return;
-
-            // Check if the to node already has an edge on that input
-            const existingEdge = edges.find((e) => e.to.nodeId === toId && e.to.inputIndex === 0);
-            if(existingEdge) return;
-            
-            edges.push({
-                id: `edge-${edgeId++}`,
-                from: { nodeId: fromId, outputIndex: 0 },
-                to: { nodeId: toId, inputIndex: 0 },
-            } as EdgeData);
-        };
-
-        // For each column, pick random nodes in the previous column
-        // to make edges with
-        for(let col = 1; col < n; col++) {
-            const possibleFromRows = [];
-            for(let row = 0; row < n; row++) {
-                if(nodes.has(getNodeId(row, col - 1))) {
-                    possibleFromRows.push(row);
-                }
-            }
-            
-            for(let row = 0; row < n; row++) {
-                const fromRow = possibleFromRows[Math.floor(Math.random() * possibleFromRows.length)];
-                addEdgeIfValid(fromRow, col - 1, row, col);
-            }
-        }
-
-        // Remove nodes with no outputs
-        let removed = true;
-        while(removed) {
-            removed = false;
-            nodes.forEach((node, nodeId) => {
-                if(node.variantInfo.outputs.length !== 0) {
-                    const hasOutgoingEdge = edges.some((edge) => edge.from.nodeId === nodeId);
-                    if(!hasOutgoingEdge) {
-                        nodes.delete(nodeId);
-
-                        // Delete edges connected to this node
-                        for(let i = edges.length - 1; i >= 0; i--) {
-                            if(edges[i].from.nodeId === nodeId || edges[i].to.nodeId === nodeId) {
-                                edges.splice(i, 1);
-                            }
-                        }
-
-                        removed = true;
-                    }
-                }
-            });
-        }
-
-        this.nodes.set(nodes);
-        this.edges.set(edges);
     }
 
     clientToCanvas(x: number, y: number): { x: number; y: number } {
@@ -338,7 +243,46 @@ export default class NodeEditorState {
         }
     }
 
-    onmousemove(e: MouseEvent) {
+    private mouseDownHandlers: {
+        once: boolean,
+        handler: (e: MouseEvent) => void
+    }[] = [];
+    private mouseMoveHandlers: {
+        removeWhenMouseUp: boolean,
+        handler: (e: MouseEvent) => void
+    }[] = [];
+    private mouseUpHandlers: {
+        once: boolean,
+        handler: (e: MouseEvent) => void
+    }[] = [];
+
+    public handleMouseDown(handler: (e: MouseEvent) => void): () => void {
+        this.mouseDownHandlers.push({
+            once: false,
+            handler
+        });
+        return () => {
+            this.mouseDownHandlers = this.mouseDownHandlers.filter(h => h.handler !== handler);
+        };
+    }
+    public handleMouseMoveUntilMouseUp(handler: (e: MouseEvent) => void) {
+        this.mouseMoveHandlers.push({
+            removeWhenMouseUp: true,
+            handler
+        });
+    }
+    public handleMouseUpOnce(handler: (e: MouseEvent) => void) {
+        this.mouseUpHandlers.push({
+            once: true,
+            handler
+        });
+    }
+
+    public onmousemove(e: MouseEvent) {
+        for(const handler of this.mouseMoveHandlers) {
+            handler.handler(e);
+        }
+
         const editMode = get(this.editMode);
         if(editMode.type !== "drag-move" && editMode.type !== "keyboard-move") return;
 
@@ -360,6 +304,17 @@ export default class NodeEditorState {
                 return n;
             });
         }
+    }
+
+    public onmouseup(e: MouseEvent) {
+        this.mouseMoveHandlers = this.mouseMoveHandlers.filter((handler) => {
+            return !handler.removeWhenMouseUp;
+        });
+
+        for(const handler of this.mouseUpHandlers) handler.handler(e);
+        this.mouseUpHandlers = this.mouseUpHandlers.filter((handler) => {
+            return !handler.once;
+        });
     }
 
     private handleMultiSelectMousedown(event: MouseEvent, id: NodeID) {
@@ -391,7 +346,7 @@ export default class NodeEditorState {
         
         const selection = get(this.selection);
 
-        window.addEventListener('mouseup', () => {
+        this.handleMouseUpOnce(() => {
             const editMode = get(this.editMode);
             if(editMode.type !== "drag-move") return;
 
@@ -405,7 +360,7 @@ export default class NodeEditorState {
             }
 
             this.editMode.set({ type: "none" });
-        }, { once: true });
+        });
 
         // If we're not part of the selection, set ourself as the sole active node
         if(!selection.nodes.has(id)) {
@@ -417,31 +372,46 @@ export default class NodeEditorState {
     }
 
     onmousedown(e: MouseEvent) {
-        const editMode = get(this.editMode);
-        if(editMode.type !== "none") {
-            this.editMode.set({ type: "none" });
-            e.preventDefault();
-            e.stopPropagation();
-            return;
+        switch(e.button) {
+            case 0: // left
+                const editMode = get(this.editMode);
+                if(editMode.type !== "none") {
+                    this.editMode.set({ type: "none" });
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+        
+                if(
+                    document.activeElement instanceof HTMLElement &&
+                    (document.activeElement.tagName === "INPUT" ||
+                    document.activeElement.tagName === "TEXTAREA")
+                ) {
+                    document.activeElement.blur();
+                    return;
+                }
+        
+                if(!e.target || !(e.target instanceof HTMLElement)) return;
+        
+                const node = e.target.closest('[data-node-id]');
+                if(node) {
+                    this.onNodeMouseDown(e, node.getAttribute('data-node-id') as NodeID);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
         }
 
-        if(
-            document.activeElement instanceof HTMLElement &&
-            (document.activeElement.tagName === "INPUT" ||
-            document.activeElement.tagName === "TEXTAREA")
-        ) {
-            document.activeElement.blur();
-            return;
-        }
-
-        if(!e.target || !(e.target instanceof HTMLElement)) return;
-
-        const node = e.target.closest('[data-node-id]');
-        if(node) {
-            this.onNodeMouseDown(e, node.getAttribute('data-node-id') as NodeID);
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
+        // Custom handlers (maybe not the right name?)
+        for(const handler of this.mouseDownHandlers) handler.handler(e);
+        this.mouseDownHandlers = this.mouseDownHandlers.filter((handler) => {
+            return !handler.once;
+        });
     }
 }

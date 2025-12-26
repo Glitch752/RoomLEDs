@@ -67,22 +67,61 @@
 
     let marquee: MarqueeState = $state({ active: false, startX: 0, startY: 0, endX: 0, endY: 0 });
 
+    // TODO: A proper settings interface
+    const settings = {
+        zoomWithWheel: true
+    };
+
     function handleWheel(event: WheelEvent) {
-        if (event.ctrlKey) {
-            // Zoom when holding control
+        let shouldPan = false, panX = false;
+        if(settings.zoomWithWheel) {
+            shouldPan = event.ctrlKey || event.shiftKey;
+            panX = event.ctrlKey;
+        } else {
+            shouldPan = !event.ctrlKey;
+            panX = event.shiftKey;
+        }
+        
+        if(shouldPan) {
+            const deltaX = panX ? event.deltaY : event.deltaX;
+            const deltaY = panX ? 0 : event.deltaY;
+
+            const currentZoom = $camera.zoom;
+            targetCamera.center.x += deltaX / currentZoom / 2;
+            targetCamera.center.y += deltaY / currentZoom / 2;
+        } else {
             const zoomFactor = 0.1;
             targetCamera.zoom = Math.max(0.1, Math.min(10,
                 targetCamera.zoom * (1 - event.deltaY * zoomFactor / 100)
-             ))
-         } else {
-             // Pan camera
-             // read current camera zoom from the store
-             const currentZoom = $camera.zoom;
-             targetCamera.center.x += event.deltaX / currentZoom / 2;
-             targetCamera.center.y += event.deltaY / currentZoom / 2;
-         }
-         event.preventDefault();
-     }
+            ));
+        }
+        event.preventDefault();
+    }
+
+    onMount(() => {
+        function beginMiddlePan(e: MouseEvent) {
+            const startX = e.clientX, startY = e.clientY;
+            const startCameraX = $camera.center.x, startCameraY = $camera.center.y;
+            
+            nodeState.handleMouseMoveUntilMouseUp((moveEvent) => {
+                const deltaX = moveEvent.clientX - startX;
+                const deltaY = moveEvent.clientY - startY;
+
+                const currentZoom = $camera.zoom;
+                targetCamera.center.x = startCameraX - deltaX / currentZoom;
+                targetCamera.center.y = startCameraY - deltaY / currentZoom;
+            });
+        }
+
+        const unsubscribe = nodeState.handleMouseDown((e: MouseEvent) => {
+            if(e.button === 1) { // middle mouse button
+                beginMiddlePan.call(nodeState, e);
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+        return unsubscribe;
+    })
 </script>
 
 <!-- 
@@ -100,7 +139,8 @@
         }
     }}
     onmousemove={(e) => nodeState.onmousemove(e)}
-    onmousedown={(e) => nodeState.onmousedown(e)}    
+    onmousedown={(e) => nodeState.onmousedown(e)}
+    onmouseup={(e) => nodeState.onmouseup(e)}
 />
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -111,7 +151,7 @@
     bind:this={editorElement}
 >
     <NEBackgroundCanvas camera={$camera} {renderCallbacks} />
-    <NESelector bind:marquee />
+    <NESelector bind:marquee editMode={nodeState.editMode} />
     <div class="canvas" style="transform: scale({$camera.zoom}) translate(50%, 50%) translate({-$camera.center.x}px, {-$camera.center.y}px);">
         <svg class="edges">
             {#each $edges as edge (edge.id)}

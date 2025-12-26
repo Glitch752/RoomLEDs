@@ -1,10 +1,14 @@
 <script lang="ts">
-    import type { MarqueeState, NodeData, SelectionState } from "./NodeTypes";
+  import type { Writable } from "svelte/store";
+  import type { NodeEditMode } from "./NodeEditorState";
+    import type { MarqueeState } from "./NodeTypes";
 
     let {
-        marquee = $bindable()
+        marquee = $bindable(),
+        editMode
     }: {
-        marquee: MarqueeState
+        marquee: MarqueeState,
+        editMode: Writable<NodeEditMode>
     } = $props();
 </script>
 
@@ -13,6 +17,8 @@
     class="marquee-selection-layer"
     onmousedown={(event) => {
         if(event.button !== 0) return; // Only respond to left mouse button
+
+        if($editMode.type !== "none") return;
 
         if(
             document.activeElement instanceof HTMLElement &&
