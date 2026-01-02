@@ -40,8 +40,7 @@
             selectionValue.activeNode = null;
             selectionValue.nodes.clear();
 
-            const nodes = (event.target as HTMLDivElement)
-                .parentElement?.querySelectorAll('[data-node-id]') ?? [];
+            const nodes = (event.target as HTMLDivElement).parentElement?.querySelectorAll('[data-node-id]') ?? [];
             for(const node of nodes) {
                 const nodeId = node.getAttribute('data-node-id') as NodeID;
                 if(!nodeId) continue;

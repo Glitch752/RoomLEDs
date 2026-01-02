@@ -338,7 +338,12 @@ export default class NodeEditorState {
         }
     }
 
-    onmousemove(e: MouseEvent) {
+    private mouseMoveHandlers: {
+        removeWhenMouseUp: boolean,
+        handler: (e: MouseEvent) => boolean
+    }[] = [];
+
+    public onmousemove(e: MouseEvent) {
         const editMode = get(this.editMode);
         if(editMode.type !== "drag-move" && editMode.type !== "keyboard-move") return;
 
@@ -416,32 +421,43 @@ export default class NodeEditorState {
         }
     }
 
+    private beginMiddlePan(e: MouseEvent) {
+        const startCamera = get(this.camera);
+        const startMousePos = { x: e.pageX, y: e.pageY };
+    
+    }
+
     onmousedown(e: MouseEvent) {
-        const editMode = get(this.editMode);
-        if(editMode.type !== "none") {
-            this.editMode.set({ type: "none" });
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-
-        if(
-            document.activeElement instanceof HTMLElement &&
-            (document.activeElement.tagName === "INPUT" ||
-            document.activeElement.tagName === "TEXTAREA")
-        ) {
-            document.activeElement.blur();
-            return;
-        }
-
-        if(!e.target || !(e.target instanceof HTMLElement)) return;
-
-        const node = e.target.closest('[data-node-id]');
-        if(node) {
-            this.onNodeMouseDown(e, node.getAttribute('data-node-id') as NodeID);
-            e.preventDefault();
-            e.stopPropagation();
-            return;
+        switch(e.button) {
+            case 0: // left
+                const editMode = get(this.editMode);
+                if(editMode.type !== "none") {
+                    this.editMode.set({ type: "none" });
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+        
+                if(
+                    document.activeElement instanceof HTMLElement &&
+                    (document.activeElement.tagName === "INPUT" ||
+                    document.activeElement.tagName === "TEXTAREA")
+                ) {
+                    document.activeElement.blur();
+                    return;
+                }
+        
+                if(!e.target || !(e.target instanceof HTMLElement)) return;
+        
+                const node = e.target.closest('[data-node-id]');
+                if(node) {
+                    this.onNodeMouseDown(e, node.getAttribute('data-node-id') as NodeID);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            case 1: // middle
+                this.beginMiddlePan(e);
         }
     }
 }
