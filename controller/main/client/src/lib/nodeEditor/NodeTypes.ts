@@ -6,7 +6,7 @@ export type NodeID = string & { readonly __brand: unique symbol };
 export type EdgeID = string & { readonly __brand: unique symbol };
 
 
-export type SerializedNodeEditorState = {
+export type SerializedDocumentState = {
     version: 1;
     nodes: SerializedNodeData[];
     edges: EdgeData[];

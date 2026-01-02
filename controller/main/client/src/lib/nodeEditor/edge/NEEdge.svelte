@@ -1,6 +1,6 @@
 <script lang="ts">
     import NEPositionedEdge from "./NEPositionedEdge.svelte";
-    import type NodeEditorState from "../NodeEditorState";
+    import type NEDocumentState from "../NEDocumentState";
     import type { EdgeData } from "../NodeTypes";
     import { nodeDataTypeInfo } from "../NodeVariants";
 
@@ -8,7 +8,7 @@
         nodeState,
         edge
     }: {
-        nodeState: NodeEditorState,
+        nodeState: NEDocumentState,
         edge: EdgeData
     } = $props();
 

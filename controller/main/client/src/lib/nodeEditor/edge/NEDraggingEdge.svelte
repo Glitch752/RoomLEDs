@@ -2,14 +2,14 @@
 <!-- TODO: Highlight attached ends to make it more obvious -->
 
 <script lang="ts">
-    import type NodeEditorState from "../NodeEditorState";
+    import type NEDocumentState from "../NEDocumentState";
     import { nodeDataTypeInfo } from "../NodeVariants";
     import NEPositionedEdge from "./NEPositionedEdge.svelte";
 
     const {
         nodeState
     }: {
-        nodeState: NodeEditorState
+        nodeState: NEDocumentState
     } = $props();
 
     const edge = nodeState.draggingEdge;
