@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
+import type { Snippet } from "svelte";
 
 let x: number = $state(0);
 let y: number = $state(0);
@@ -16,7 +16,11 @@ function onmousemove(event: MouseEvent) {
     mouseX = event.clientX;
     mouseY = event.clientY;
 
-    if(isOpen && !(event.target as HTMLElement).closest('.context-menu-wrapper')) {
+    if(
+        isOpen &&
+        event.target instanceof HTMLElement &&
+        !event.target.closest('.context-menu-wrapper')
+    ) {
         close();
     }
 }
@@ -44,7 +48,7 @@ export function close() {
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 {#if isOpen}
     <div class="context-menu-wrapper" style="--y: {y}px; --x: {x}px;" onmousedown={close}>
-        <div class="context-menu" onmousedown={(e) => e.stopPropagation()}>
+        <div class="context-menu" onmousedown={(e) => e.stopPropagation()} data-context-menu>
             {@render children?.()}
         </div>
     </div>

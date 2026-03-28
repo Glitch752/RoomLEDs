@@ -41,20 +41,20 @@ class UdpSender(
                 // Get address and port
                 val addrStr = udpAddressFlow.value
                 val parts = addrStr.split(":")
-                if (parts.size != 2) {
+                if(parts.size != 2) {
                     _status.value = "Error: Invalid UDP address format (expected host:port)"
                     Thread.sleep(500)
                     continue
                 }
                 val host = parts[0]
-                port = try { parts[1].toInt() } catch (e: Exception) {
+                port = try { parts[1].toInt() } catch(e: Exception) {
                     _status.value = "Error: Invalid port in UDP address"
                     Thread.sleep(500)
                     continue
                 }
                 try {
                     address = InetAddress.getByName(host)
-                } catch (e: UnknownHostException) {
+                } catch(e: UnknownHostException) {
                     _status.value = "Error: Unknown host $host"
                     Thread.sleep(500)
                     continue
@@ -82,7 +82,7 @@ class UdpSender(
                         socket?.send(packet)
                         totalBytesSent += byteData.size
                         totalPacketsSent++
-                    } catch (e: Exception) {
+                    } catch(e: Exception) {
                         _status.value = "Error: Failed to send UDP packet: ${e.message}"
                         break
                     }
@@ -91,7 +91,7 @@ class UdpSender(
                     if(totalPacketsSent % 100L == 0L) {
                         val now = System.currentTimeMillis()
                         val elapsed = (now - lastRateTimestamp) / 1000.0
-                        if (elapsed > 0) {
+                        if(elapsed > 0) {
                             val bytesPerSec = totalBytesSent / elapsed
                             val packetsPerSec = 100.0 / elapsed
                             _status.value = String.format(
@@ -104,11 +104,12 @@ class UdpSender(
                     }
 
                     // Sleep to match framerate (80Hz = 12.5ms)
+                    // TODO: proper sleep timing bc this was temporary
                     val sleepMs = 13L
                     Thread.sleep(sleepMs)
                 }
                 _status.value = "Idle"
-            } catch (e: Exception) {
+            } catch(e: Exception) {
                 _status.value = "Error: ${e.message}"
                 Thread.sleep(1000)
             }

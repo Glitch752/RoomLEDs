@@ -12,11 +12,24 @@
         path?: string,
         children?: Snippet
     } = $props();
+
+    let menu: NEContextMenu | null = $state(null);
 </script>
 
-<NEContextMenuItem label={label}>
+<NEContextMenuItem
+    label={label}
+    onfocus={(e) => menu?.openAtSubmenu(e.currentTarget as HTMLElement)}
+    onunfocus={() => menu?.close()}
+>
     <span class="submenu-indicator">▶</span>
 </NEContextMenuItem>
-<NEContextMenu>
+<NEContextMenu bind:this={menu}>
     {@render children?.()}
 </NEContextMenu>
+
+<style lang="scss">
+.submenu-indicator {
+    font-size: 0.6em;
+    margin-top: 0.3em;
+}
+</style>

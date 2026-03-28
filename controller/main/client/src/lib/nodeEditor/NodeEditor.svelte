@@ -10,10 +10,10 @@
     import NEDocumentState from './NEDocumentState';
     import NEDraggingEdge from "./edge/NEDraggingEdge.svelte";
     import { expDecay } from "../../util/timing";
-  import NEContextMenu from "./contextMenu/NEContextMenu.svelte";
-  import NEContextSubmenu from "./contextMenu/NEContextSubmenu.svelte";
-  import NEContextMenuItem from "./contextMenu/NEContextMenuItem.svelte";
-  import NEContextMenuDivider from "./contextMenu/NEContextMenuDivider.svelte";
+    import NEContextMenu from "./contextMenu/NEContextMenu.svelte";
+    import NEContextSubmenu from "./contextMenu/NEContextSubmenu.svelte";
+    import NEContextMenuItem from "./contextMenu/NEContextMenuItem.svelte";
+    import NEContextMenuDivider from "./contextMenu/NEContextMenuDivider.svelte";
 
     let editorElement: HTMLDivElement;
     const nodeState = new NEDocumentState();
@@ -73,7 +73,7 @@
 
     // TODO: A proper settings interface
     const settings = {
-        zoomWithWheel: true
+        zoomWithWheel: false
     };
 
     function handleWheel(event: WheelEvent) {
