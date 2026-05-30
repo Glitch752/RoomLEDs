@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { slide } from "svelte/transition";
-    import EditablePreset from "../../lib/EditablePreset.svelte";
-    import EffectCreator from "../../lib/EffectCreator.svelte";
-    import { presets } from "../../websocket";
+    import { slide } from "svelte/transition";
+    import EditablePreset from "$lib/EditablePreset.svelte";
+    import EffectCreator from "$lib/EffectCreator.svelte";
+    import { presets } from "$lib/websocket";
     
     let creatingPreset = $state(false);
 </script>

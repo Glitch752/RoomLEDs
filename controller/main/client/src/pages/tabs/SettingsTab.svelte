@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { statusMessage } from "../../websocket";
+    import { statusMessage } from "$lib/websocket";
     import { InterfaceTheme, theme } from "../../../settings.svelte";
 
     function capitalize(name: string) {

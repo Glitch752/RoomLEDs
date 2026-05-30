@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { lightData, lightPositions } from "../websocket";
+    import { lightData, lightPositions } from "./websocket";
 
     let canvas: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D | null;

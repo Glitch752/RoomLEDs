@@ -48,7 +48,7 @@
         }
     }
 
-    let focusTimeout: number | null = null;
+    let focusTimeout: ReturnType<typeof setTimeout> | null = null;
     let focused: boolean = false;
     let element: HTMLButtonElement | null = $state(null);
 

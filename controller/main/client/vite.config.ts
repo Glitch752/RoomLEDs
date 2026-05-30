@@ -1,10 +1,6 @@
 import type { UserConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { sveltekit } from '@sveltejs/kit/vite';
 import compileTime from "vite-plugin-compile-time";
-
-// TODO: Fix types?
-// @ts-expect-error I'm not sure how to set up these types properly
-import path from "path";
 
 export default {
   server: {
@@ -23,17 +19,5 @@ export default {
     },
     allowedHosts: true
   },
-  build: {
-    outDir: '../static',
-    emptyOutDir: true,
-  },
-  resolve: {
-    alias: {
-      // @ts-expect-error I'm not sure how to set up these types properly
-      "@shared-bindings": path.resolve(__dirname, "../../../shared/bindings/"),
-      // @ts-expect-error I'm not sure how to set up these types properly
-      "@bindings": path.resolve(__dirname, "../bindings/")
-    }
-  },
-  plugins: [svelte(), compileTime()],
+  plugins: [sveltekit(), compileTime()],
 } satisfies UserConfig;

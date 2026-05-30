@@ -1,5 +1,5 @@
 import { tick } from "svelte";
-import { Writable, writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 
 export enum InterfaceTheme {
     Dark = "dark",
@@ -7,12 +7,19 @@ export enum InterfaceTheme {
     System = "system"
 };
 
-function createSetting<SettingType extends string>(name: string, defaultValue: SettingType): Writable<SettingType> {
+function createSetting<SettingType = string>(name: string, defaultValue: SettingType): Writable<SettingType> {
     const storageItemName = `setting_${name}`;
-    const value = writable<SettingType>(localStorage.getItem(storageItemName) as SettingType ?? defaultValue);
+    let initialValue;
+    try {
+        initialValue = localStorage.getItem(storageItemName) ? JSON.parse(localStorage.getItem(storageItemName)!) : defaultValue;
+    } catch {
+        initialValue = defaultValue;
+    }
+
+    const value = writable<SettingType>(initialValue);
 
     value.subscribe((newValue) => {
-        localStorage.setItem(storageItemName, newValue);
+        localStorage.setItem(storageItemName, JSON.stringify(newValue));
     });
 
     return value;
@@ -20,8 +27,8 @@ function createSetting<SettingType extends string>(name: string, defaultValue: S
 
 export const theme = createSetting<InterfaceTheme>("theme", InterfaceTheme.Dark);
 
-function getTheme(theme: InterfaceTheme): string {
-    switch (theme) {
+function getThemeId(theme: InterfaceTheme): string {
+    switch(theme) {
         case InterfaceTheme.Dark:
             return "dark";
         case InterfaceTheme.Light:
@@ -33,20 +40,17 @@ function getTheme(theme: InterfaceTheme): string {
 
 theme.subscribe(async (newValue) => {
     if(document.startViewTransition === undefined) {
-        document.documentElement.setAttribute("data-theme", getTheme(newValue));
+        updateDocumentTheme();
         return;
     }
 
     await document.startViewTransition(async () => {
         await tick();
-        document.documentElement.setAttribute("data-theme", getTheme(newValue));
-    }).ready;
+        updateDocumentTheme();
+    });
 
     const themeSelector = document.getElementById("themeSelector");
-    if(themeSelector === null) {
-        console.error("Theme selector not found");
-        return;
-    }
+    if(themeSelector === null) return;
 
     const rect = themeSelector.getBoundingClientRect();
     const x = rect.x + rect.width / 2;
@@ -63,9 +67,13 @@ theme.subscribe(async (newValue) => {
         ],
       },
       {
-        duration: 1000,
+        duration: 200,
         easing: 'ease-in-out',
         pseudoElement: '::view-transition-new(root)',
       }
     );
 });
+
+export function updateDocumentTheme() {
+    document.documentElement.setAttribute("data-theme", getThemeId(get(theme)));
+}

@@ -1,4 +1,4 @@
-const apiUrl = window.location.origin + '/api';
+const apiUrl = '/api';
 
 export async function get<T>(path: string): Promise<T> {
   const response = await fetch(`${apiUrl}${path}`);

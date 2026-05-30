@@ -1,8 +1,8 @@
 import type { LightPosition, ServerToClientMessage, StatusUpdateMessage, SystemStatusUpdateMessage, EffectPreset } from "@shared-bindings/index";
+import { browser } from "$app/environment";
 import { writable } from "svelte/store";
 
-const websocket = new WebSocket(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/websocket`);
-websocket.binaryType = "arraybuffer";
+let websocket: WebSocket | null = null;
 
 export type LightPositionData = {
     positions: LightPosition[],
@@ -33,13 +33,20 @@ let currentSystemData: SystemStatusUpdateMessage = {
     used_swap: 0
 };
 
-websocket.onopen = () => {
-    console.log("Connection opened");
-};
-websocket.onclose = () => {
-    console.log("Connection closed");
-};
-websocket.onmessage = (e: MessageEvent) => {
+export function initWebsocket() {
+    if(!browser || websocket) return;
+
+    websocket = new WebSocket(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/websocket`);
+    websocket.binaryType = "arraybuffer";
+
+    websocket.onopen = () => {
+        console.log("Connection opened");
+    };
+    websocket.onclose = () => {
+        console.log("Connection closed");
+        websocket = null;
+    };
+    websocket.onmessage = (e: MessageEvent) => {
     // If the message is a string, it's a JSON update. If binary, it's an update on the state of the lights.
     if(typeof e.data === "string") {
         const data: ServerToClientMessage = JSON.parse(e.data);
@@ -77,13 +84,14 @@ websocket.onmessage = (e: MessageEvent) => {
     } else if(e.data instanceof ArrayBuffer) {
         lightData = new Uint8Array(e.data);
     }
-};
+    };
+}
 
 // Send light data to the server; sent data will
 // be rendered by websocket input effects.
 // Data should be a Uint8Array of r, g, b pairs.
-export function sendLightData(data: Uint8Array) {
-    websocket.send(data);
+export function sendLightData(data: Uint8Array<ArrayBuffer>) {
+    websocket?.send(data);
 }
 
 function updateStatus() {

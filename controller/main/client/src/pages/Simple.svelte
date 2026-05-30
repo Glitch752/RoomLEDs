@@ -1,6 +1,5 @@
 <script lang="ts">
     import PresetList from "../lib/PresetList.svelte";
-
 </script>
 
 <main>

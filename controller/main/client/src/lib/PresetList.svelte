@@ -1,6 +1,6 @@
 <script lang="ts">
     import { runEffectPreset } from "../api/presets";
-    import { presets } from "../websocket";
+    import { presets } from "./websocket";
 </script>
 
 <ul>
@@ -20,14 +20,10 @@
         align-items: center;
         gap: 1rem;
         
-        font-size: 1.25rem;
+        font-size: 1rem;
         color: var(--text);
         cursor: pointer;
         padding: 0.5rem 0.75rem;
-
-        i {
-            font-size: 1.75rem;
-        }
     }
 
     ul {
