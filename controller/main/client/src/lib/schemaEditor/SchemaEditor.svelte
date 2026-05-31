@@ -34,9 +34,7 @@ function structColorToRgba(value: PixelColor): RgbaColor {
     };
 }
 function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
-    if (rgba === null) {
-        return { r: 0, g: 0, b: 0, alpha: 1 }; // Default to black with full alpha
-    }
+    if(rgba === null) return { r: 0, g: 0, b: 0, alpha: 1 }; // Default to black with full alpha
     return {
         r: Math.round(rgba.r),
         g: Math.round(rgba.g),
@@ -95,7 +93,7 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
                     ) return;
                     (value as PixelColor) = rgbaToStructColor(color.rgb);
                     onchange?.();
-                }} components={ChromeVariant as any} sliderDirection="horizontal" --slider-width="15px"/>
+                }} components={ChromeVariant as any} sliderDirection="horizontal" --slider-width="12px"/>
             </div>
         {:else}
             <SchemaEditor schema={schemas[schema.content]} bind:value={value} noShell {onchange} />
@@ -138,6 +136,7 @@ button:hover {
 
 .colorPicker {
     display: inline;
+    font-size: var(--font-small);
     --cp-bg-color: var(--surface0);
     --cp-border-color: var(--contrast-border);
     --cp-text-color: var(--text);

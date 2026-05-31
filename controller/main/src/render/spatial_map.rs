@@ -6,13 +6,6 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn new(x: f32, y: f32) -> Location {
-        Location {
-            x,
-            y,
-        }
-    }
-
     pub fn from_inches(x: f32, y: f32) -> Location {
         Location {
             x: x * 0.0254,

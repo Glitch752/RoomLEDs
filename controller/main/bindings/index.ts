@@ -180,35 +180,7 @@ export type WebsocketInputEffect = {  };
  * This is by far the most complex effect type, as it allows for arbitrary
  * calculations for every pixel in the frame.
  */
-export type NodeEditorEffect = { nodes: { [key in string]?: Node } };
-
-/**
- * Generated binding.
- */
-export type Node = { id: string, implementation: AnyNodeImplementation, inputs: Array<[string, number]>, last_frame_rendered: number };
-
-/**
- * Generated binding.
- * Tagged with "type".
- */
-export type AnyNodeImplementation = { "type": "LiteralNode" } & LiteralNode;
-
-/**
- * Generated binding.
- */
-export type LiteralNode = { value: Value };
-
-/**
- * Generated binding.
- * Tagged with "type".
- */
-export type Value = { "type": "Float" } & number | { "type": "Integer" } & number | { "type": "Color" } & PixelColor | { "type": "Boolean" } & boolean | { "type": "Frame" } & Frame;
-
-/**
- * Generated binding.
- * A frame is a single set of pixel data.
- */
-export type Frame = { pixel_data: Array<PixelColor> };
+export type NodeEditorEffect = { node_editor_name: string };
 
 /**
  * Generated binding.
@@ -222,4 +194,21 @@ export type AnyTemporaryEffect = { "type": "TemporaryEffectWrapper" } & Duration
  * Generated binding.
  */
 export type DurationTemporaryEffect = { duration: number, effect: AnyEffect };
+
+/**
+ * Generated binding.
+ */
+export type PortInfo = { name: string, type_info: TypeInfo };
+
+/**
+ * Generated binding.
+ * Tagged with "type".
+ */
+export type TypeInfo = { "type": "Int" } | { "type": "Float" } | { "type": "Bool" } | { "type": "String" } | { "type": "Color" } | { "type": "Frame" };
+
+/**
+ * Generated binding.
+ * A frame is a single set of pixel data.
+ */
+export type Frame = { pixel_data: Array<PixelColor> };
 

@@ -9,3 +9,6 @@ client:
 
 server:
     cd controller/main && cargo run --features localtest
+
+typegen:
+    cargo test

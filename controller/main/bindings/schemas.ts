@@ -7,6 +7,55 @@ export let schemas: { [key: string]: Schema } = { /* Items set later in this fil
 /**
  * Generated schema.
  * Tagged with "type".
+ * A wrapper for any temporary effect that can be rendered.
+ * Used for serialization and deserialization.
+ */
+export const AnyTemporaryEffectSchema: Schema = {
+  "type": "Enum",
+  "content": {
+    "variants": [
+      {
+        "name": "TemporaryEffectWrapper",
+        "value": {
+          "type": "Reference",
+          "content": "DurationTemporaryEffect"
+        }
+      }
+    ],
+    "tag_name": "type",
+    "content_subfield": null
+  }
+};
+schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ */
+export const DurationTemporaryEffectSchema: Schema = {
+  "type": "Struct",
+  "content": [
+    {
+      "name": "duration",
+      "ty": {
+        "type": "Number"
+      },
+      "docs": null
+    },
+    {
+      "name": "effect",
+      "ty": {
+        "type": "Reference",
+        "content": "AnyEffect"
+      },
+      "docs": null
+    }
+  ]
+};
+schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
+
+/**
+ * Generated schema.
+ * Tagged with "type".
  * A wrapper for any effect that can be rendered.
  * Used for serialization and deserialization.
  */
@@ -599,224 +648,13 @@ export const NodeEditorEffectSchema: Schema = {
   "type": "Struct",
   "content": [
     {
-      "name": "nodes",
+      "name": "node_editor_name",
       "ty": {
-        "type": "Reference",
-        "content": "Node"
+        "type": "String"
       },
       "docs": null
     }
   ]
 };
 schemas["NodeEditorEffect"] = NodeEditorEffectSchema;
-
-/**
- * Generated schema.
- */
-export const NodeSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "id",
-      "ty": {
-        "type": "Reference",
-        "content": "NodeID"
-      },
-      "docs": null
-    },
-    {
-      "name": "implementation",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyNodeImplementation"
-      },
-      "docs": null
-    },
-    {
-      "name": "inputs",
-      "ty": {
-        "type": "ArrayOf",
-        "content": {
-          "type": "TupleOf",
-          "content": [
-            {
-              "type": "Reference",
-              "content": "NodeID"
-            },
-            {
-              "type": "Number"
-            }
-          ]
-        }
-      },
-      "docs": null
-    },
-    {
-      "name": "last_frame_rendered",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["Node"] = NodeSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
- */
-export const AnyNodeImplementationSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "LiteralNode",
-        "value": {
-          "type": "Reference",
-          "content": "LiteralNode"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["AnyNodeImplementation"] = AnyNodeImplementationSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
- * A wrapper for any temporary effect that can be rendered.
- * Used for serialization and deserialization.
- */
-export const AnyTemporaryEffectSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "TemporaryEffectWrapper",
-        "value": {
-          "type": "Reference",
-          "content": "DurationTemporaryEffect"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["AnyTemporaryEffect"] = AnyTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const DurationTemporaryEffectSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "duration",
-      "ty": {
-        "type": "Number"
-      },
-      "docs": null
-    },
-    {
-      "name": "effect",
-      "ty": {
-        "type": "Reference",
-        "content": "AnyEffect"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["DurationTemporaryEffect"] = DurationTemporaryEffectSchema;
-
-/**
- * Generated schema.
- */
-export const LiteralNodeSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "value",
-      "ty": {
-        "type": "Reference",
-        "content": "Value"
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["LiteralNode"] = LiteralNodeSchema;
-
-/**
- * Generated schema.
- * Tagged with "type".
- */
-export const ValueSchema: Schema = {
-  "type": "Enum",
-  "content": {
-    "variants": [
-      {
-        "name": "Float",
-        "value": {
-          "type": "Number"
-        }
-      },
-      {
-        "name": "Integer",
-        "value": {
-          "type": "Number"
-        }
-      },
-      {
-        "name": "Color",
-        "value": {
-          "type": "Reference",
-          "content": "PixelColor"
-        }
-      },
-      {
-        "name": "Boolean",
-        "value": {
-          "type": "Boolean"
-        }
-      },
-      {
-        "name": "Frame",
-        "value": {
-          "type": "Reference",
-          "content": "Frame"
-        }
-      }
-    ],
-    "tag_name": "type",
-    "content_subfield": null
-  }
-};
-schemas["Value"] = ValueSchema;
-
-/**
- * Generated schema.
- * A frame is a single set of pixel data.
- */
-export const FrameSchema: Schema = {
-  "type": "Struct",
-  "content": [
-    {
-      "name": "pixel_data",
-      "ty": {
-        "type": "ArrayOf",
-        "content": {
-          "type": "Reference",
-          "content": "PixelColor"
-        }
-      },
-      "docs": null
-    }
-  ]
-};
-schemas["Frame"] = FrameSchema;
 

@@ -20,11 +20,17 @@ export type EnumVariant = { name: string, value: Schema | null };
  * Tagged with "type".
  * A schema definition for a type.
  */
-export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "type": "Enum", "content": EnumValue } | { "type": "Optional", "content": Schema } | { "type": "ArrayOf", "content": Schema } | { "type": "TupleOf", "content": Array<Schema> } | { "type": "Reference", "content": string } | { "type": "Number" } | { "type": "String" } | { "type": "Boolean" };
+export type Schema = { "type": "Struct", "content": Array<SchemaField> } | { "type": "Enum", "content": EnumValue } | { "type": "Optional", "content": Schema } | { "type": "ArrayOf", "content": Schema } | { "type": "TupleOf", "content": Array<Schema> } | { "type": "ObjectOf", "content": ObjectSchema } | { "type": "Reference", "content": string } | { "type": "Number" } | { "type": "String" } | { "type": "Boolean" };
 
 /**
  * Generated binding.
  * A field in a schema definition.
  */
 export type SchemaField = { name: string, ty: Schema, docs: string | null };
+
+/**
+ * Generated binding.
+ * A schema definition for an arbitrary object type (hashmap).
+ */
+export type ObjectSchema = { key_schema: Schema, value_schema: Schema };
 
