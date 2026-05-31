@@ -29,7 +29,7 @@
 
 <style lang="scss">
 .submenu-indicator {
-    font-size: 0.6em;
+    font-size: var(--font-xsmall);
     margin-top: 0.3em;
 }
 </style>

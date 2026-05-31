@@ -88,11 +88,11 @@
 }
 
 h2 {
-    font-size: 2rem;
+    font-size: var(--font-large);
     margin: 0 0 1rem 0;
 }
 h3 {
-    font-size: 1.5rem;
+    font-size: var(--font-large);
     margin: 1.5rem 0 0 0;
     font-weight: 500;
 }
@@ -102,6 +102,6 @@ h3 {
     justify-content: flex-start;
     margin-top: 1rem;
     gap: 1rem;
-    font-size: 1rem;
+        font-size: var(--font-small);
 }
 </style>

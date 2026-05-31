@@ -8,6 +8,7 @@
     "git.ignoreSubmodules": true,
     "search.exclude": {
         "roomlightsandroid/cava/**": true,
-        "roomlightsandroid/fftw3-android/**": true
+        "roomlightsandroid/fftw3-android/**": true,
+        "controller/main/client/public/**": true
     }
 }

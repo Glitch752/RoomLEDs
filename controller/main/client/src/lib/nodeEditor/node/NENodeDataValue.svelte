@@ -97,7 +97,7 @@
 <style lang="scss">
 .data-value {
     padding: 0.25rem 0.5rem;
-    font-size: 0.85em;
+    font-size: var(--font-xsmall);
 
     label {
         display: flex;

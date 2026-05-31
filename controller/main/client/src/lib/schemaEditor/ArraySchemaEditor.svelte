@@ -80,7 +80,7 @@ button {
     background-color: var(--background);
     color: var(--text);
     border: none;
-    font-size: 1.25rem;
+    font-size: var(--font-medium);
     padding: 0.5rem 1rem;
 }
 button:hover {
@@ -88,6 +88,6 @@ button:hover {
 }
 
 .controls button {
-    font-size: 1rem;
+    font-size: var(--font-small);
 }
 </style>

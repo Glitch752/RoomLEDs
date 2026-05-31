@@ -12,7 +12,7 @@
     let mousePosition = { x: 0, y: 0 };
     let mouseDown = false;
 
-    let pixelValues: Uint8Array<ArrayBuffer> | null = null;
+    let pixelValues: Uint8Array | null = null;
     let litPixelValues: Uint8Array | null = null;
 
     function getCanvasPosition(x: number, y: number) {

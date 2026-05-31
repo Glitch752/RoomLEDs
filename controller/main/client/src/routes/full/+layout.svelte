@@ -58,7 +58,7 @@ header {
         margin: 0;
         padding: 0;
         margin-left: 1rem;
-        font-size: 1.25rem;
+        font-size: var(--font-medium);
         font-weight: 500;
     }
     
@@ -82,7 +82,7 @@ nav {
     a {
         display: block;
         border: none;
-        font-size: 1rem;
+        font-size: var(--font-small);
         padding: 0.4rem 1rem;
         font-weight: 400;
         color: var(--subtext0);

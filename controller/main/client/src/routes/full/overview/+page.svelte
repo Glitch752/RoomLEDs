@@ -17,7 +17,7 @@ h1 {
     margin: 0;
     padding: 0;
     text-align: left;
-    font-size: 1.5rem;
+    font-size: var(--font-large);
 }
 
 .content {

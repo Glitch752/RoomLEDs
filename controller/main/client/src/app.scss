@@ -7,6 +7,11 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    --font-large: 1.5rem;
+    --font-medium: 1.25rem;
+    --font-small: 1rem;
+    --font-xsmall: 0.875rem;
 }
 
 ::view-transition-old(root),
@@ -76,6 +81,7 @@ body {
     
     width: 100%;
     min-height: 100vh;
+    font-size: var(--font-small);
     overflow: hidden;
     
     background-color: var(--background);
@@ -85,11 +91,13 @@ h1 {
     color: var(--text);
     margin: 0;
     padding: 0;
+    font-size: var(--font-large);
 }
 p {
     color: var(--text);
     margin: 0;
     padding: 1em;
+    font-size: var(--font-small);
 }
 
 ::-webkit-scrollbar {
@@ -145,6 +153,7 @@ button {
     border: none;
     padding: 0.5em 1em;
     cursor: pointer;
+    font-size: var(--font-small);
     background-color: var(--color);
     transition: background-color 0.2s ease-in-out;
     outline: none;
@@ -163,5 +172,5 @@ input {
     color: var(--text);
     border: none;
     padding: 0.25rem 1rem;
-    font-size: 1.25rem;
+    font-size: var(--font-small);
 }

@@ -220,7 +220,7 @@
     position: relative;
 
     .content {
-        font-size: 0.85rem;
+        font-size: var(--font-xsmall);
         flex: 1;
     }
     &.output .content {

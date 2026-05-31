@@ -106,7 +106,7 @@
     text-align: left;
     padding: 1px 8px;
     background: var(--surface1);
-    font-size: 0.9rem;
+    font-size: var(--font-xsmall);
 
     border-radius: var(--border-radius) var(--border-radius) 0 0;
 }

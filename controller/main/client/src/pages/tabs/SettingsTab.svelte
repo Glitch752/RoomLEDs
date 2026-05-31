@@ -38,7 +38,7 @@ select {
     border: none;
     background-color: var(--surface1);
     color: var(--text);
-    font-size: 1rem;
+    font-size: var(--font-small);
     cursor: pointer;
 }
 h1 {

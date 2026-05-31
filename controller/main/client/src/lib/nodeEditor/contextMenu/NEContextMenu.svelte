@@ -73,7 +73,7 @@ export function close() {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     min-width: 150px;
-    font-size: 14px;
+    font-size: var(--font-xsmall);
     color: var(--text);
     
     display: flex;

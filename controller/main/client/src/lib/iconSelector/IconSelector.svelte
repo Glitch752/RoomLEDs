@@ -125,14 +125,12 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
         color: white;
     }
     .icon {
-        font-size: 1.5rem;
+        font-size: var(--font-small);
     }
     .openIcon {
-        font-size: 1.25rem;
         color: #eee;
     }
     .iconName {
-        font-size: 1.25rem;
         color: #eee;
     }
 
@@ -154,7 +152,7 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
         border: none;
         outline: none;
         margin: 1rem;
-        font-size: 1rem;
+        font-size: var(--font-small);
     }
 
     .icons {
@@ -167,7 +165,7 @@ A component that allows the user to select a Font Awesome icon from a dropdown l
     }
 
     .unicodeIcon {
-        font: 1.9rem "Font Awesome 6 Free";
+        font: var(--font-large) "Font Awesome 6 Free";
         font-weight: 900;
 
         border: none;

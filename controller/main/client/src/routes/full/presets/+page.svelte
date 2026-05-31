@@ -34,7 +34,7 @@
         width: 100%;
         background-color: var(--surface0);
         border: none;
-        font-size: 1.75rem;
+        font-size: var(--font-medium);
         color: var(--text);
         cursor: pointer;
         padding: 0.5rem 1rem;

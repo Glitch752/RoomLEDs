@@ -20,7 +20,7 @@
         align-items: center;
         gap: 1rem;
         
-        font-size: 1rem;
+        font-size: var(--font-small);
         color: var(--text);
         cursor: pointer;
         padding: 0.5rem 0.75rem;
@@ -49,7 +49,7 @@
             justify-content: center;
 
             i {
-                font-size: 1.5rem;
+                font-size: var(--font-large);
             }
         }
     }

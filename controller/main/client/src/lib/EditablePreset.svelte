@@ -13,7 +13,9 @@
     let debounceEffectUpdate = debounce(0.25);
 
     let presetData: AnyEffect | null = $state(null);
+    // svelte-ignore state_referenced_locally
     let name: string = $state(defaultName);
+    // svelte-ignore state_referenced_locally
     let icon: string = $state(defaultIcon);
 
     let editing = $state(false);
@@ -131,75 +133,74 @@
 </div>
 
 <style lang="scss">
-    .preset {
-        width: 100%;
-        background-color: var(--surface0);
-        margin: 0.5rem 0;
+.preset {
+    width: 100%;
+    background-color: var(--surface0);
+    margin: 0.5rem 0;
+    text-align: left;
+}
+
+.top {
+    display: flex;
+    border: none;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    color: var(--subtext0);
+    font-size: var(--font-medium);
+    transition: background-color 0.2s, color 0.2s;
+    padding: 0.5rem;
+
+    i {
+        width: 2.5rem;
+        text-align: center;
+        color: var(--subtext0);
+    }
+    .name {
+        flex-grow: 1;
         text-align: left;
     }
 
-    .top {
-        display: flex;
-        border: none;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        background: none;
-        color: var(--subtext0);
-        font-size: 1.5rem;
-        transition: background-color 0.2s, color 0.2s;
-        height: 3rem;
-        padding: 0.5rem;
+    .tag {
+        font-size: var(--font-medium);
+        padding: 0.25rem 1rem;
+        margin-left: 1rem;
 
-        i {
-            width: 2.5rem;
-            text-align: center;
-            color: var(--subtext0);
-        }
-        .name {
-            flex-grow: 1;
-            text-align: left;
-        }
-
-        .tag {
-            font-size: 1.25rem;
-            padding: 0.25rem 1rem;
-            margin-left: 1rem;
-
-            &.previewing {
-                background-color: var(--sapphire);
-                color: var(--surface0);
-            }
-        }
-
-        &.editing {
-            background-color: var(--surface1);
-            color: var(--text);
+        &.previewing {
+            background-color: var(--sapphire);
+            color: var(--surface0);
         }
     }
 
-    button > i {
-        margin-right: 0.5rem;
-    }
-
-    p {
-        margin: 0;
-        padding: 0;
-    }
-    
-    .edit {
-        font-size: 1.25rem;
-        padding: 1rem;
+    &.editing {
+        background-color: var(--surface1);
         color: var(--text);
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
     }
+}
 
-    .actions {
-        display: flex;
-        justify-content: flex-start;
-        font-size: 1rem;
-        gap: 0.5rem;
-    }
+button > i {
+    margin-right: 0.5rem;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+.edit {
+    font-size: var(--font-medium);
+    padding: 1rem;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-start;
+    font-size: var(--font-small);
+    gap: 0.5rem;
+}
 </style>

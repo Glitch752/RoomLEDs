@@ -106,42 +106,42 @@ function rgbaToStructColor(rgba: RgbaColor | null): PixelColor {
 </div>
 
 <style>
-    .shell {
-        background-color: var(--surface0);
-        padding: 0 0.5rem;
-        font-size: 1.25rem;
-        color: var(--text);
-        margin: 0.5rem 0 0.5rem 0.75rem;
-        border-left: 4px solid var(--background);
-    }
+.shell {
+    background-color: var(--surface0);
+    padding: 0 0.5rem;
+    font-size: var(--font-medium);
+    color: var(--text);
+    margin: 0.25rem 0 0.25rem 0.5rem;
+    border-left: 4px solid var(--background);
+}
 
-    .entryName {
-        display: inline;
-    }
-    .description {
-        display: inline;
-        font-size: 0.9rem;
-        margin-left: 1rem;
-        color: var(--subtext1);
-    }
+.entryName {
+    display: inline;
+}
+.description {
+    display: inline;
+    font-size: var(--font-xsmall);
+    margin-left: 1rem;
+    color: var(--subtext1);
+}
 
-    button {
-        background-color: var(--background);
-        color: var(--text);
-        border: none;
-        padding: 0.25rem 1rem;
-        font-size: 1.25rem;
-    }
-    button:hover {
-        background-color: var(--dark-bg);
-    }
+button {
+    background-color: var(--background);
+    color: var(--text);
+    border: none;
+    padding: 0.25rem 1rem;
+    font-size: var(--font-small);
+}
+button:hover {
+    background-color: var(--dark-bg);
+}
 
-    .colorPicker {
-        display: inline;
-		--cp-bg-color: var(--surface0);
-		--cp-border-color: var(--contrast-border);
-		--cp-text-color: var(--text);
-		--cp-input-color: var(--surface1);
-		--cp-button-hover-color: var(--surface2);
-    }
+.colorPicker {
+    display: inline;
+    --cp-bg-color: var(--surface0);
+    --cp-border-color: var(--contrast-border);
+    --cp-text-color: var(--text);
+    --cp-input-color: var(--surface1);
+    --cp-button-hover-color: var(--surface2);
+}
 </style>
